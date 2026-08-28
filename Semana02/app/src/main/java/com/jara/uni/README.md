@@ -77,3 +77,37 @@ Forma de pago: 2 cuotas
 | 3 | Visualización de resultados (boleta final) |
 
 Repositorio: https://github.com/JARA20022/Programacion_Moviles_Jara/tree/main/Semana02
+
+## Prompt usado en IA
+
+**Sistema de Matrícula — Uso de condicionales**
+
+Desarrollar un sistema de matrícula universitaria en Kotlin, usando únicamente estructuras condicionales (sin programación orientada a objetos, sin clases, sin herencia). Los datos deben ingresarse por terminal.
+
+**Datos de entrada:**
+- Nombre del estudiante
+- Cantidad de cursos a matricular
+- Valor de cada crédito
+- Por cada curso: nombre del curso y número de créditos
+
+*Ejemplo:* El estudiante Iván Jara Ayala matricula 2 cursos — Base de Datos (4 créditos) y Programación Móviles (4 créditos).
+
+**Reglas a implementar:**
+- **Carga académica**, según el total de créditos matriculados:
+  - Hasta 12 créditos → Malla Regular
+  - De 13 a 18 créditos → Carga Completa
+  - Más de 18 créditos → Permiso Autorizado
+- **Forma de pago**, según el costo total a pagar:
+  - Si supera S/ 2500 → 3 cuotas
+  - Si no supera S/ 2500 → 2 cuotas
+
+**Salida esperada:**
+- Nombre del estudiante
+- Tabla de curso / créditos / costo por curso
+- Cantidad de cursos matriculados
+- Total de créditos
+- Total a pagar
+- Carga académica
+- Forma de pago
+
+**Entrega:** El trabajo debe reflejarse en 3 commits independientes en el repositorio de GitHub: (1) ingreso de datos, (2) cálculos, (3) visualización de resultados.
