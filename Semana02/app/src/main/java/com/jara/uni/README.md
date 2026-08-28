@@ -67,6 +67,8 @@ Carga académica: Malla Regular
 Forma de pago: 2 cuotas
 ===================================
 ```
+<img width="589" height="577" alt="image" src="https://github.com/user-attachments/assets/6723dddb-b14b-4e5a-8ec7-03d0e6e41cd1" />
+
 
 ## Historial de commits
 
