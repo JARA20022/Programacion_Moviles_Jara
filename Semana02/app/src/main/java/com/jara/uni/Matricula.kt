@@ -50,4 +50,29 @@ fun main() {
     } else {
         formaPago = "2 cuotas"
     }
+
+    // ---------- 3. MOSTRAR RESULTADOS ----------
+    println("\n===================================")
+    println("        BOLETA DE MATRÍCULA")
+    println("===================================")
+    println("Estudiante: $nombreEstudiante")
+    println("-----------------------------------")
+    println(String.format("%-20s%-10s%-10s", "Curso", "Créditos", "Costo (S/)"))
+    for (i in 0 until cantidadCursos) {
+        println(
+            String.format(
+                "%-20s%-10d%-10.2f",
+                nombresCursos[i],
+                creditosCursos[i],
+                costosCursos[i]
+            )
+        )
+    }
+    println("-----------------------------------")
+    println("Cursos matriculados: $cantidadCursos")
+    println("Total de créditos: $totalCreditos")
+    println("Total a pagar: S/ %.2f".format(totalPagar))
+    println("Carga académica: $cargaAcademica")
+    println("Forma de pago: $formaPago")
+    println("===================================")
 }
