@@ -52,3 +52,12 @@ El `precio`, en esta versión, se manejó distinto: la variable real (`precioRea
 
 ## Captura de la consola final
 <img width="551" height="590" alt="image" src="https://github.com/user-attachments/assets/9229e8e0-f39e-4e33-82d6-23969395b128" />
+
+
+## Prompt utilizado
+
+> Ayúdame a resolver el laboratorio del carrito de compras en Kotlin (GLAB-S02) paso a paso y en orden, desde abrir Android Studio. El profesor me indicó realizar este laboratorio usando IA, pero con enfoque orientado a objetos (POO), documentando además la estructura del prompt utilizado.
+>
+> El proyecto debe estar orientado a objetos, aplicando los cuatro pilares de la POO: herencia, abstracción, polimorfismo y encapsulamiento. Necesito también generar commits descriptivos por cada avance del desarrollo, tal como lo exige el laboratorio.
+>
+> Actúa como un desarrollador senior full-stack con 40 años de experiencia, pero guía el proceso como si yo mismo lo estuviera desarrollando: estoy en 4to ciclo de Tecsup y aún no domino Kotlin a fondo, así que necesito explicaciones claras paso a paso, no solo el código final.
