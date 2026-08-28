@@ -5,11 +5,11 @@ fun main() {
     print("Ingrese el nombre del estudiante: ")
     val nombreEstudiante = readLine()!!
 
-    print("Ingrese el valor de cada crédito (S/): ")
-    val valorCredito = readLine()!!.toDouble()
-
     print("Ingrese la cantidad de cursos a matricular: ")
     val cantidadCursos = readLine()!!.toInt()
+
+    print("Ingrese el valor de cada crédito (S/): ")
+    val valorCredito = readLine()!!.toDouble()
 
     val nombresCursos = mutableListOf<String>()
     val creditosCursos = mutableListOf<Int>()
@@ -39,9 +39,9 @@ fun main() {
     if (totalCreditos <= 12) {
         cargaAcademica = "Malla Regular"
     } else if (totalCreditos <= 18) {
-        cargaAcademica = "Carga Máxima"
+        cargaAcademica = "Carga Completa"
     } else {
-        cargaAcademica = "Requiere autorización RENU"
+        cargaAcademica = "Permiso Autorizado"
     }
 
     val formaPago: String
