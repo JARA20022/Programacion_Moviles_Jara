@@ -76,10 +76,13 @@ fun main() {
     // Solo el Ordinario paga matrícula; el Becado no paga
     var totalFinal = 0.0
     var montoRecargoTurno = 0.0
+    var igv = 0.0
 
     if (!esBecado) {
         montoRecargoTurno = totalPagar * recargoTurno
-        totalFinal = totalPagar + montoRecargoTurno
+        val subtotalConTurno = totalPagar + montoRecargoTurno
+        igv = subtotalConTurno * 0.18
+        totalFinal = subtotalConTurno + igv
     }
 
     val formaPago: String
@@ -114,6 +117,7 @@ fun main() {
     println("Subtotal cursos: S/ %.2f".format(totalPagar))
     if (!esBecado) {
         println("Recargo por turno (${(recargoTurno * 100).toInt()}%): S/ %.2f".format(montoRecargoTurno))
+        println("IGV (18%%): S/ %.2f".format(igv))
     } else {
         println("Becado: no paga matrícula")
     }
