@@ -24,7 +24,7 @@ fun leerDecimal(mensaje: String): Double {
         if (entrada == null || entrada.trim().isEmpty()) {
             println("No ingresaste ningún dato. Debes ingresar un número.")
         } else {
-            val numero = entrada.trim().toDoubleOrNull()
+            val numero = entrada.trim().replace(",", ".").toDoubleOrNull()
             if (numero == null) {
                 println("Eso no es un número válido. Debes ingresar un número (puedes usar punto decimal).")
             } else {
@@ -137,7 +137,14 @@ fun main() {
         // El monto de matrícula solo se pide si es Ordinario; el Becado no paga nada
         var montoMatricula = 0.0
         if (!esBecado) {
-            montoMatricula = leerDecimal("Ingrese el monto de matrícula (S/): ")
+            while (true) {
+                montoMatricula = leerDecimal("Ingrese el monto de matrícula (S/): ")
+                if (montoMatricula > 0.0) {
+                    break
+                } else {
+                    println("El monto de matrícula debe ser mayor a 0.")
+                }
+            }
         }
 
         // ---------- 2. CÁLCULOS ----------
