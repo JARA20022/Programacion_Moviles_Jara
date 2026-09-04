@@ -1,6 +1,9 @@
 package com.jara.uni
 
 fun main() {
+    // ---------- AFORO DE LA INSTITUCIÓN ----------
+    val aforoMaximoInstitucion = 10 // capacidad establecida
+
     // ---------- 1. INGRESO DE DATOS ----------
     print("Ingrese el nombre del estudiante: ")
     val nombreEstudiante = readLine()!!
@@ -15,7 +18,10 @@ fun main() {
     val creditosCursos = mutableListOf<Int>()
 
     for (i in 1..cantidadCursos) {
-        println("\n--- Curso $i ---")
+        println("\n--- Curso $i de $aforoMaximoInstitucion ---")
+        if (i == aforoMaximoInstitucion) {
+            println("Se alcanzó el aforo máximo de la institución ($aforoMaximoInstitucion).")
+        }
         print("Nombre del curso: ")
         nombresCursos.add(readLine()!!)
 
@@ -73,7 +79,8 @@ fun main() {
         cargaAcademica = "Permiso Autorizado"
     }
 
-    // Solo el Ordinario paga matrícula; el Becado no paga
+    // Solo el Ordinario paga matrícula (recargo de turno + IGV); el Becado no paga,
+    // pero el subtotal de cursos/créditos se calcula y muestra igual para ambos.
     var totalFinal = 0.0
     var montoRecargoTurno = 0.0
     var igv = 0.0
@@ -99,6 +106,7 @@ fun main() {
     println("Estudiante: $nombreEstudiante")
     println("Categoría: $nombreCategoria")
     println("Turno: $nombreTurno")
+    println("Aforo máximo de la institución: $aforoMaximoInstitucion")
     println("-----------------------------------")
     println(String.format("%-20s%-10s%-10s", "Curso", "Créditos", "Costo (S/)"))
     for (i in 0 until cantidadCursos) {
