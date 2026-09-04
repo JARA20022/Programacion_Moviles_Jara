@@ -23,6 +23,26 @@ fun main() {
         creditosCursos.add(readLine()!!.toInt())
     }
 
+    // ---------- TURNO (mañana / tarde / noche) ----------
+    print("\nIngrese el turno (mañana / tarde / noche): ")
+    val turnoIngresado = readLine()!!.trim().lowercase()
+
+    val recargoTurno: Double
+    val nombreTurno: String
+    if (turnoIngresado == "mañana" || turnoIngresado == "manana") {
+        recargoTurno = 0.10
+        nombreTurno = "Mañana"
+    } else if (turnoIngresado == "tarde") {
+        recargoTurno = 0.15
+        nombreTurno = "Tarde"
+    } else if (turnoIngresado == "noche") {
+        recargoTurno = 0.20
+        nombreTurno = "Noche"
+    } else {
+        recargoTurno = 0.0
+        nombreTurno = "No especificado"
+    }
+
     // ---------- 2. CÁLCULOS ----------
     val costosCursos = mutableListOf<Double>()
     var totalCreditos = 0
@@ -44,8 +64,11 @@ fun main() {
         cargaAcademica = "Permiso Autorizado"
     }
 
+    val montoRecargoTurno = totalPagar * recargoTurno
+    val totalConTurno = totalPagar + montoRecargoTurno
+
     val formaPago: String
-    if (totalPagar > 2500) {
+    if (totalConTurno > 2500) {
         formaPago = "3 cuotas"
     } else {
         formaPago = "2 cuotas"
@@ -56,6 +79,7 @@ fun main() {
     println("        BOLETA DE MATRÍCULA")
     println("===================================")
     println("Estudiante: $nombreEstudiante")
+    println("Turno: $nombreTurno")
     println("-----------------------------------")
     println(String.format("%-20s%-10s%-10s", "Curso", "Créditos", "Costo (S/)"))
     for (i in 0 until cantidadCursos) {
@@ -71,7 +95,9 @@ fun main() {
     println("-----------------------------------")
     println("Cursos matriculados: $cantidadCursos")
     println("Total de créditos: $totalCreditos")
-    println("Total a pagar: S/ %.2f".format(totalPagar))
+    println("Subtotal cursos: S/ %.2f".format(totalPagar))
+    println("Recargo por turno (${(recargoTurno * 100).toInt()}%): S/ %.2f".format(montoRecargoTurno))
+    println("Total a pagar: S/ %.2f".format(totalConTurno))
     println("Carga académica: $cargaAcademica")
     println("Forma de pago: $formaPago")
     println("===================================")
