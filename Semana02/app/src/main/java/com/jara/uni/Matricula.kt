@@ -43,6 +43,15 @@ fun main() {
         nombreTurno = "No especificado"
     }
 
+    // ---------- CATEGORÍA (Ordinario / Becado) ----------
+    println("\nSeleccione la categoría del estudiante:")
+    println("1. Ordinario")
+    println("2. Becado")
+    print("Opción: ")
+    val opcionCategoria = readLine()!!.toInt()
+    val esBecado = opcionCategoria == 2
+    val nombreCategoria = if (esBecado) "Becado" else "Ordinario"
+
     // ---------- 2. CÁLCULOS ----------
     val costosCursos = mutableListOf<Double>()
     var totalCreditos = 0
@@ -64,11 +73,17 @@ fun main() {
         cargaAcademica = "Permiso Autorizado"
     }
 
-    val montoRecargoTurno = totalPagar * recargoTurno
-    val totalConTurno = totalPagar + montoRecargoTurno
+    // Solo el Ordinario paga matrícula; el Becado no paga
+    var totalFinal = 0.0
+    var montoRecargoTurno = 0.0
+
+    if (!esBecado) {
+        montoRecargoTurno = totalPagar * recargoTurno
+        totalFinal = totalPagar + montoRecargoTurno
+    }
 
     val formaPago: String
-    if (totalConTurno > 2500) {
+    if (totalFinal > 2500) {
         formaPago = "3 cuotas"
     } else {
         formaPago = "2 cuotas"
@@ -79,6 +94,7 @@ fun main() {
     println("        BOLETA DE MATRÍCULA")
     println("===================================")
     println("Estudiante: $nombreEstudiante")
+    println("Categoría: $nombreCategoria")
     println("Turno: $nombreTurno")
     println("-----------------------------------")
     println(String.format("%-20s%-10s%-10s", "Curso", "Créditos", "Costo (S/)"))
@@ -96,8 +112,12 @@ fun main() {
     println("Cursos matriculados: $cantidadCursos")
     println("Total de créditos: $totalCreditos")
     println("Subtotal cursos: S/ %.2f".format(totalPagar))
-    println("Recargo por turno (${(recargoTurno * 100).toInt()}%): S/ %.2f".format(montoRecargoTurno))
-    println("Total a pagar: S/ %.2f".format(totalConTurno))
+    if (!esBecado) {
+        println("Recargo por turno (${(recargoTurno * 100).toInt()}%): S/ %.2f".format(montoRecargoTurno))
+    } else {
+        println("Becado: no paga matrícula")
+    }
+    println("Total a pagar: S/ %.2f".format(totalFinal))
     println("Carga académica: $cargaAcademica")
     println("Forma de pago: $formaPago")
     println("===================================")
