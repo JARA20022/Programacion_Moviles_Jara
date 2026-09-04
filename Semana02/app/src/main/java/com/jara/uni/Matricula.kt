@@ -1,9 +1,54 @@
 package com.jara.uni
 
+fun leerEntero(mensaje: String): Int {
+    while (true) {
+        print(mensaje)
+        val entrada = readLine()
+        if (entrada == null || entrada.trim().isEmpty()) {
+            println("No ingresaste ningún dato. Debes ingresar un número entero.")
+        } else {
+            val numero = entrada.trim().toIntOrNull()
+            if (numero == null) {
+                println("Eso no es un número válido. Debes ingresar un número entero (sin letras).")
+            } else {
+                return numero
+            }
+        }
+    }
+}
+
+fun leerDecimal(mensaje: String): Double {
+    while (true) {
+        print(mensaje)
+        val entrada = readLine()
+        if (entrada == null || entrada.trim().isEmpty()) {
+            println("No ingresaste ningún dato. Debes ingresar un número.")
+        } else {
+            val numero = entrada.trim().toDoubleOrNull()
+            if (numero == null) {
+                println("Eso no es un número válido. Debes ingresar un número (puedes usar punto decimal).")
+            } else {
+                return numero
+            }
+        }
+    }
+}
+
+fun leerTexto(mensaje: String): String {
+    while (true) {
+        print(mensaje)
+        val entrada = readLine()
+        if (entrada == null || entrada.trim().isEmpty()) {
+            println("No ingresaste ningún dato. Este campo es obligatorio.")
+        } else {
+            return entrada.trim()
+        }
+    }
+}
+
 fun main() {
     // ---------- AFORO DE LA INSTITUCIÓN (un solo dato, aplicado a cada turno por separado) ----------
-    print("Ingrese el aforo máximo de la institución (aplica por igual a cada turno): ")
-    val aforoMaximoInstitucion = readLine()!!.toInt()
+    val aforoMaximoInstitucion = leerEntero("Ingrese el aforo máximo de la institución (aplica por igual a cada turno): ")
 
     var matriculadosManana = 0
     var matriculadosTarde = 0
@@ -13,30 +58,32 @@ fun main() {
     while (continuarMatriculando) {
 
         // ---------- 1. INGRESO DE DATOS ----------
-        print("\nIngrese el nombre del estudiante: ")
-        val nombreEstudiante = readLine()!!
+        val nombreEstudiante = leerTexto("\nIngrese el nombre del estudiante: ")
 
-        print("Ingrese la cantidad de cursos a matricular: ")
-        val cantidadCursos = readLine()!!.toInt()
+        val cantidadCursos = leerEntero("Ingrese la cantidad de cursos a matricular: ")
 
-        print("Ingrese el valor de cada crédito (S/): ")
-        val valorCredito = readLine()!!.toDouble()
+        val valorCredito = leerDecimal("Ingrese el valor de cada crédito (S/): ")
 
         val nombresCursos = mutableListOf<String>()
         val creditosCursos = mutableListOf<Int>()
 
         for (i in 1..cantidadCursos) {
             println("\n--- Curso $i ---")
-            print("Nombre del curso: ")
-            nombresCursos.add(readLine()!!)
+            nombresCursos.add(leerTexto("Nombre del curso: "))
 
-            print("Créditos del curso: ")
-            creditosCursos.add(readLine()!!.toInt())
+            creditosCursos.add(leerEntero("Créditos del curso: "))
         }
 
         // ---------- TURNO (mañana / tarde / noche) ----------
-        print("\nIngrese el turno (mañana / tarde / noche): ")
-        val turnoIngresado = readLine()!!.trim().lowercase()
+        var turnoIngresado: String
+        while (true) {
+            turnoIngresado = leerTexto("\nIngrese el turno (mañana / tarde / noche): ").lowercase()
+            if (turnoIngresado == "mañana" || turnoIngresado == "manana" || turnoIngresado == "tarde" || turnoIngresado == "noche") {
+                break
+            } else {
+                println("Turno no válido. Debes ingresar: mañana, tarde o noche.")
+            }
+        }
 
         val recargoTurno: Double
         val nombreTurno: String
@@ -75,16 +122,22 @@ fun main() {
         println("\nSeleccione la categoría del estudiante:")
         println("1. Ordinario")
         println("2. Becado")
-        print("Opción (puede escribir el número o la palabra): ")
-        val categoriaIngresada = readLine()!!.trim().lowercase()
+        var categoriaIngresada: String
+        while (true) {
+            categoriaIngresada = leerTexto("Opción (puede escribir el número o la palabra): ").lowercase()
+            if (categoriaIngresada == "1" || categoriaIngresada == "ordinario" || categoriaIngresada == "2" || categoriaIngresada == "becado") {
+                break
+            } else {
+                println("Opción no válida. Ingresa 1 / Ordinario o 2 / Becado.")
+            }
+        }
         val esBecado = categoriaIngresada == "2" || categoriaIngresada == "becado"
         val nombreCategoria = if (esBecado) "Becado" else "Ordinario"
 
         // El monto de matrícula solo se pide si es Ordinario; el Becado no paga nada
         var montoMatricula = 0.0
         if (!esBecado) {
-            print("Ingrese el monto de matrícula (S/): ")
-            montoMatricula = readLine()!!.toDouble()
+            montoMatricula = leerDecimal("Ingrese el monto de matrícula (S/): ")
         }
 
         // ---------- 2. CÁLCULOS ----------
