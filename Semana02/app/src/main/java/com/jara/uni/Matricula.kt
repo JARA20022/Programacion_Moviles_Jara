@@ -46,9 +46,31 @@ fun leerTexto(mensaje: String): String {
     }
 }
 
+fun leerEnteroPositivo(mensaje: String): Int {
+    while (true) {
+        val numero = leerEntero(mensaje)
+        if (numero > 0) {
+            return numero
+        } else {
+            println("Debes ingresar un número mayor a 0.")
+        }
+    }
+}
+
+fun leerDecimalPositivo(mensaje: String): Double {
+    while (true) {
+        val numero = leerDecimal(mensaje)
+        if (numero > 0.0) {
+            return numero
+        } else {
+            println("Debes ingresar un número mayor a 0.")
+        }
+    }
+}
+
 fun main() {
     // ---------- AFORO DE LA INSTITUCIÓN (un solo dato, aplicado a cada turno por separado) ----------
-    val aforoMaximoInstitucion = leerEntero("Ingrese el aforo máximo de la institución (aplica por igual a cada turno): ")
+    val aforoMaximoInstitucion = leerEnteroPositivo("Ingrese el aforo máximo de la institución (aplica por igual a cada turno): ")
 
     var matriculadosManana = 0
     var matriculadosTarde = 0
@@ -60,9 +82,9 @@ fun main() {
         // ---------- 1. INGRESO DE DATOS ----------
         val nombreEstudiante = leerTexto("\nIngrese el nombre del estudiante: ")
 
-        val cantidadCursos = leerEntero("Ingrese la cantidad de cursos a matricular: ")
+        val cantidadCursos = leerEnteroPositivo("Ingrese la cantidad de cursos a matricular: ")
 
-        val valorCredito = leerDecimal("Ingrese el valor de cada crédito (S/): ")
+        val valorCredito = leerDecimalPositivo("Ingrese el valor de cada crédito (S/): ")
 
         val nombresCursos = mutableListOf<String>()
         val creditosCursos = mutableListOf<Int>()
@@ -71,7 +93,7 @@ fun main() {
             println("\n--- Curso $i ---")
             nombresCursos.add(leerTexto("Nombre del curso: "))
 
-            creditosCursos.add(leerEntero("Créditos del curso: "))
+            creditosCursos.add(leerEnteroPositivo("Créditos del curso: "))
         }
 
         // ---------- TURNO (mañana / tarde / noche) ----------
@@ -137,14 +159,7 @@ fun main() {
         // El monto de matrícula solo se pide si es Ordinario; el Becado no paga nada
         var montoMatricula = 0.0
         if (!esBecado) {
-            while (true) {
-                montoMatricula = leerDecimal("Ingrese el monto de matrícula (S/): ")
-                if (montoMatricula > 0.0) {
-                    break
-                } else {
-                    println("El monto de matrícula debe ser mayor a 0.")
-                }
-            }
+            montoMatricula = leerDecimalPositivo("Ingrese el monto de matrícula (S/): ")
         }
 
         // ---------- 2. CÁLCULOS ----------
