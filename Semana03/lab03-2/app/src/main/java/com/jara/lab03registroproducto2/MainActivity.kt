@@ -49,6 +49,7 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
     var precio by remember { mutableStateOf("") }
     var cantidad by remember { mutableStateOf("") }
     var mostrarResumen by remember { mutableStateOf(false) }
+    var mostrarError by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -92,10 +93,36 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(24.dp))
         Button(
-            onClick = { mostrarResumen = true },
-            modifier = Modifier.fillMaxWidth()
+            onClick = {
+                if (nombre.isBlank() || precio.isBlank() || cantidad.isBlank()) {
+                    mostrarError = true
+                    mostrarResumen = false
+                } else {
+                    mostrarError = false
+                    mostrarResumen = true
+                }
+            }
         ) {
             Text("AGREGAR PRODUCTO")
+        }
+
+        if (mostrarError) {
+            Text(
+                text = "Completa todos los campos",
+                color = Color.Red
+            )
+        }
+
+        Button(
+            onClick = {
+                nombre = ""
+                precio = ""
+                cantidad = ""
+                mostrarResumen = false
+                mostrarError = false
+            }
+        ) {
+            Text("LIMPIAR")
         }
 
         Spacer(modifier = Modifier.height(24.dp))
