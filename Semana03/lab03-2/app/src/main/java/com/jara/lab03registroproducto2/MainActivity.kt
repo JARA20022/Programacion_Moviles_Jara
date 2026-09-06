@@ -101,18 +101,21 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
                     mostrarError = false
                     mostrarResumen = true
                 }
-            }
+            },
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text("AGREGAR PRODUCTO")
         }
 
         if (mostrarError) {
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Completa todos los campos",
                 color = Color.Red
             )
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
                 nombre = ""
@@ -120,7 +123,8 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
                 cantidad = ""
                 mostrarResumen = false
                 mostrarError = false
-            }
+            },
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text("LIMPIAR")
         }
