@@ -41,7 +41,8 @@ fun MenuLateral(
     val destinos = listOf(
         "inicio" to "Inicio",
         "mis_citas" to "Mis citas",
-        "historial" to "Historial médico"
+        "historial" to "Historial médico",
+        "perfil_paciente" to "Perfil"
     )
 
     ModalDrawerSheet(
