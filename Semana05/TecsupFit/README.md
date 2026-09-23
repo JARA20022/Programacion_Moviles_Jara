@@ -6,7 +6,7 @@ Aplicación académica de reserva de clases de gimnasio con Kotlin y Jetpack Com
 - **Documento:** LAB_ACTUALIZADO-ACTIVIDAD_SEMANA1-6.docx, opción B.
 - **Proyecto:** `Semana05/TecsupFit`, dentro del repositorio `Programacion_Moviles_Jara`.
 - **Paquete:** `com.jara.tecsupfit`.
-- **Versión documentada:** fase base de `main`.
+- **Versión documentada:** `mejora-ia`, con cancelación de reservas y confirmación.
 
 ## Alcance de esta entrega
 
@@ -14,7 +14,7 @@ El Word permite elegir una de las dos opciones. TECSUP Fit se prepara como alter
 
 Esta versión base se organiza en ocho avances con commits descriptivos. El Word exige que estén distribuidos durante el desarrollo, no todos el mismo día. Un número de commits por sí solo no acredita esa distribución.
 
-La fase de mejora con IA requiere tres commits adicionales y PROMPTS.md en mejora-ia. Esa fase de TECSUP Fit todavía no está implementada en estos archivos. La mejora de la clínica no se presenta como mejora de este proyecto.
+La versión base se conserva en main. Esta versión añade cancelación con AlertDialog en mejora-ia y documenta la asistencia en [PROMPTS.md](PROMPTS.md). La rama mejora-ia del repositorio ya contiene otros laboratorios: se incorpora únicamente Semana05/TecsupFit desde main para conservar la clínica y Semana03. Los tres avances de esta fase son incorporar la base, implementar la mejora y documentarla.
 
 ## Requerimientos funcionales del Word
 
@@ -24,7 +24,7 @@ La fase de mejora con IA requiere tres commits adicionales y PROMPTS.md en mejor
 | RF02 | Detalle recibe la clase elegida por parámetro y ofrece Reservar cupo. | `detalle/{claseId}` usa un argumento entero y recupera la clase. |
 | RF03 | Confirmación resume clase y horario y permite ver reservas. | `confirmacion/{reservaId}` consulta la reserva creada y muestra sus datos. |
 | RF04 | BottomBar con Inicio, Reservas, Rutinas y Perfil, resaltando el destino activo. | NavigationBar en el bottomBar del Scaffold; la selección se obtiene de la ruta del NavController. |
-| RF05 | Reservas en LazyColumn con Confirmada y Completada diferenciadas. | Nuevas reservas con etiqueta verde y franja lateral; Yoga de ayer con etiqueta gris. |
+| RF05 | Reservas en LazyColumn con Confirmada y Completada diferenciadas. | Nuevas reservas con etiqueta verde y franja lateral; Yoga de ayer con etiqueta gris. La mejora añade Cancelada en rojo. |
 | RF06 | Perfil con datos del usuario y estadísticas simples. | Diego Ramos, DR, Plan Premium, 14 Clases y 3 Rachas, como en la figura 4. |
 
 Además, la rúbrica pide selección única de horario/cupo. Se implementa un selector de **cantidad de cupos: 1, 2 o 3**, controlado con una sola variable. Es una decisión de implementación para ese criterio: la maqueta no dibuja este control ni fija esas cantidades.
@@ -73,7 +73,7 @@ Cada modelo tiene su propio archivo. No se conserva ModelosFit.kt junto a los tr
 ## Abrir y ejecutar
 
 1. Clona `https://github.com/JARA20022/Programacion_Moviles_Jara.git`.
-2. Cambia a `main` y abre en Android Studio la carpeta `Semana05/TecsupFit`, donde están settings.gradle.kts y gradlew.bat.
+2. Cambia a `mejora-ia` y abre en Android Studio la carpeta `Semana05/TecsupFit`, donde están settings.gradle.kts y gradlew.bat.
 3. Sincroniza Gradle. Se usa el proyecto Empty Activity generado por Android Studio, Material 3 y Navigation Compose 2.7.7, la dependencia ya utilizada en la clínica.
 4. El SDK de compilación de esta preparación es 37, igual al que resolvió la compilación de la clínica. Debe estar instalado y admitido por la configuración Gradle del proyecto generado. Conserva el minSdk y las versiones de plugins del proyecto generado; no pegues un build.gradle completo de otro proyecto.
 5. Selecciona emulador o dispositivo y pulsa Run.
@@ -116,3 +116,32 @@ La preparación de los archivos recibió asistencia de ChatGPT. La solicitud fue
 - Documento de evaluación actualizado y sus figuras 3 y 4.
 - [Navigation — Android Developers](https://developer.android.com/guide/navigation).
 - [Navigation bar — Android Developers](https://developer.android.com/develop/ui/compose/components/navigation-bar).
+
+## Mejora funcional: cancelar una reserva con confirmación
+
+- Cancelar reserva aparece únicamente en reservas Confirmadas.
+- AlertDialog muestra clase, día, hora, sala y cantidad de cupos antes de confirmar.
+- Conservar reserva, Atrás o tocar fuera cierra el diálogo sin modificar la lista.
+- Sí, cancelar cambia únicamente la reserva elegida a Cancelada.
+- El registro permanece visible con etiqueta roja y sin botón de cancelación.
+- El callback comprueba el estado Confirmada antes de cambiarlo, además de la restricción visual del botón.
+- El detalle de Cross Training calcula la ocupación sumando solo reservas Confirmadas. Cancelar libera automáticamente la cantidad reservada, sin modificar su capacidad de 12 ni incrementar su saldo inicial de 8.
+- Reservar o cancelar no cambia las estadísticas históricas del perfil.
+- Se conservan Scaffold, padding, paleta, cuatro pestañas, un NavController y el estado con remember/mutableStateOf. No hay nuevas dependencias, ViewModel, MVVM ni persistencia en disco.
+
+### Comprobación de la mejora
+
+Realiza esta prueba en una misma ejecución, empezando con una sesión nueva:
+
+1. Cross Training comienza con 8 de 12 cupos disponibles.
+2. Reserva 2 cupos; al volver al detalle debe mostrar 6 disponibles.
+3. Reserva 1 cupo adicional: quedan 5 disponibles y hay dos reservas Confirmadas.
+4. En Mis reservas, pulsa Cancelar reserva en la de 2 cupos. Revisa que el diálogo muestra sus datos.
+5. Pulsa Conservar reserva: ambas siguen Confirmadas y continúan 5 cupos disponibles.
+6. Vuelve al diálogo de la reserva de 2 cupos y pulsa Sí, cancelar. Esa reserva queda Cancelada; la otra permanece Confirmada.
+7. En el detalle deben quedar 7 cupos disponibles: 8 iniciales menos la reserva vigente de 1 cupo.
+8. La reserva Cancelada y la Completada no deben mostrar Cancelar reserva.
+9. Cambia de pestaña y regresa: el estado se conserva durante la sesión.
+10. Comprueba que 14 Clases y 3 Rachas siguen siendo los valores históricos del perfil.
+
+Los pasos anteriores son pruebas pendientes de ejecutar en el dispositivo del alumno. La revisión de archivos y sintaxis no se presenta como una compilación Android ni una prueba de interfaz superadas.
