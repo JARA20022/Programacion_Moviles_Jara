@@ -9,6 +9,7 @@ import androidx.navigation.navArgument
 import com.jara.lab05.screens.DetailScreen
 import com.jara.lab05.screens.HomeScreen
 import com.jara.lab05.screens.ListScreen
+import com.jara.lab05.screens.LoginScreen
 import com.jara.lab05.screens.ProfileScreen
 
 @Composable
@@ -17,8 +18,11 @@ fun AppNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Home.route
+        startDestination = Screen.Login.route
     ) {
+        composable(Screen.Login.route) {
+            LoginScreen(navController)
+        }
         composable(Screen.Home.route) {
             HomeScreen(navController)
         }
