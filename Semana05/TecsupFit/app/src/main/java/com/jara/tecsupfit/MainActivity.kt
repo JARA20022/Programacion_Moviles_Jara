@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
                     primary = VerdeFit, background = Color.White,
                     surface = Color.White, onSurface = TextoFit
                 )
-            ) { NavegacionInicialFit() }
+            ) { NavegacionFit() }
         }
     }
 }
@@ -160,6 +160,46 @@ fun TarjetaClase(clase: ClaseFit, mostrarDia: Boolean, onClick: () -> Unit) {
                 Text(
                     "$prefijo${clase.hora} · ${clase.sala}",
                     fontSize = 12.sp, color = TextoSecundarioFit
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun TarjetaReserva(reserva: ReservaFit) {
+    val confirmada = reserva.estado == "Confirmada"
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = FondoTarjetaFit)
+    ) {
+        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+            Box(
+                Modifier.width(4.dp).fillMaxHeight()
+                    .background(if (confirmada) VerdeFit else Color.Transparent)
+            )
+            Column(Modifier.weight(1f).padding(16.dp)) {
+                Text(reserva.clase.nombre, fontWeight = FontWeight.Bold, color = TextoFit)
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "${reserva.clase.dia}, ${reserva.clase.hora}",
+                    fontSize = 13.sp, color = TextoSecundarioFit
+                )
+                if (reserva.cupos > 1) {
+                    Text("${reserva.cupos} cupos", fontSize = 12.sp, color = TextoSecundarioFit)
+                }
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = reserva.estado,
+                    modifier = Modifier
+                        .background(
+                            if (confirmada) FondoVerdeFit else FondoCompletadaFit,
+                            RoundedCornerShape(50)
+                        )
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                    color = if (confirmada) VerdeEstado else TextoSecundarioFit,
+                    fontSize = 12.sp
                 )
             }
         }
@@ -325,23 +365,142 @@ fun DetalleFit(
         }
     }
 }
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NavegacionInicialFit() {
+fun ConfirmacionFit(reserva: ReservaFit?, onVerReservas: () -> Unit) {
+    Scaffold(containerColor = Color.White) { innerPadding ->
+        // La referencia no incluye topBar ni bottomBar en la confirmación.
+        Column(
+            modifier = Modifier.fillMaxSize().padding(innerPadding)
+                .verticalScroll(rememberScrollState()).padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            if (reserva == null) {
+                Text("Reserva no disponible", color = TextoFit)
+            } else {
+                Box(
+                    Modifier.size(80.dp).background(FondoVerdeFit, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) { Text("✓", fontSize = 48.sp, fontWeight = FontWeight.Bold, color = VerdeEstado) }
+                Spacer(Modifier.height(24.dp))
+                Text("¡Cupo reservado!", fontWeight = FontWeight.Bold, fontSize = 24.sp, color = TextoFit)
+                Spacer(Modifier.height(8.dp))
+                Text(reserva.clase.nombre, color = TextoSecundarioFit)
+                Text(
+                    "${reserva.clase.dia}, ${reserva.clase.hora} · ${reserva.clase.sala}",
+                    color = TextoSecundarioFit, fontSize = 13.sp
+                )
+                if (reserva.cupos > 1) {
+                    Text("${reserva.cupos} cupos", color = TextoSecundarioFit, fontSize = 13.sp)
+                }
+            }
+            Spacer(Modifier.height(36.dp))
+            Button(
+                onClick = onVerReservas,
+                modifier = Modifier.widthIn(min = 220.dp).heightIn(min = 48.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = FondoTarjetaFit, contentColor = TextoFit)
+            ) { Text("Ver mis reservas") }
+        }
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ReservasFit(
+    reservas: List<ReservaFit>,
+    barraInferior: @Composable () -> Unit = {},
+    onVolver: (() -> Unit)? = null
+) {
+    Scaffold(
+        containerColor = Color.White,
+        topBar = {
+            TopAppBar(
+                title = { Text("Mis reservas", fontSize = 22.sp, fontWeight = FontWeight.Bold) },
+                navigationIcon = { onVolver?.let { BotonAtrasFit(it) } },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White, titleContentColor = TextoFit)
+            )
+        },
+        bottomBar = barraInferior
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(innerPadding),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            if (reservas.isEmpty()) {
+                item { Text("Todavía no tienes reservas.", color = TextoSecundarioFit) }
+            }
+            items(reservas.asReversed(), key = { it.id }) { reserva -> TarjetaReserva(reserva) }
+        }
+    }
+}
+@Composable
+fun NavegacionFit() {
+    // Un único NavController gobierna el flujo y las cuatro pestañas.
     val navController = rememberNavController()
+    val entrada by navController.currentBackStackEntryAsState()
+    val rutaActual = entrada?.destination?.route ?: "inicio"
     var filtro by remember { mutableStateOf("Hoy") }
+    var reservas by remember { mutableStateOf(DatosFit.reservasIniciales()) }
+
+    val abrirPestana: (String) -> Unit = { destino ->
+        if (destino != rutaActual) {
+            navController.navigate(destino) {
+                popUpTo("inicio") { inclusive = false }
+                launchSingleTop = true
+            }
+        }
+    }
+
     NavHost(navController = navController, startDestination = "inicio") {
         composable("inicio") {
-            InicioFit(DatosFit.clases, filtro, onFiltro = { filtro = it },
-                onClase = { navController.navigate("detalle/$it") })
+            InicioFit(
+                clases = DatosFit.clases, filtro = filtro, onFiltro = { filtro = it },
+                onClase = { navController.navigate("detalle/$it") }
+            )
         }
-        composable("detalle/{claseId}",
+        composable(
+            route = "detalle/{claseId}",
             arguments = listOf(navArgument("claseId") { type = NavType.IntType })
-        ) { entrada ->
-            val id = entrada.arguments?.getInt("claseId")
+        ) { entradaDetalle ->
+            val id = entradaDetalle.arguments?.getInt("claseId")
             val clase = DatosFit.clases.first { it.id == id }
-            DetalleFit(clase, clase.cuposIniciales,
-                onVolver = { navController.popBackStack() }, onReservar = {},
-                permitirReserva = false, mostrarSelector = true)
+            val ocupados = reservas.filter {
+                it.clase.id == clase.id && it.estado == "Confirmada"
+            }.sumOf { it.cupos }
+            val disponibles = clase.cuposIniciales?.let { (it - ocupados).coerceAtLeast(0) }
+            DetalleFit(
+                clase = clase, disponibles = disponibles,
+                onVolver = { navController.popBackStack() },
+                onReservar = { cantidad ->
+                    // Se comprueba también aquí, además del botón de la pantalla.
+                    if (clase.dia == "Hoy" && cantidad in 1..3 &&
+                        (disponibles == null || cantidad <= disponibles)) {
+                        val nueva = ReservaFit(
+                            id = (reservas.maxOfOrNull { it.id } ?: 0) + 1,
+                            clase = clase, cupos = cantidad
+                        )
+                        // Asignar una lista nueva notifica el cambio a Compose.
+                        reservas = reservas + nueva
+                        navController.navigate("confirmacion/${nueva.id}") {
+                            popUpTo("detalle/${clase.id}") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                }
+            )
         }
+        composable(
+            route = "confirmacion/{reservaId}",
+            arguments = listOf(navArgument("reservaId") { type = NavType.IntType })
+        ) { entradaConfirmacion ->
+            val id = entradaConfirmacion.arguments?.getInt("reservaId")
+            ConfirmacionFit(
+                reserva = reservas.firstOrNull { it.id == id },
+                onVerReservas = { abrirPestana("reservas") }
+            )
+        }
+        composable("reservas") { ReservasFit(reservas, onVolver = { abrirPestana("inicio") }) }
     }
 }
