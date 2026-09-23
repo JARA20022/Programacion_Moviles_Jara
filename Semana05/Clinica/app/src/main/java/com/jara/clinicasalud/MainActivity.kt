@@ -38,10 +38,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.jara.clinicasalud.data.DatosClinica
+import com.jara.clinicasalud.model.Cita
+import com.jara.clinicasalud.model.FechaCita
+import com.jara.clinicasalud.model.Medico
 import com.jara.clinicasalud.ui.theme.ClinicaSaludTheme
 import kotlinx.coroutines.launch
 
-// Colores compartidos por las pantallas.
+// Los modelos y los datos ya están en sus propios archivos.
+// Las pantallas, los colores y la navegación permanecen aquí en este avance.
 private val MoradoClinica = Color(0xFF5B2A86)
 private val FondoTarjeta = Color(0xFFF3F1F7)
 private val FondoIcono = Color(0xFFEEE6F7)
@@ -64,32 +69,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-// Modelos: representan los datos, no dibujan la interfaz.
-data class Medico(
-    val id: Int,
-    val nombre: String,
-    val categoria: String,
-    val especialidad: String,
-    val calificacion: String,
-    val experiencia: String? = null,
-    val resenas: Int? = null,
-    val descripcion: String? = null
-)
-
-data class FechaCita(
-    val dia: String,
-    val numero: String,
-    val diaCompleto: String
-)
-
-data class Cita(
-    val id: Int,
-    val medico: Medico,
-    val fecha: String,
-    val hora: String,
-    val estado: String = "Confirmada"
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -116,50 +95,15 @@ fun NavegacionClinica() {
         mutableStateOf("Todas")
     }
 
+    // La lista de ejemplo se obtiene ahora de DatosClinica.
     val medicos = remember {
-        listOf(
-            Medico(
-                id = 1,
-                nombre = "Dra. Ana Torres",
-                categoria = "Cardiología",
-                especialidad = "Cardióloga",
-                calificacion = "4.9",
-                experiencia = "12 años exp.",
-                resenas = 128,
-                descripcion = "Especialista en arritmias e hipertensión, " +
-                        "formación en la Clínica Mayo."
-            ),
-            Medico(
-                id = 2,
-                nombre = "Dr. Luis Vega",
-                categoria = "Pediatría",
-                especialidad = "Pediatra",
-                calificacion = "4.7"
-            ),
-            Medico(
-                id = 3,
-                nombre = "Dra. Rosa Díaz",
-                categoria = "Dermatología",
-                especialidad = "Dermatóloga",
-                calificacion = "4.8"
-            )
-        )
+        DatosClinica.medicos
     }
 
-    // Estado compartido. Las citas nuevas se añaden a esta lista.
-    // La cita completada inicial reproduce el ejemplo del Word.
+    // El estado continúa aquí: no se trasladó al objeto de datos.
+    // La lista inicial contiene la cita completada del ejemplo del Word.
     var citas by remember {
-        mutableStateOf(
-            listOf(
-                Cita(
-                    id = 1,
-                    medico = medicos.first { it.id == 2 },
-                    fecha = "Miércoles 15",
-                    hora = "3:00 pm",
-                    estado = "Completada"
-                )
-            )
-        )
+        mutableStateOf(DatosClinica.citasIniciales())
     }
 
     val abrirMenu: () -> Unit = {
@@ -1153,7 +1097,7 @@ fun TarjetaCita(cita: Cita) {
 
                 Spacer(Modifier.height(8.dp))
 
-                // Etiqueta de estado: verde para Confirmada y gris para Completada.
+                // Verde para Confirmada y gris para Completada.
                 Text(
                     text = cita.estado,
                     modifier = Modifier
