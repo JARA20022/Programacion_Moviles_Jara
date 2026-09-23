@@ -2,6 +2,7 @@ package com.jara.clinicasalud
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
@@ -23,6 +24,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -32,11 +35,13 @@ import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.jara.clinicasalud.ui.theme.ClinicaSaludTheme
+import kotlinx.coroutines.launch
 
-// Colores compartidos. Cambiarlos aquí actualiza sus usos en las pantallas.
+// Colores compartidos por las pantallas.
 private val MoradoClinica = Color(0xFF5B2A86)
 private val FondoTarjeta = Color(0xFFF3F1F7)
 private val FondoIcono = Color(0xFFEEE6F7)
@@ -45,13 +50,13 @@ private val TextoSecundario = Color(0xFF6E6E6E)
 private val DoradoEstrella = Color(0xFFBA8A00)
 private val VerdeConfirmacion = Color(0xFF1D9E75)
 private val FondoConfirmacion = Color(0xFFE1F5EE)
+private val FondoCompletada = Color(0xFFE6E6E6)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Inicia la interfaz de Jetpack Compose.
         setContent {
             ClinicaSaludTheme {
                 NavegacionClinica()
@@ -60,7 +65,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// categoria se usa para filtrar; especialidad se muestra al usuario.
+// Modelos: representan los datos, no dibujan la interfaz.
 data class Medico(
     val id: Int,
     val nombre: String,
@@ -78,7 +83,6 @@ data class FechaCita(
     val diaCompleto: String
 )
 
-// Una cita reúne los datos elegidos durante el recorrido de navegación.
 data class Cita(
     val id: Int,
     val medico: Medico,
@@ -87,19 +91,29 @@ data class Cita(
     val estado: String = "Confirmada"
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NavegacionClinica() {
-    // Un solo controlador administra todas las rutas.
     val navController = rememberNavController()
+
+    // Estado del menú y alcance para ejecutar su apertura y cierre.
+    val drawerState = rememberDrawerState(
+        initialValue = DrawerValue.Closed
+    )
+    val scope = rememberCoroutineScope()
+
+    // Observamos la ruta para resaltar el destino activo del menú.
+    val entradaActual by navController.currentBackStackEntryAsState()
+    val rutaActual = entradaActual?.destination?.route ?: "inicio"
+
+    val seccionesPrincipales = listOf(
+        "inicio",
+        "mis_citas",
+        "historial"
+    )
 
     var especialidadSeleccionada by remember {
         mutableStateOf("Todas")
-    }
-
-    // Estado compartido de las citas, sin ViewModel ni base de datos.
-    // Se mantiene al navegar mientras este composable siga en composición.
-    var citas by remember {
-        mutableStateOf<List<Cita>>(emptyList())
     }
 
     val medicos = remember {
@@ -132,104 +146,274 @@ fun NavegacionClinica() {
         )
     }
 
-    // Aquí se registran las pantallas y sus parámetros.
-    NavHost(
-        navController = navController,
-        startDestination = "inicio"
+    // Estado compartido. Las citas nuevas se añaden a esta lista.
+    // La cita completada inicial reproduce el ejemplo del Word.
+    var citas by remember {
+        mutableStateOf(
+            listOf(
+                Cita(
+                    id = 1,
+                    medico = medicos.first { it.id == 2 },
+                    fecha = "Miércoles 15",
+                    hora = "3:00 pm",
+                    estado = "Completada"
+                )
+            )
+        )
+    }
+
+    val abrirMenu: () -> Unit = {
+        scope.launch {
+            drawerState.open()
+        }
+    }
+
+    // El drawer envuelve el NavHost y, dentro de él, los Scaffold.
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        gesturesEnabled = rutaActual in seccionesPrincipales,
+        drawerContent = {
+            MenuLateral(
+                rutaActual = rutaActual,
+                onDestinoSeleccionado = { ruta ->
+                    scope.launch {
+                        drawerState.close()
+
+                        if (ruta != rutaActual) {
+                            navController.navigate(ruta) {
+                                // Mantiene Inicio como base de navegación.
+                                popUpTo("inicio") {
+                                    inclusive = false
+                                }
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+                }
+            )
+        }
     ) {
-        composable(route = "inicio") {
-            InicioClinica(
-                navController = navController,
-                medicos = medicos,
-                especialidadSeleccionada = especialidadSeleccionada,
-                onEspecialidadSeleccionada = {
-                    especialidadSeleccionada = it
-                }
-            )
+        NavHost(
+            navController = navController,
+            startDestination = "inicio"
+        ) {
+            composable("inicio") {
+                InicioClinica(
+                    navController = navController,
+                    medicos = medicos,
+                    especialidadSeleccionada = especialidadSeleccionada,
+                    onEspecialidadSeleccionada = {
+                        especialidadSeleccionada = it
+                    },
+                    onAbrirMenu = abrirMenu
+                )
+            }
+
+            composable(
+                route = "perfil/{medicoId}",
+                arguments = listOf(
+                    navArgument("medicoId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
+                val medicoId = backStackEntry.arguments?.getInt("medicoId")
+                val medico = medicos.first { it.id == medicoId }
+
+                PerfilMedico(
+                    navController = navController,
+                    medico = medico
+                )
+            }
+
+            composable(
+                route = "agenda/{medicoId}",
+                arguments = listOf(
+                    navArgument("medicoId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
+                val medicoId = backStackEntry.arguments?.getInt("medicoId")
+                val medico = medicos.first { it.id == medicoId }
+
+                AgendaCita(
+                    navController = navController,
+                    medico = medico,
+                    onConfirmar = { fecha, hora ->
+                        val nuevoId = (citas.maxOfOrNull { it.id } ?: 0) + 1
+
+                        val nuevaCita = Cita(
+                            id = nuevoId,
+                            medico = medico,
+                            fecha = fecha,
+                            hora = hora
+                        )
+
+                        // Una lista nueva notifica el cambio a Compose.
+                        citas = citas + nuevaCita
+
+                        navController.navigate("confirmacion/$nuevoId") {
+                            popUpTo("agenda/${medico.id}") {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
+
+            composable(
+                route = "confirmacion/{citaId}",
+                arguments = listOf(
+                    navArgument("citaId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
+                val citaId = backStackEntry.arguments?.getInt("citaId")
+                val cita = citas.firstOrNull { it.id == citaId }
+
+                ConfirmacionCita(
+                    cita = cita,
+                    onVolverInicio = {
+                        navController.navigate("inicio") {
+                            popUpTo("inicio") {
+                                inclusive = false
+                            }
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
+
+            // Navegación secundaria: destinos accesibles desde el drawer.
+            composable("mis_citas") {
+                MisCitas(
+                    citas = citas,
+                    onAbrirMenu = abrirMenu
+                )
+            }
+
+            composable("historial") {
+                HistorialMedico(
+                    citas = citas,
+                    onAbrirMenu = abrirMenu
+                )
+            }
         }
+    }
 
-        composable(
-            route = "perfil/{medicoId}",
-            arguments = listOf(
-                navArgument("medicoId") {
-                    type = NavType.IntType
-                }
-            )
-        ) { backStackEntry ->
-            val medicoId = backStackEntry.arguments?.getInt("medicoId")
-            val medico = medicos.first { it.id == medicoId }
-
-            PerfilMedico(
-                navController = navController,
-                medico = medico
-            )
+    // Si el menú está abierto, Atrás lo cierra antes de cambiar de pantalla.
+    BackHandler(enabled = drawerState.isOpen) {
+        scope.launch {
+            drawerState.close()
         }
+    }
+}
 
-        composable(
-            route = "agenda/{medicoId}",
-            arguments = listOf(
-                navArgument("medicoId") {
-                    type = NavType.IntType
-                }
-            )
-        ) { backStackEntry ->
-            val medicoId = backStackEntry.arguments?.getInt("medicoId")
-            val medico = medicos.first { it.id == medicoId }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MenuLateral(
+    rutaActual: String,
+    onDestinoSeleccionado: (String) -> Unit
+) {
+    // Cada elemento relaciona una ruta con su texto visible.
+    val destinos = listOf(
+        "inicio" to "Inicio",
+        "mis_citas" to "Mis citas",
+        "historial" to "Historial médico"
+    )
 
-            AgendaCita(
-                navController = navController,
-                medico = medico,
-                onConfirmar = { fecha, hora ->
-                    // Genera un identificador para la nueva cita.
-                    val nuevoId = (citas.maxOfOrNull { it.id } ?: 0) + 1
-
-                    val nuevaCita = Cita(
-                        id = nuevoId,
-                        medico = medico,
-                        fecha = fecha,
-                        hora = hora
+    ModalDrawerSheet(
+        modifier = Modifier.width(300.dp),
+        drawerContainerColor = Color.White
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
+        ) {
+            // Datos de presentación tomados del diseño de referencia.
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(FondoIcono, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "JP",
+                        color = MoradoClinica,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
                     )
-
-                    // Se asigna una nueva lista para actualizar el estado.
-                    citas = citas + nuevaCita
-
-                    // La confirmación recibe el ID de la cita registrada.
-                    navController.navigate("confirmacion/$nuevoId") {
-                        // Retira esta agenda del historial de navegación.
-                        // Volver atrás no reabre el formulario ya confirmado.
-                        popUpTo("agenda/${medico.id}") {
-                            inclusive = true
-                        }
-                        launchSingleTop = true
-                    }
                 }
-            )
-        }
 
-        composable(
-            route = "confirmacion/{citaId}",
-            arguments = listOf(
-                navArgument("citaId") {
-                    type = NavType.IntType
-                }
-            )
-        ) { backStackEntry ->
-            val citaId = backStackEntry.arguments?.getInt("citaId")
-            val cita = citas.firstOrNull { it.id == citaId }
+                Spacer(Modifier.width(12.dp))
 
-            ConfirmacionCita(
-                cita = cita,
-                onVolverInicio = {
-                    navController.navigate("inicio") {
-                        // Conserva Inicio y elimina las pantallas posteriores.
-                        popUpTo("inicio") {
-                            inclusive = false
-                        }
-                        // Evita crear otra copia de Inicio.
-                        launchSingleTop = true
-                    }
+                Column {
+                    Text(
+                        text = "Juan Pérez",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextoPrincipal
+                    )
+                    Text(
+                        text = "Paciente",
+                        fontSize = 13.sp,
+                        color = TextoSecundario
+                    )
                 }
-            )
+            }
+
+            HorizontalDivider(color = FondoCompletada)
+
+            Spacer(Modifier.height(16.dp))
+
+            destinos.forEach { (ruta, titulo) ->
+                val seleccionado = rutaActual == ruta
+
+                NavigationDrawerItem(
+                    label = {
+                        Text(
+                            text = titulo,
+                            fontWeight = if (seleccionado) {
+                                FontWeight.Bold
+                            } else {
+                                FontWeight.Normal
+                            }
+                        )
+                    },
+                    icon = {
+                        Text(
+                            text = "○",
+                            fontSize = 26.sp
+                        )
+                    },
+                    selected = seleccionado,
+                    onClick = {
+                        onDestinoSeleccionado(ruta)
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = NavigationDrawerItemDefaults.colors(
+                        selectedContainerColor = FondoIcono,
+                        unselectedContainerColor = Color.Transparent,
+                        selectedTextColor = MoradoClinica,
+                        unselectedTextColor = TextoPrincipal,
+                        selectedIconColor = MoradoClinica,
+                        unselectedIconColor = TextoPrincipal
+                    )
+                )
+
+                Spacer(Modifier.height(8.dp))
+            }
         }
     }
 }
@@ -240,14 +424,20 @@ fun InicioClinica(
     navController: NavController,
     medicos: List<Medico>,
     especialidadSeleccionada: String,
-    onEspecialidadSeleccionada: (String) -> Unit
+    onEspecialidadSeleccionada: (String) -> Unit,
+    onAbrirMenu: () -> Unit
 ) {
-    // Scaffold organiza la barra superior y el contenido.
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = Color.White,
         topBar = {
             TopAppBar(
+                navigationIcon = {
+                    BotonMenu(
+                        onClick = onAbrirMenu,
+                        color = Color.White
+                    )
+                },
                 title = {
                     Column {
                         Text(
@@ -294,7 +484,7 @@ fun ContenidoInicio(
         "Dermatología"
     )
 
-    // filter devuelve únicamente los médicos de la categoría seleccionada.
+    // Filtra por categoría; Todas conserva la lista completa.
     val medicosFiltrados = if (especialidadSeleccionada == "Todas") {
         medicos
     } else {
@@ -311,20 +501,14 @@ fun ContenidoInicio(
             contentPadding = PaddingValues(top = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(
-                items = especialidades,
-                key = { it }
-            ) { especialidad ->
+            items(especialidades, key = { it }) { especialidad ->
                 FilterChip(
                     selected = especialidadSeleccionada == especialidad,
                     onClick = {
                         onEspecialidadSeleccionada(especialidad)
                     },
                     label = {
-                        Text(
-                            text = especialidad,
-                            fontSize = 12.sp
-                        )
+                        Text(especialidad, fontSize = 12.sp)
                     },
                     shape = RoundedCornerShape(50),
                     border = null,
@@ -338,7 +522,7 @@ fun ContenidoInicio(
             }
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(Modifier.height(4.dp))
 
         Text(
             text = "Médicos disponibles",
@@ -347,7 +531,7 @@ fun ContenidoInicio(
             color = TextoPrincipal
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(Modifier.height(12.dp))
 
         LazyColumn(
             modifier = Modifier
@@ -356,10 +540,7 @@ fun ContenidoInicio(
             contentPadding = PaddingValues(bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(
-                items = medicosFiltrados,
-                key = { it.id }
-            ) { medico ->
+            items(medicosFiltrados, key = { it.id }) { medico ->
                 TarjetaMedico(
                     medico = medico,
                     onClick = {
@@ -382,12 +563,8 @@ fun TarjetaMedico(
             .heightIn(min = 76.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = FondoTarjeta
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 0.dp
-        )
+        colors = CardDefaults.cardColors(containerColor = FondoTarjeta),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
             modifier = Modifier
@@ -397,9 +574,9 @@ fun TarjetaMedico(
         ) {
             IconoMedico()
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(Modifier.width(12.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
+            Column(Modifier.weight(1f)) {
                 Text(
                     text = medico.nombre,
                     fontSize = 14.sp,
@@ -407,7 +584,7 @@ fun TarjetaMedico(
                     color = TextoPrincipal
                 )
 
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(Modifier.height(2.dp))
 
                 Text(
                     text = medico.especialidad,
@@ -416,7 +593,7 @@ fun TarjetaMedico(
                 )
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(Modifier.width(8.dp))
 
             CalificacionMedico(medico.calificacion)
         }
@@ -442,16 +619,8 @@ fun PerfilMedico(
                     )
                 },
                 navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            navController.popBackStack()
-                        }
-                    ) {
-                        Text(
-                            text = "←",
-                            fontSize = 26.sp,
-                            color = TextoPrincipal
-                        )
+                    BotonRegresar {
+                        navController.popBackStack()
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -477,7 +646,7 @@ fun PerfilMedico(
             ) {
                 IconoMedico(tamano = 88.dp)
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(Modifier.height(12.dp))
 
                 Text(
                     text = medico.nombre,
@@ -487,7 +656,7 @@ fun PerfilMedico(
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(Modifier.height(4.dp))
 
                 Text(
                     text = if (medico.experiencia != null) {
@@ -499,7 +668,7 @@ fun PerfilMedico(
                     color = TextoSecundario
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(Modifier.height(4.dp))
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -517,7 +686,7 @@ fun PerfilMedico(
                 }
 
                 if (medico.descripcion != null) {
-                    Spacer(modifier = Modifier.height(28.dp))
+                    Spacer(Modifier.height(28.dp))
 
                     Text(
                         text = medico.descripcion,
@@ -560,7 +729,6 @@ fun AgendaCita(
     medico: Medico,
     onConfirmar: (String, String) -> Unit
 ) {
-    // Fechas de ejemplo indicadas en el diseño del Word.
     val fechas = listOf(
         FechaCita("Jue", "26", "Jueves"),
         FechaCita("Vie", "27", "Viernes"),
@@ -573,12 +741,9 @@ fun AgendaCita(
     var fechaSeleccionada by remember(medico.id) {
         mutableStateOf("27")
     }
-
     var horaSeleccionada by remember(medico.id) {
         mutableStateOf("10:30")
     }
-
-    // Impide procesar dos veces una pulsación rápida de Confirmar.
     var confirmando by remember(medico.id) {
         mutableStateOf(false)
     }
@@ -596,16 +761,8 @@ fun AgendaCita(
                     )
                 },
                 navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            navController.popBackStack()
-                        }
-                    ) {
-                        Text(
-                            text = "←",
-                            fontSize = 26.sp,
-                            color = TextoPrincipal
-                        )
+                    BotonRegresar {
+                        navController.popBackStack()
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -634,7 +791,7 @@ fun AgendaCita(
                     color = TextoSecundario
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(Modifier.height(12.dp))
 
                 Row(
                     modifier = Modifier
@@ -656,7 +813,7 @@ fun AgendaCita(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(Modifier.height(24.dp))
 
                 Text(
                     text = "Selecciona hora",
@@ -664,7 +821,7 @@ fun AgendaCita(
                     color = TextoSecundario
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(Modifier.height(12.dp))
 
                 Row(
                     modifier = Modifier
@@ -699,14 +856,12 @@ fun AgendaCita(
                         val fechaCompleta =
                             "${fecha.diaCompleto} ${fecha.numero}"
 
-                        // La opción 3:00 corresponde al horario de la tarde.
                         val horaCompleta = if (horaSeleccionada == "3:00") {
                             "$horaSeleccionada pm"
                         } else {
                             "$horaSeleccionada am"
                         }
 
-                        // Entrega la selección al estado compartido.
                         onConfirmar(fechaCompleta, horaCompleta)
                     }
                 },
@@ -769,10 +924,7 @@ fun ConfirmacionCita(
                 Box(
                     modifier = Modifier
                         .size(80.dp)
-                        .background(
-                            color = FondoConfirmacion,
-                            shape = CircleShape
-                        ),
+                        .background(FondoConfirmacion, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -782,7 +934,7 @@ fun ConfirmacionCita(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(Modifier.height(24.dp))
 
                 Text(
                     text = "¡Cita agendada!",
@@ -792,9 +944,8 @@ fun ConfirmacionCita(
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(Modifier.height(12.dp))
 
-                // El resumen utiliza la cita guardada, no valores fijos.
                 Text(
                     text = cita.medico.nombre,
                     fontSize = 15.sp,
@@ -802,7 +953,7 @@ fun ConfirmacionCita(
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(Modifier.height(4.dp))
 
                 Text(
                     text = "${cita.fecha}, ${cita.hora}",
@@ -811,8 +962,6 @@ fun ConfirmacionCita(
                     textAlign = TextAlign.Center
                 )
             } else {
-                // remember no persiste si Android recrea la actividad.
-                // Evita mostrar una confirmación falsa si ya no hay datos.
                 Text(
                     text = "La cita ya no está disponible en esta sesión.",
                     fontSize = 16.sp,
@@ -821,7 +970,7 @@ fun ConfirmacionCita(
                 )
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(Modifier.height(32.dp))
 
             Button(
                 onClick = onVolverInicio,
@@ -834,12 +983,222 @@ fun ConfirmacionCita(
                     contentColor = TextoPrincipal
                 )
             ) {
+                Text("Volver al inicio", fontSize = 14.sp)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MisCitas(
+    citas: List<Cita>,
+    onAbrirMenu: () -> Unit
+) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = Color.White,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Mis citas",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                navigationIcon = {
+                    BotonMenu(onClick = onAbrirMenu)
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.White,
+                    titleContentColor = TextoPrincipal
+                )
+            )
+        }
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            if (citas.isEmpty()) {
+                item {
+                    Text(
+                        text = "Todavía no tienes citas registradas.",
+                        color = TextoSecundario
+                    )
+                }
+            } else {
+                // Las últimas citas registradas aparecen primero.
+                items(citas.asReversed(), key = { it.id }) { cita ->
+                    TarjetaCita(cita)
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HistorialMedico(
+    citas: List<Cita>,
+    onAbrirMenu: () -> Unit
+) {
+    // Consulta los mismos datos; no crea una lista independiente.
+    val completadas = citas.filter { it.estado == "Completada" }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = Color.White,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Historial médico",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                navigationIcon = {
+                    BotonMenu(onClick = onAbrirMenu)
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.White,
+                    titleContentColor = TextoPrincipal
+                )
+            )
+        }
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
                 Text(
-                    text = "Volver al inicio",
-                    fontSize = 14.sp
+                    text = "Citas completadas",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextoPrincipal
+                )
+            }
+
+            if (completadas.isEmpty()) {
+                item {
+                    Text(
+                        text = "Todavía no tienes citas completadas.",
+                        color = TextoSecundario
+                    )
+                }
+            } else {
+                items(completadas.asReversed(), key = { it.id }) { cita ->
+                    TarjetaCita(cita)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun TarjetaCita(cita: Cita) {
+    val confirmada = cita.estado == "Confirmada"
+    val fondoEstado = if (confirmada) FondoConfirmacion else FondoCompletada
+    val textoEstado = if (confirmada) VerdeConfirmacion else TextoSecundario
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = FondoTarjeta),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        // IntrinsicSize.Min ajusta la franja a la altura del contenido.
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min)
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .fillMaxHeight()
+                    .background(
+                        if (confirmada) MoradoClinica else Color.Transparent
+                    )
+            )
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = cita.medico.nombre,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextoPrincipal
+                )
+
+                Spacer(Modifier.height(4.dp))
+
+                Text(
+                    text = "${cita.fecha}, ${cita.hora}",
+                    fontSize = 13.sp,
+                    color = TextoSecundario
+                )
+
+                Spacer(Modifier.height(8.dp))
+
+                // Etiqueta de estado: verde para Confirmada y gris para Completada.
+                Text(
+                    text = cita.estado,
+                    modifier = Modifier
+                        .background(fondoEstado, RoundedCornerShape(50))
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                    fontSize = 12.sp,
+                    color = textoEstado
                 )
             }
         }
+    }
+}
+
+@Composable
+fun BotonMenu(
+    onClick: () -> Unit,
+    color: Color = TextoPrincipal
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier.semantics {
+            contentDescription = "Abrir menú"
+        }
+    ) {
+        Text(
+            text = "☰",
+            fontSize = 26.sp,
+            color = color
+        )
+    }
+}
+
+@Composable
+fun BotonRegresar(onClick: () -> Unit) {
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier.semantics {
+            contentDescription = "Regresar"
+        }
+    ) {
+        Text(
+            text = "←",
+            fontSize = 26.sp,
+            color = TextoPrincipal
+        )
     }
 }
 
@@ -853,7 +1212,6 @@ fun OpcionAgenda(
     val fondo = if (seleccionada) MoradoClinica else FondoTarjeta
     val colorTexto = if (seleccionada) Color.White else TextoPrincipal
 
-    // selectable comunica la selección; la variable del grupo la controla.
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
@@ -892,7 +1250,6 @@ fun CalificacionMedico(calificacion: String) {
             fontSize = 18.sp,
             color = DoradoEstrella
         )
-
         Text(
             text = calificacion,
             fontSize = 12.sp,
@@ -903,14 +1260,10 @@ fun CalificacionMedico(calificacion: String) {
 
 @Composable
 fun IconoMedico(tamano: Dp = 44.dp) {
-    // Superpone dos rectángulos para representar una cruz.
     Box(
         modifier = Modifier
             .size(tamano)
-            .background(
-                color = FondoIcono,
-                shape = CircleShape
-            ),
+            .background(FondoIcono, CircleShape),
         contentAlignment = Alignment.Center
     ) {
         Box(
@@ -919,7 +1272,6 @@ fun IconoMedico(tamano: Dp = 44.dp) {
                 .height(tamano * 0.12f)
                 .background(MoradoClinica)
         )
-
         Box(
             modifier = Modifier
                 .width(tamano * 0.12f)
