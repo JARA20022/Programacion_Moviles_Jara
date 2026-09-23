@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,13 +22,18 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -41,8 +47,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.jara.clinicasalud.ui.theme.ClinicaSaludTheme
 
 class MainActivity : ComponentActivity() {
@@ -52,7 +65,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             ClinicaSaludTheme {
-                InicioClinica()
+                NavegacionClinica()
             }
         }
     }
@@ -62,12 +75,89 @@ data class Medico(
     val id: Int,
     val nombre: String,
     val especialidad: String,
-    val calificacion: String
+    val calificacion: String,
+    val experiencia: String? = null,
+    val resenas: Int? = null,
+    val descripcion: String? = null
 )
+
+@Composable
+fun NavegacionClinica() {
+    val navController = rememberNavController()
+
+    var especialidadSeleccionada by remember {
+        mutableStateOf("Cardiología")
+    }
+
+    val medicos = remember {
+        listOf(
+            Medico(
+                id = 1,
+                nombre = "Dra. Ana Torres",
+                especialidad = "Cardióloga",
+                calificacion = "4.9",
+                experiencia = "12 años exp.",
+                resenas = 128,
+                descripcion = "Especialista en arritmias e hipertensión, " +
+                        "formación en la Clínica Mayo."
+            ),
+            Medico(
+                id = 2,
+                nombre = "Dr. Luis Vega",
+                especialidad = "Pediatra",
+                calificacion = "4.7"
+            ),
+            Medico(
+                id = 3,
+                nombre = "Dra. Rosa Díaz",
+                especialidad = "Dermatóloga",
+                calificacion = "4.8"
+            )
+        )
+    }
+
+    NavHost(
+        navController = navController,
+        startDestination = "inicio"
+    ) {
+        composable(route = "inicio") {
+            InicioClinica(
+                navController = navController,
+                medicos = medicos,
+                especialidadSeleccionada = especialidadSeleccionada,
+                onEspecialidadSeleccionada = {
+                    especialidadSeleccionada = it
+                }
+            )
+        }
+
+        composable(
+            route = "perfil/{medicoId}",
+            arguments = listOf(
+                navArgument("medicoId") {
+                    type = NavType.IntType
+                }
+            )
+        ) { backStackEntry ->
+            val medicoId = backStackEntry.arguments?.getInt("medicoId")
+            val medico = medicos.first { it.id == medicoId }
+
+            PerfilMedico(
+                navController = navController,
+                medico = medico
+            )
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InicioClinica() {
+fun InicioClinica(
+    navController: NavController,
+    medicos: List<Medico>,
+    especialidadSeleccionada: String,
+    onEspecialidadSeleccionada: (String) -> Unit
+) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = Color.White,
@@ -95,6 +185,10 @@ fun InicioClinica() {
         }
     ) { innerPadding ->
         ContenidoInicio(
+            navController = navController,
+            medicos = medicos,
+            especialidadSeleccionada = especialidadSeleccionada,
+            onEspecialidadSeleccionada = onEspecialidadSeleccionada,
             modifier = Modifier.padding(innerPadding)
         )
     }
@@ -102,38 +196,17 @@ fun InicioClinica() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ContenidoInicio(modifier: Modifier = Modifier) {
+fun ContenidoInicio(
+    navController: NavController,
+    medicos: List<Medico>,
+    especialidadSeleccionada: String,
+    onEspecialidadSeleccionada: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val especialidades = listOf(
         "Cardiología",
         "Pediatría"
     )
-
-    var especialidadSeleccionada by remember {
-        mutableStateOf("Cardiología")
-    }
-
-    val medicos = remember {
-        listOf(
-            Medico(
-                id = 1,
-                nombre = "Dra. Ana Torres",
-                especialidad = "Cardióloga",
-                calificacion = "4.9"
-            ),
-            Medico(
-                id = 2,
-                nombre = "Dr. Luis Vega",
-                especialidad = "Pediatra",
-                calificacion = "4.7"
-            ),
-            Medico(
-                id = 3,
-                nombre = "Dra. Rosa Díaz",
-                especialidad = "Dermatóloga",
-                calificacion = "4.8"
-            )
-        )
-    }
 
     Column(
         modifier = modifier
@@ -152,7 +225,7 @@ fun ContenidoInicio(modifier: Modifier = Modifier) {
                 FilterChip(
                     selected = especialidadSeleccionada == especialidad,
                     onClick = {
-                        especialidadSeleccionada = especialidad
+                        onEspecialidadSeleccionada(especialidad)
                     },
                     label = {
                         Text(
@@ -194,18 +267,27 @@ fun ContenidoInicio(modifier: Modifier = Modifier) {
                 items = medicos,
                 key = { it.id }
             ) { medico ->
-                TarjetaMedico(medico = medico)
+                TarjetaMedico(
+                    medico = medico,
+                    onClick = {
+                        navController.navigate("perfil/${medico.id}")
+                    }
+                )
             }
         }
     }
 }
 
 @Composable
-fun TarjetaMedico(medico: Medico) {
+fun TarjetaMedico(
+    medico: Medico,
+    onClick: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 76.dp),
+            .heightIn(min = 76.dp)
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFFF3F1F7)
@@ -245,20 +327,137 @@ fun TarjetaMedico(medico: Medico) {
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                Text(
-                    text = "★",
-                    fontSize = 18.sp,
-                    color = Color(0xFFBA8A00)
+            CalificacionMedico(
+                calificacion = medico.calificacion
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PerfilMedico(
+    navController: NavController,
+    medico: Medico
+) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = Color.White,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Perfil del médico",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                navigationIcon = {
+                    IconButton(
+                        onClick = {
+                            navController.popBackStack()
+                        }
+                    ) {
+                        Text(
+                            text = "←",
+                            fontSize = 26.sp,
+                            color = Color(0xFF1E1E1E)
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.White,
+                    titleContentColor = Color(0xFF1E1E1E)
                 )
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 20.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(top = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                IconoMedico(tamano = 88.dp)
+
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = medico.calificacion,
-                    fontSize = 12.sp,
+                    text = medico.nombre,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1E1E1E)
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = if (medico.experiencia != null) {
+                        "${medico.especialidad} · ${medico.experiencia}"
+                    } else {
+                        medico.especialidad
+                    },
+                    fontSize = 13.sp,
                     color = Color(0xFF6E6E6E)
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    CalificacionMedico(
+                        calificacion = medico.calificacion
+                    )
+
+                    if (medico.resenas != null) {
+                        Text(
+                            text = "(${medico.resenas} reseñas)",
+                            fontSize = 12.sp,
+                            color = Color(0xFF6E6E6E)
+                        )
+                    }
+                }
+
+                if (medico.descripcion != null) {
+                    Spacer(modifier = Modifier.height(28.dp))
+
+                    Text(
+                        text = medico.descripcion,
+                        modifier = Modifier.fillMaxWidth(),
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp,
+                        color = Color(0xFF1E1E1E)
+                    )
+                }
+            }
+
+            Button(
+                onClick = {},
+                enabled = false,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, bottom = 16.dp)
+                    .height(52.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF5B2A86),
+                    contentColor = Color.White
+                )
+            ) {
+                Text(
+                    text = "Agendar cita",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
@@ -266,10 +465,30 @@ fun TarjetaMedico(medico: Medico) {
 }
 
 @Composable
-fun IconoMedico() {
+fun CalificacionMedico(calificacion: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        Text(
+            text = "★",
+            fontSize = 18.sp,
+            color = Color(0xFFBA8A00)
+        )
+
+        Text(
+            text = calificacion,
+            fontSize = 12.sp,
+            color = Color(0xFF6E6E6E)
+        )
+    }
+}
+
+@Composable
+fun IconoMedico(tamano: Dp = 44.dp) {
     Box(
         modifier = Modifier
-            .size(44.dp)
+            .size(tamano)
             .background(
                 color = Color(0xFFEEE6F7),
                 shape = CircleShape
@@ -278,15 +497,15 @@ fun IconoMedico() {
     ) {
         Box(
             modifier = Modifier
-                .width(24.dp)
-                .height(5.dp)
+                .width(tamano * 0.55f)
+                .height(tamano * 0.12f)
                 .background(Color(0xFF5B2A86))
         )
 
         Box(
             modifier = Modifier
-                .width(5.dp)
-                .height(24.dp)
+                .width(tamano * 0.12f)
+                .height(tamano * 0.55f)
                 .background(Color(0xFF5B2A86))
         )
     }
