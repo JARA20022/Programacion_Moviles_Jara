@@ -69,3 +69,19 @@ Las salidas de Git compartidas durante la conversación muestran:
 - La inspección de main mostró archivos incompletos de navegación, componentes y colores. La reparación utiliza las versiones completas de la fase base y conserva por separado la mejora de cancelación.
 
 Estos hechos describen el historial proporcionado, no resultados de pruebas de ejecución. El README y este registro se incorporan después del commit del diálogo.
+
+## Corrección posterior: Perfil en el menú lateral
+
+**Mensaje del usuario:** «que paso con el perfil? te dije que sigas la documentacion, ahora nos falta eso, eso era de la rama main y supongo que mejorada en la rama mejora-ia esta en el word».
+
+**Hallazgo:** la figura 2 incluye Perfil como cuarto destino. La implementación anterior solo incluía los tres destinos mínimos indicados en el texto. El asistente reconoció la omisión y corrigió también la documentación que justificaba excluirlo.
+
+**Corrección preparada:** añadir Perfil al drawer y la ruta `perfil_paciente` al mismo NavHost, manteniendo `perfil/{medicoId}` para el médico. La pantalla del paciente utiliza Scaffold, topBar, botón de menú, innerPadding y colores existentes. Muestra únicamente JP, Juan Pérez y Paciente. El Word no proporciona una maqueta interior del perfil del paciente en la opción A, por lo que esta disposición es una adaptación, no una reproducción de una pantalla inexistente en el documento. No se incorporan DNI, teléfono, estadísticas, edición ni datos médicos nuevos.
+
+**Aplicación por ramas:** la corrección se prepara para main y mejora-ia. En mejora-ia se conservan el callback de cancelación, el AlertDialog y el estado Cancelada. El perfil no necesita otra mejora independiente; la mejora funcional elegida continúa siendo cancelar con confirmación.
+
+**Prompt reutilizable para esta corrección (redactado después de la solicitud):**
+
+> Revisa la figura 2 de la opción A del Word actualizado. Completa el drawer con Inicio, Mis citas, Historial médico y Perfil. Usa el NavController y NavHost existentes y la ruta perfil_paciente, distinta de perfil/{medicoId}. Crea PerfilPacienteScreen.kt con Scaffold, TopAppBar, botón de menú y aplicación de innerPadding. Muestra únicamente los datos del paciente visibles en el documento: JP, Juan Pérez y Paciente. Conserva la paleta existente. No inventes campos, estadísticas ni edición. Aplica la corrección a la versión base main y a mejora-ia conservando la cancelación con AlertDialog en esta última. Entrega los archivos completos y actualiza los README y PROMPTS.md. No uses ViewModel, MVVM ni nuevas dependencias. No declares compilación o pruebas superadas si no se han ejecutado.
+
+**Validación pendiente:** compilar y ejecutar ambas ramas en Android Studio; abrir Perfil, comprobar su selección en el drawer y regresar a Inicio. En mejora-ia, comprobar además que las citas se conservan al navegar y que la cancelación con diálogo sigue funcionando. La preparación de estos archivos no equivale a ejecutar estas pruebas.

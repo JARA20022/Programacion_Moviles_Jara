@@ -24,7 +24,7 @@ El estado se maneja con `remember` y `mutableStateOf`. El proyecto no utiliza Vi
 | RF02 | Perfil que recibe el médico elegido mediante un parámetro de navegación y ofrece Agendar cita. | La ruta `perfil/{medicoId}` recibe un entero, recupera el médico y abre su perfil. |
 | RF03 | Agenda con al menos tres fechas y tres horarios, ambos de selección única. | Jue 26, Vie 27 y Sáb 28; horarios 9:00, 10:30 y 3:00. Una variable controla cada grupo. |
 | RF04 | Confirmación con médico, fecha y hora, y botón para volver al inicio. | La cita se registra en el estado compartido y `confirmacion/{citaId}` presenta su resumen. |
-| RF05 | Menú lateral desde el icono de Inicio con al menos tres destinos. | ModalNavigationDrawer permite acceder a Inicio, Mis citas e Historial médico. |
+| RF05 | Menú lateral desde el icono de Inicio con al menos tres destinos. | ModalNavigationDrawer permite acceder a Inicio, Mis citas, Historial médico y Perfil, como muestra la figura 2. |
 | RF06 | Mis citas con LazyColumn y estados Confirmada y Completada diferenciados. | Las nuevas reservas son Confirmadas, con etiqueta verde. La cita completada de ejemplo tiene etiqueta gris. |
 
 El historial consulta las citas completadas de la misma lista. La cita inicial de Luis, Miércoles 15 a las 3:00 pm, procede de la referencia y permite visualizar el estado Completada; no es una reserva creada por el usuario durante esa sesión.
@@ -38,7 +38,8 @@ El historial consulta las citas completadas de la misma lista. La cita inicial d
 - Cada pantalla utiliza Scaffold y aplica el innerPadding del contenido.
 - Los tamaños y espacios en dp/sp son una adaptación de las imágenes, que no proporcionan medidas numéricas.
 - El botón de Confirmación dice Volver al inicio, siguiendo el requerimiento escrito, aunque la imagen muestra Ver mis citas.
-- El menú implementa los tres destinos exigidos. El cuarto destino Perfil que aparece en la imagen no forma parte del mínimo requerido.
+- El menú incluye los cuatro destinos de la figura 2: Inicio, Mis citas, Historial médico y Perfil. El texto exige al menos tres; la implementación también incorpora el cuarto de la referencia.
+- Perfil del paciente utiliza la ruta `perfil_paciente`, distinta de `perfil/{medicoId}`. Muestra JP, Juan Pérez y Paciente, los datos visibles en el drawer del Word. El documento no incluye una maqueta de esta pantalla para la opción A: su distribución interior es una adaptación sencilla con Scaffold, topBar, padding y los colores existentes; no se añaden campos personales ni edición.
 - El filtrado real incorpora Todas y Dermatología para mantener accesibles los tres médicos.
 
 ## Organización del código
@@ -51,7 +52,8 @@ El historial consulta las citas completadas de la misma lista. La cita inicial d
 | `model/FechaCita.kt` | Datos de las opciones de fecha. |
 | `model/Cita.kt` | Médico, fecha, hora y estado de una cita. |
 | `data/DatosClinica.kt` | Médicos y cita completada de ejemplo. |
-| `screens/` | Inicio, perfil, agenda, confirmación, mis citas e historial. |
+| `screens/` | Inicio, perfil del médico, agenda, confirmación, mis citas, historial y perfil del paciente. |
+| `screens/PerfilPacienteScreen.kt` | Pantalla Perfil del drawer, con los datos de presentación del paciente. |
 | `ui/components/ComponentesClinica.kt` | Menú, tarjetas, botones y elementos visuales reutilizables. |
 | `ui/theme/ClinicaColors.kt` | Paleta compartida. |
 | `ui/theme/Theme.kt`, `Color.kt`, `Type.kt` | Configuración del tema generado por el proyecto. |
@@ -87,6 +89,7 @@ El APK de depuración se genera en `app/build/outputs/apk/debug/app-debug.apk`.
 4. Confirma y revisa el resumen.
 5. Vuelve a Inicio y abre el menú lateral.
 6. Consulta Mis citas y, si corresponde, Historial médico.
+7. Abre Perfil desde el menú para consultar los datos de presentación del paciente; puedes volver a Inicio desde el mismo menú.
 
 ## Estado de la sesión
 
@@ -101,8 +104,9 @@ Estos son los pasos de comprobación, no una afirmación de pruebas automatizada
 3. Solo una fecha y una hora quedan seleccionadas.
 4. La confirmación refleja los datos elegidos, no un resumen fijo.
 5. Una reserva nueva aparece en Mis citas con estado Confirmada.
-6. El menú abre sus tres destinos y resalta la sección actual.
+6. El menú abre sus cuatro destinos y resalta la sección actual, incluido Perfil.
 7. Historial muestra las citas completadas.
+8. Perfil muestra JP, Juan Pérez y Paciente; el botón de menú permite navegar a las otras secciones. Entrar en Perfil no modifica las citas.
 
 ## Preparación para la sustentación
 
@@ -143,3 +147,7 @@ Además de esos avances, el commit `01f9dd5` registró MainActivity y ClinicaCol
 La rama remota mejora-ia ya contenía trabajo de Semana03. Sus commits deben conservarse al integrar la rama; para revisar esta aplicación se puede filtrar el historial con `git log --oneline -- Semana05/Clinica` desde la raíz del repositorio.
 
 La primera versión fue un avance intermedio con cancelación directa. La entrega final de esta rama utiliza el diálogo. La documentación de la asistencia utilizada y el prompt reutilizable están en PROMPTS.md.
+
+## Corrección de la referencia visual
+
+Se incorporó Perfil, que se había omitido del drawer al implementar solo los tres destinos mínimos del texto. Esta corrección pertenece a la base y se conserva en mejora-ia. No sustituye la mejora de cancelación ni añade un requerimiento funcional escrito que el Word no enumera.

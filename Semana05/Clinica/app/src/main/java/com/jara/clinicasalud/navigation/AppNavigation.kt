@@ -39,7 +39,8 @@ fun NavegacionClinica() {
     val seccionesPrincipales = listOf(
         "inicio",
         "mis_citas",
-        "historial"
+        "historial",
+        "perfil_paciente"
     )
 
     var especialidadSeleccionada by remember {
@@ -199,6 +200,11 @@ fun NavegacionClinica() {
                         }
                     }
                 )
+            }
+
+            // Perfil del paciente: destino del drawer, distinto del perfil médico.
+            composable("perfil_paciente") {
+                PerfilPaciente(onAbrirMenu = abrirMenu)
             }
 
             composable("historial") {
