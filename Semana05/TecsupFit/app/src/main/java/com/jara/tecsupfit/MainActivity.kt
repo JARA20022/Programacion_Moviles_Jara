@@ -207,6 +207,46 @@ fun TarjetaReserva(reserva: ReservaFit) {
 }
 
 @Composable
+fun BarraInferiorFit(rutaActual: String, onDestino: (String) -> Unit) {
+    val destinos = listOf(
+        "inicio" to "Inicio", "reservas" to "Reservas",
+        "rutinas" to "Rutinas", "perfil" to "Perfil"
+    )
+    Column {
+        HorizontalDivider(color = Color(0xFFDDDDDD))
+        NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
+            destinos.forEach { (ruta, titulo) ->
+                val seleccionado = ruta == rutaActual
+                NavigationBarItem(
+                    selected = seleccionado,
+                    onClick = { onDestino(ruta) },
+                    icon = {
+                        // La referencia usa círculos; el color indica la pestaña activa.
+                        Box(
+                            Modifier.size(22.dp).border(
+                                width = if (seleccionado) 2.dp else 1.dp,
+                                color = if (seleccionado) VerdeFit else TextoSecundarioFit,
+                                shape = CircleShape
+                            )
+                        )
+                    },
+                    label = {
+                        Text(titulo, fontSize = 11.sp,
+                            fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Normal)
+                    },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = VerdeFit, selectedTextColor = VerdeFit,
+                        indicatorColor = Color.Transparent,
+                        unselectedIconColor = TextoSecundarioFit,
+                        unselectedTextColor = TextoSecundarioFit
+                    )
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun BotonAtrasFit(onVolver: () -> Unit) {
     IconButton(
         onClick = onVolver,
@@ -214,6 +254,16 @@ fun BotonAtrasFit(onVolver: () -> Unit) {
     ) { Text("←", color = TextoFit, fontSize = 24.sp) }
 }
 
+@Composable
+fun EstadisticaFit(valor: Int, etiqueta: String, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.background(FondoTarjetaFit, RoundedCornerShape(12.dp)).padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(valor.toString(), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = TextoFit)
+        Text(etiqueta, fontSize = 12.sp, color = TextoSecundarioFit)
+    }
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InicioFit(
@@ -435,6 +485,60 @@ fun ReservasFit(
         }
     }
 }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PerfilFit(usuario: UsuarioFit, barraInferior: @Composable () -> Unit) {
+    Scaffold(
+        containerColor = Color.White,
+        topBar = {
+            TopAppBar(
+                title = { Text("Mi perfil", fontSize = 22.sp, fontWeight = FontWeight.Bold) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White, titleContentColor = TextoFit)
+            )
+        },
+        bottomBar = barraInferior
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier.fillMaxSize().padding(innerPadding)
+                .verticalScroll(rememberScrollState()).padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(Modifier.height(12.dp))
+            Box(
+                Modifier.size(88.dp).background(FondoVerdeFit, CircleShape),
+                contentAlignment = Alignment.Center
+            ) { Text(usuario.iniciales, color = VerdeFit, fontWeight = FontWeight.Bold, fontSize = 24.sp) }
+            Spacer(Modifier.height(12.dp))
+            Text(usuario.nombre, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = TextoFit)
+            Text(usuario.plan, fontSize = 13.sp, color = TextoSecundarioFit)
+            Spacer(Modifier.height(32.dp))
+            // Son los valores históricos del ejemplo: reservar no equivale a asistir.
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                EstadisticaFit(usuario.clasesTomadas, "Clases", Modifier.weight(1f))
+                EstadisticaFit(usuario.rachas, "Rachas", Modifier.weight(1f))
+            }
+        }
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RutinasFit(barraInferior: @Composable () -> Unit) {
+    // El Word nombra la pestaña, pero no define ejercicios ni su pantalla.
+    Scaffold(
+        containerColor = Color.White,
+        topBar = {
+            TopAppBar(
+                title = { Text("Rutinas", fontSize = 22.sp, fontWeight = FontWeight.Bold) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White, titleContentColor = TextoFit)
+            )
+        },
+        bottomBar = barraInferior
+    ) { innerPadding ->
+        Column(Modifier.fillMaxSize().padding(innerPadding).padding(16.dp)) {
+            Text("No hay rutinas registradas.", color = TextoSecundarioFit)
+        }
+    }
+}
 @Composable
 fun NavegacionFit() {
     // Un único NavController gobierna el flujo y las cuatro pestañas.
@@ -452,12 +556,16 @@ fun NavegacionFit() {
             }
         }
     }
+    val barra: @Composable () -> Unit = {
+        BarraInferiorFit(rutaActual = rutaActual, onDestino = abrirPestana)
+    }
 
     NavHost(navController = navController, startDestination = "inicio") {
         composable("inicio") {
             InicioFit(
                 clases = DatosFit.clases, filtro = filtro, onFiltro = { filtro = it },
-                onClase = { navController.navigate("detalle/$it") }
+                onClase = { navController.navigate("detalle/$it") },
+                barraInferior = barra
             )
         }
         composable(
@@ -501,6 +609,8 @@ fun NavegacionFit() {
                 onVerReservas = { abrirPestana("reservas") }
             )
         }
-        composable("reservas") { ReservasFit(reservas, onVolver = { abrirPestana("inicio") }) }
+        composable("reservas") { ReservasFit(reservas, barraInferior = barra) }
+        composable("rutinas") { RutinasFit(barraInferior = barra) }
+        composable("perfil") { PerfilFit(DatosFit.usuario, barraInferior = barra) }
     }
 }
