@@ -36,21 +36,22 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.jara.clinicasalud.ui.theme.ClinicaSaludTheme
 
-// Colores compartidos por las pantallas.
-// Cambiar uno aquí modifica todos los componentes que lo utilizan.
+// Colores compartidos. Cambiarlos aquí actualiza sus usos en las pantallas.
 private val MoradoClinica = Color(0xFF5B2A86)
 private val FondoTarjeta = Color(0xFFF3F1F7)
 private val FondoIcono = Color(0xFFEEE6F7)
 private val TextoPrincipal = Color(0xFF1E1E1E)
 private val TextoSecundario = Color(0xFF6E6E6E)
 private val DoradoEstrella = Color(0xFFBA8A00)
+private val VerdeConfirmacion = Color(0xFF1D9E75)
+private val FondoConfirmacion = Color(0xFFE1F5EE)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // setContent inicia la interfaz creada con Jetpack Compose.
+        // Inicia la interfaz de Jetpack Compose.
         setContent {
             ClinicaSaludTheme {
                 NavegacionClinica()
@@ -59,8 +60,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// Representa los datos de un médico.
-// categoria se utiliza para filtrar; especialidad se muestra en su tarjeta.
+// categoria se usa para filtrar; especialidad se muestra al usuario.
 data class Medico(
     val id: Int,
     val nombre: String,
@@ -72,24 +72,36 @@ data class Medico(
     val descripcion: String? = null
 )
 
-// Separa el nombre corto del día y su número para mostrarlos en dos líneas.
 data class FechaCita(
     val dia: String,
-    val numero: String
+    val numero: String,
+    val diaCompleto: String
+)
+
+// Una cita reúne los datos elegidos durante el recorrido de navegación.
+data class Cita(
+    val id: Int,
+    val medico: Medico,
+    val fecha: String,
+    val hora: String,
+    val estado: String = "Confirmada"
 )
 
 @Composable
 fun NavegacionClinica() {
-    // Un solo controlador administra los cambios de pantalla.
+    // Un solo controlador administra todas las rutas.
     val navController = rememberNavController()
 
-    // El estado se conserva mientras este composable permanece en composición.
-    // Al modificarlo, Compose actualiza la interfaz que lo utiliza.
     var especialidadSeleccionada by remember {
         mutableStateOf("Todas")
     }
 
-    // Los datos son compartidos por Inicio y Perfil.
+    // Estado compartido de las citas, sin ViewModel ni base de datos.
+    // Se mantiene al navegar mientras este composable siga en composición.
+    var citas by remember {
+        mutableStateOf<List<Cita>>(emptyList())
+    }
+
     val medicos = remember {
         listOf(
             Medico(
@@ -120,7 +132,7 @@ fun NavegacionClinica() {
         )
     }
 
-    // NavHost contiene las rutas. startDestination es la pantalla inicial.
+    // Aquí se registran las pantallas y sus parámetros.
     NavHost(
         navController = navController,
         startDestination = "inicio"
@@ -136,7 +148,6 @@ fun NavegacionClinica() {
             )
         }
 
-        // medicoId es el parámetro que identifica al médico seleccionado.
         composable(
             route = "perfil/{medicoId}",
             arguments = listOf(
@@ -154,7 +165,6 @@ fun NavegacionClinica() {
             )
         }
 
-        // La agenda recibe el mismo ID enviado desde Perfil.
         composable(
             route = "agenda/{medicoId}",
             arguments = listOf(
@@ -168,7 +178,57 @@ fun NavegacionClinica() {
 
             AgendaCita(
                 navController = navController,
-                medico = medico
+                medico = medico,
+                onConfirmar = { fecha, hora ->
+                    // Genera un identificador para la nueva cita.
+                    val nuevoId = (citas.maxOfOrNull { it.id } ?: 0) + 1
+
+                    val nuevaCita = Cita(
+                        id = nuevoId,
+                        medico = medico,
+                        fecha = fecha,
+                        hora = hora
+                    )
+
+                    // Se asigna una nueva lista para actualizar el estado.
+                    citas = citas + nuevaCita
+
+                    // La confirmación recibe el ID de la cita registrada.
+                    navController.navigate("confirmacion/$nuevoId") {
+                        // Retira esta agenda del historial de navegación.
+                        // Volver atrás no reabre el formulario ya confirmado.
+                        popUpTo("agenda/${medico.id}") {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        composable(
+            route = "confirmacion/{citaId}",
+            arguments = listOf(
+                navArgument("citaId") {
+                    type = NavType.IntType
+                }
+            )
+        ) { backStackEntry ->
+            val citaId = backStackEntry.arguments?.getInt("citaId")
+            val cita = citas.firstOrNull { it.id == citaId }
+
+            ConfirmacionCita(
+                cita = cita,
+                onVolverInicio = {
+                    navController.navigate("inicio") {
+                        // Conserva Inicio y elimina las pantallas posteriores.
+                        popUpTo("inicio") {
+                            inclusive = false
+                        }
+                        // Evita crear otra copia de Inicio.
+                        launchSingleTop = true
+                    }
+                }
             )
         }
     }
@@ -182,7 +242,7 @@ fun InicioClinica(
     especialidadSeleccionada: String,
     onEspecialidadSeleccionada: (String) -> Unit
 ) {
-    // Scaffold organiza la barra superior y el contenido de esta pantalla.
+    // Scaffold organiza la barra superior y el contenido.
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = Color.White,
@@ -208,7 +268,6 @@ fun InicioClinica(
             )
         }
     ) { innerPadding ->
-        // Este padding evita que el contenido quede debajo de la barra.
         ContenidoInicio(
             navController = navController,
             medicos = medicos,
@@ -235,8 +294,7 @@ fun ContenidoInicio(
         "Dermatología"
     )
 
-    // Este bloque realiza el filtrado real de la lista.
-    // "Todas" devuelve la lista completa.
+    // filter devuelve únicamente los médicos de la categoría seleccionada.
     val medicosFiltrados = if (especialidadSeleccionada == "Todas") {
         medicos
     } else {
@@ -248,7 +306,6 @@ fun ContenidoInicio(
             .fillMaxSize()
             .padding(horizontal = 16.dp)
     ) {
-        // LazyRow organiza los chips horizontalmente.
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
             contentPadding = PaddingValues(top = 8.dp),
@@ -292,7 +349,6 @@ fun ContenidoInicio(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // LazyColumn muestra únicamente los médicos del filtro actual.
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
@@ -307,7 +363,6 @@ fun ContenidoInicio(
                 TarjetaMedico(
                     medico = medico,
                     onClick = {
-                        // Ejemplo: al tocar a Luis se navega a perfil/2.
                         navController.navigate("perfil/${medico.id}")
                     }
                 )
@@ -334,7 +389,6 @@ fun TarjetaMedico(
             defaultElevation = 0.dp
         )
     ) {
-        // Row coloca icono, datos y calificación uno al lado del otro.
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -345,7 +399,6 @@ fun TarjetaMedico(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // weight ocupa el espacio disponible entre icono y calificación.
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = medico.nombre,
@@ -391,7 +444,6 @@ fun PerfilMedico(
                 navigationIcon = {
                     IconButton(
                         onClick = {
-                            // Quita la pantalla actual y vuelve a la anterior.
                             navController.popBackStack()
                         }
                     ) {
@@ -464,7 +516,6 @@ fun PerfilMedico(
                     }
                 }
 
-                // Solo se muestra la descripción si está registrada.
                 if (medico.descripcion != null) {
                     Spacer(modifier = Modifier.height(28.dp))
 
@@ -478,7 +529,6 @@ fun PerfilMedico(
                 }
             }
 
-            // Ahora el botón está habilitado y abre la agenda del médico.
             Button(
                 onClick = {
                     navController.navigate("agenda/${medico.id}")
@@ -507,26 +557,30 @@ fun PerfilMedico(
 @Composable
 fun AgendaCita(
     navController: NavController,
-    medico: Medico
+    medico: Medico,
+    onConfirmar: (String, String) -> Unit
 ) {
-    // Opciones tomadas de la imagen de referencia.
+    // Fechas de ejemplo indicadas en el diseño del Word.
     val fechas = listOf(
-        FechaCita("Jue", "26"),
-        FechaCita("Vie", "27"),
-        FechaCita("Sáb", "28")
+        FechaCita("Jue", "26", "Jueves"),
+        FechaCita("Vie", "27", "Viernes"),
+        FechaCita("Sáb", "28", "Sábado")
     )
 
     val horas = listOf("9:00", "10:30", "3:00")
 
-    // Una sola variable guarda la fecha elegida y otra la hora.
-    // Los valores iniciales coinciden con la selección de la referencia.
-    // medico.id reinicia estas selecciones si cambia el médico.
+    // Una variable por grupo garantiza una selección única.
     var fechaSeleccionada by remember(medico.id) {
         mutableStateOf("27")
     }
 
     var horaSeleccionada by remember(medico.id) {
         mutableStateOf("10:30")
+    }
+
+    // Impide procesar dos veces una pulsación rápida de Confirmar.
+    var confirmando by remember(medico.id) {
+        mutableStateOf(false)
     }
 
     Scaffold(
@@ -567,7 +621,6 @@ fun AgendaCita(
                 .padding(innerPadding)
                 .padding(horizontal = 20.dp)
         ) {
-            // El contenido puede desplazarse si la pantalla es pequeña.
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -583,7 +636,6 @@ fun AgendaCita(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Agrupa las fechas como opciones de selección única.
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -635,11 +687,30 @@ fun AgendaCita(
                 }
             }
 
-            // La confirmación y el registro de la cita son el siguiente avance.
-            // Permanece deshabilitado para no simular una reserva inexistente.
             Button(
-                onClick = {},
-                enabled = false,
+                onClick = {
+                    if (!confirmando) {
+                        confirmando = true
+
+                        val fecha = fechas.first {
+                            it.numero == fechaSeleccionada
+                        }
+
+                        val fechaCompleta =
+                            "${fecha.diaCompleto} ${fecha.numero}"
+
+                        // La opción 3:00 corresponde al horario de la tarde.
+                        val horaCompleta = if (horaSeleccionada == "3:00") {
+                            "$horaSeleccionada pm"
+                        } else {
+                            "$horaSeleccionada am"
+                        }
+
+                        // Entrega la selección al estado compartido.
+                        onConfirmar(fechaCompleta, horaCompleta)
+                    }
+                },
+                enabled = !confirmando,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 16.dp)
@@ -660,6 +731,118 @@ fun AgendaCita(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ConfirmacionCita(
+    cita: Cita?,
+    onVolverInicio: () -> Unit
+) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = Color.White,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Confirmación",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.White,
+                    titleContentColor = TextoPrincipal
+                )
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            if (cita != null) {
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .background(
+                            color = FondoConfirmacion,
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "✓",
+                        fontSize = 48.sp,
+                        color = VerdeConfirmacion
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    text = "¡Cita agendada!",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextoPrincipal,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // El resumen utiliza la cita guardada, no valores fijos.
+                Text(
+                    text = cita.medico.nombre,
+                    fontSize = 15.sp,
+                    color = TextoSecundario,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = "${cita.fecha}, ${cita.hora}",
+                    fontSize = 14.sp,
+                    color = TextoSecundario,
+                    textAlign = TextAlign.Center
+                )
+            } else {
+                // remember no persiste si Android recrea la actividad.
+                // Evita mostrar una confirmación falsa si ya no hay datos.
+                Text(
+                    text = "La cita ya no está disponible en esta sesión.",
+                    fontSize = 16.sp,
+                    color = TextoPrincipal,
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(
+                onClick = onVolverInicio,
+                modifier = Modifier
+                    .widthIn(min = 180.dp)
+                    .heightIn(min = 48.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = FondoTarjeta,
+                    contentColor = TextoPrincipal
+                )
+            ) {
+                Text(
+                    text = "Volver al inicio",
+                    fontSize = 14.sp
+                )
+            }
+        }
+    }
+}
+
 @Composable
 fun OpcionAgenda(
     texto: String,
@@ -667,10 +850,10 @@ fun OpcionAgenda(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // La selección determina los colores de la opción.
     val fondo = if (seleccionada) MoradoClinica else FondoTarjeta
     val colorTexto = if (seleccionada) Color.White else TextoPrincipal
 
+    // selectable comunica la selección; la variable del grupo la controla.
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
@@ -720,7 +903,7 @@ fun CalificacionMedico(calificacion: String) {
 
 @Composable
 fun IconoMedico(tamano: Dp = 44.dp) {
-    // Box superpone dos rectángulos para formar la cruz.
+    // Superpone dos rectángulos para representar una cruz.
     Box(
         modifier = Modifier
             .size(tamano)
