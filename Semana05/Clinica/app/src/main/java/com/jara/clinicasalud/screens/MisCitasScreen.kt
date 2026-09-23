@@ -18,7 +18,7 @@ import com.jara.clinicasalud.ui.theme.*
 
 // Muestra en LazyColumn las citas del estado compartido.
 // Los colores de cada estado los dibuja el componente TarjetaCita.
-// Avance 1 de mejora-ia: cancelación directa; el avance 2 añade confirmación.
+// Versión final de mejora-ia: la cancelación requiere confirmación.
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,6 +27,9 @@ fun MisCitas(
     onAbrirMenu: () -> Unit,
     onCancelar: (Int) -> Unit
 ) {
+    // Guardamos el ID de la cita elegida para mostrar el diálogo.
+    var citaPendienteId by remember { mutableStateOf<Int?>(null) }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = Color.White,
@@ -75,7 +78,7 @@ fun MisCitas(
                         // Solo una cita confirmada ofrece la acción de cancelar.
                         if (cita.estado == "Confirmada") {
                             OutlinedButton(
-                                onClick = { onCancelar(cita.id) },
+                                onClick = { citaPendienteId = cita.id },
                                 modifier = Modifier.align(Alignment.End),
                                 colors = ButtonDefaults.outlinedButtonColors(
                                     contentColor = Color(0xFFB3261E)
@@ -89,5 +92,51 @@ fun MisCitas(
             }
         }
     }
+    // Consultar la lista actual evita operar sobre una copia desactualizada.
+    val citaPendiente = citas.firstOrNull {
+        it.id == citaPendienteId && it.estado == "Confirmada"
+    }
+
+    if (citaPendiente != null) {
+        AlertDialog(
+            onDismissRequest = {
+                // Atrás o tocar fuera conserva la cita.
+                citaPendienteId = null
+            },
+            title = {
+                Text("¿Cancelar cita?")
+            },
+            text = {
+                Text(
+                    "¿Deseas cancelar la cita con " + citaPendiente.medico.nombre +
+                            " del " + citaPendiente.fecha + " a las " +
+                            citaPendiente.hora + "?"
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        // Se cierra el diálogo y se actualiza el estado compartido.
+                        citaPendienteId = null
+                        onCancelar(citaPendiente.id)
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = Color(0xFFB3261E)
+                    )
+                ) {
+                    Text("Sí, cancelar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { citaPendienteId = null }) {
+                    Text("Conservar cita")
+                }
+            },
+            containerColor = Color.White,
+            titleContentColor = TextoPrincipal,
+            textContentColor = TextoSecundario
+        )
+    }
+
 }
 
