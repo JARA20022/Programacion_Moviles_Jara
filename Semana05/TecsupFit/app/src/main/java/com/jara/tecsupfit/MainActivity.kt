@@ -238,10 +238,11 @@ fun InicioFit(
 fun DetalleFit(
     clase: ClaseFit, disponibles: Int?, onVolver: () -> Unit,
     onReservar: (Int) -> Unit,
-    permitirReserva: Boolean = true
+    permitirReserva: Boolean = true,
+    mostrarSelector: Boolean = true
 ) {
-    // En el siguiente avance se añade la selección de cupos.
-    val cupos = 1
+    // Una única variable representa la opción elegida, como en RadioButton.
+    var cupos by remember(clase.id) { mutableStateOf(1) }
     val sesionVigente = clase.dia == "Hoy"
     val puedeReservar = permitirReserva && sesionVigente &&
             (disponibles == null || cupos <= disponibles)
@@ -279,6 +280,39 @@ fun DetalleFit(
                 if (!sesionVigente) {
                     Spacer(Modifier.height(16.dp))
                     Text("Esta sesión ya finalizó.", color = TextoSecundarioFit)
+                } else if (mostrarSelector) {
+                    Spacer(Modifier.height(20.dp))
+                    Text("Selecciona tus cupos", fontWeight = FontWeight.Bold, color = TextoFit)
+                    // Adaptación a la rúbrica: la maqueta no dibuja este selector.
+                    Row(
+                        modifier = Modifier.fillMaxWidth().selectableGroup().padding(top = 10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        (1..3).forEach { cantidad ->
+                            val seleccionada = cantidad == cupos
+                            val disponible = disponibles == null || cantidad <= disponibles
+                            Box(
+                                modifier = Modifier.weight(1f).heightIn(min = 48.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(if (seleccionada) VerdeFit else FondoTarjetaFit)
+                                    .selectable(
+                                        selected = seleccionada, enabled = disponible,
+                                        role = Role.RadioButton, onClick = { cupos = cantidad }
+                                    ).padding(8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    if (cantidad == 1) "1 cupo" else "$cantidad cupos",
+                                    fontSize = 13.sp,
+                                    color = when {
+                                        !disponible -> Color.Gray
+                                        seleccionada -> Color.White
+                                        else -> TextoFit
+                                    }
+                                )
+                            }
+                        }
+                    }
                 }
                 Spacer(Modifier.height(16.dp))
             }
@@ -307,7 +341,7 @@ fun NavegacionInicialFit() {
             val clase = DatosFit.clases.first { it.id == id }
             DetalleFit(clase, clase.cuposIniciales,
                 onVolver = { navController.popBackStack() }, onReservar = {},
-                permitirReserva = false)
+                permitirReserva = false, mostrarSelector = true)
         }
     }
 }
