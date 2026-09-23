@@ -74,6 +74,17 @@ fun TarjetaClase(clase: ClaseFit, mostrarDia: Boolean, onClick: () -> Unit) {
 @Composable
 fun TarjetaReserva(reserva: ReservaFit) {
     val confirmada = reserva.estado == "Confirmada"
+    // Tres estados visuales; cancelar conserva la tarjeta y su información.
+    val fondoEstado = when (reserva.estado) {
+        "Confirmada" -> FondoVerdeFit
+        "Cancelada" -> Color(0xFFFDEBEC)
+        else -> FondoCompletadaFit
+    }
+    val colorEstado = when (reserva.estado) {
+        "Confirmada" -> VerdeEstado
+        "Cancelada" -> Color(0xFFB3261E)
+        else -> TextoSecundarioFit
+    }
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -99,11 +110,11 @@ fun TarjetaReserva(reserva: ReservaFit) {
                     text = reserva.estado,
                     modifier = Modifier
                         .background(
-                            if (confirmada) FondoVerdeFit else FondoCompletadaFit,
+                            fondoEstado,
                             RoundedCornerShape(50)
                         )
                         .padding(horizontal = 12.dp, vertical = 4.dp),
-                    color = if (confirmada) VerdeEstado else TextoSecundarioFit,
+                    color = colorEstado,
                     fontSize = 12.sp
                 )
             }
