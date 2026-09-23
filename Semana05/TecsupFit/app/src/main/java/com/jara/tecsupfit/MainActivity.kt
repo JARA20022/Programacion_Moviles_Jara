@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
                     primary = VerdeFit, background = Color.White,
                     surface = Color.White, onSurface = TextoFit
                 )
-            ) { InicioConListaFit() }
+            ) { NavegacionInicialFit() }
         }
     }
 }
@@ -166,6 +166,14 @@ fun TarjetaClase(clase: ClaseFit, mostrarDia: Boolean, onClick: () -> Unit) {
     }
 }
 
+@Composable
+fun BotonAtrasFit(onVolver: () -> Unit) {
+    IconButton(
+        onClick = onVolver,
+        modifier = Modifier.semantics { contentDescription = "Regresar" }
+    ) { Text("←", color = TextoFit, fontSize = 24.sp) }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InicioFit(
@@ -225,8 +233,81 @@ fun InicioFit(
         }
     }
 }
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InicioConListaFit() {
+fun DetalleFit(
+    clase: ClaseFit, disponibles: Int?, onVolver: () -> Unit,
+    onReservar: (Int) -> Unit,
+    permitirReserva: Boolean = true
+) {
+    // En el siguiente avance se añade la selección de cupos.
+    val cupos = 1
+    val sesionVigente = clase.dia == "Hoy"
+    val puedeReservar = permitirReserva && sesionVigente &&
+            (disponibles == null || cupos <= disponibles)
+    Scaffold(
+        containerColor = Color.White,
+        topBar = {
+            TopAppBar(
+                title = { Text("Detalle de clase", fontSize = 18.sp, fontWeight = FontWeight.Bold) },
+                navigationIcon = { BotonAtrasFit(onVolver) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White, titleContentColor = TextoFit)
+            )
+        }
+    ) { innerPadding ->
+        Column(Modifier.fillMaxSize().padding(innerPadding).padding(16.dp)) {
+            Column(
+                modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(120.dp)
+                        .background(FondoVerdeFit, RoundedCornerShape(16.dp)),
+                    contentAlignment = Alignment.Center
+                ) { IconoPesa(96.dp) }
+                Spacer(Modifier.height(20.dp))
+                Text(clase.nombre, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = TextoFit)
+                val duracion = clase.duracion?.let { " · $it" } ?: ""
+                Text("${clase.hora} · ${clase.sala}$duracion", fontSize = 14.sp, color = TextoSecundarioFit)
+                clase.descripcion?.let {
+                    Spacer(Modifier.height(20.dp))
+                    Text(it, color = TextoFit, fontSize = 14.sp)
+                }
+                if (disponibles != null && clase.capacidad != null) {
+                    Spacer(Modifier.height(20.dp))
+                    Text("$disponibles de ${clase.capacidad} cupos disponibles", fontSize = 14.sp, color = TextoFit)
+                }
+                if (!sesionVigente) {
+                    Spacer(Modifier.height(16.dp))
+                    Text("Esta sesión ya finalizó.", color = TextoSecundarioFit)
+                }
+                Spacer(Modifier.height(16.dp))
+            }
+            Button(
+                onClick = { onReservar(cupos) }, enabled = puedeReservar,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = VerdeFit, contentColor = Color.White)
+            ) { Text("Reservar cupo", fontWeight = FontWeight.Bold) }
+        }
+    }
+}
+@Composable
+fun NavegacionInicialFit() {
+    val navController = rememberNavController()
     var filtro by remember { mutableStateOf("Hoy") }
-    InicioFit(DatosFit.clases, filtro, onFiltro = { filtro = it }, onClase = {})
+    NavHost(navController = navController, startDestination = "inicio") {
+        composable("inicio") {
+            InicioFit(DatosFit.clases, filtro, onFiltro = { filtro = it },
+                onClase = { navController.navigate("detalle/$it") })
+        }
+        composable("detalle/{claseId}",
+            arguments = listOf(navArgument("claseId") { type = NavType.IntType })
+        ) { entrada ->
+            val id = entrada.arguments?.getInt("claseId")
+            val clase = DatosFit.clases.first { it.id == id }
+            DetalleFit(clase, clase.cuposIniciales,
+                onVolver = { navController.popBackStack() }, onReservar = {},
+                permitirReserva = false)
+        }
+    }
 }
