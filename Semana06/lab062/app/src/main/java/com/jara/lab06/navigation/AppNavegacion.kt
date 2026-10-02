@@ -1,12 +1,16 @@
 package com.jara.lab06.navigation
 
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
@@ -66,26 +70,53 @@ fun AppNavegacion() {
                 if (!esDetalle) {
                     TopAppBar(
                         title = {
-                            Text(
-                                text = "IVAN JARA AYALA",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                        },
-                        navigationIcon = {
-                            IconButton(
-                                onClick = {
-                                    scope.launch {
-                                        drawerState.open()
-                                    }
-                                }
+                            Column(
+                                modifier = Modifier
+                                    .padding(vertical = 12.dp)
+                                    .fillMaxWidth()
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Menu,
-                                    contentDescription = "Abrir menú principal"
+                                Text(
+                                    text = "IVAN JARA AYALA",
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Más vendidos",
+                                    fontSize = 14.sp,
+                                    color = Color(0xFFDCCCE8)
                                 )
                             }
-                        }
+                        },
+                        navigationIcon = {
+                            Box(
+                                modifier = Modifier.padding(start = 4.dp, end = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                IconButton(
+                                    onClick = {
+                                        scope.launch {
+                                            drawerState.open()
+                                        }
+                                    },
+                                    modifier = Modifier.size(48.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Menu,
+                                        contentDescription = "Abrir menú principal",
+                                        modifier = Modifier.size(24.dp),
+                                        tint = Color.White
+                                    )
+                                }
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = Color(0xFF5B2C83),
+                            titleContentColor = Color.White,
+                            navigationIconContentColor = Color.White
+                        ),
+                        modifier = Modifier.heightIn(min = 80.dp)
                     )
                 }
             }

@@ -6,8 +6,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.jara.lab06.data.favoritosTienda
 import com.jara.lab06.data.productosTienda
@@ -22,21 +24,24 @@ fun FavoritosScreen(navController: NavHostController) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
             Text(
                 text = "Mis favoritos",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF242128)
             )
         }
 
         if (productosFavoritos.isEmpty()) {
             item {
                 Text(
-                    "Aún no tienes favoritos. " +
-                            "Agrégalos desde los tres puntos de un producto."
+                    text = "Aún no tienes favoritos. " +
+                            "Agrégalos desde los tres puntos de un producto.",
+                    color = Color(0xFF665176),
+                    fontSize = 14.sp
                 )
             }
         }
