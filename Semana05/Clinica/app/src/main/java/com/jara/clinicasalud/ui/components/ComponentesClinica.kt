@@ -189,8 +189,17 @@ fun TarjetaMedico(
 @Composable
 fun TarjetaCita(cita: Cita) {
     val confirmada = cita.estado == "Confirmada"
-    val fondoEstado = if (confirmada) FondoConfirmacion else FondoCompletada
-    val textoEstado = if (confirmada) VerdeConfirmacion else TextoSecundario
+    // La fase de mejora añade un tercer estado sin borrar la cita.
+    val fondoEstado = when (cita.estado) {
+        "Confirmada" -> FondoConfirmacion
+        "Cancelada" -> Color(0xFFFDEBEC)
+        else -> FondoCompletada
+    }
+    val textoEstado = when (cita.estado) {
+        "Confirmada" -> VerdeConfirmacion
+        "Cancelada" -> Color(0xFFB3261E)
+        else -> TextoSecundario
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -235,7 +244,7 @@ fun TarjetaCita(cita: Cita) {
 
                 Spacer(Modifier.height(8.dp))
 
-                // Verde para Confirmada y gris para Completada.
+                // Verde: Confirmada. Gris: Completada. Rojo: Cancelada.
                 Text(
                     text = cita.estado,
                     modifier = Modifier

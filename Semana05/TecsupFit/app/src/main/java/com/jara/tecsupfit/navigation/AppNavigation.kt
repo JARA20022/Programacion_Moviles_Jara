@@ -82,7 +82,24 @@ fun NavegacionFit() {
                 onVerReservas = { abrirPestana("reservas") }
             )
         }
-        composable("reservas") { ReservasFit(reservas, barraInferior = barra) }
+        composable("reservas") {
+            ReservasFit(
+                reservas = reservas,
+                barraInferior = barra,
+                onCancelar = { reservaId ->
+                    // Conserva el registro y solo permite pasar de Confirmada a Cancelada.
+                    reservas = reservas.map { reserva ->
+                        if (reserva.id == reservaId && reserva.estado == "Confirmada") {
+                            reserva.copy(estado = "Cancelada")
+                        } else {
+                            reserva
+                        }
+                    }
+                    // El detalle cuenta solo Confirmadas: al cancelar se liberan
+                    // automáticamente los cupos de Cross Training, sin sumar dos veces.
+                }
+            )
+        }
         composable("rutinas") { RutinasFit(barraInferior = barra) }
         composable("perfil") { PerfilFit(DatosFit.usuario, barraInferior = barra) }
     }
