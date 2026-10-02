@@ -10,6 +10,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
+import com.jara.lab06.data.favoritosTienda
 import com.jara.lab06.data.productosTienda
 import com.jara.lab06.screens.DetalleProductoScreen
 import com.jara.lab06.screens.FavoritosScreen
@@ -39,6 +40,7 @@ fun AppNavegacion() {
         gesturesEnabled = !esDetalle,
         drawerContent = {
             AppDrawer(
+                cantidadFavoritos = favoritosTienda.size,
                 rutaActual = rutaActual,
                 onSeleccionar = { destino ->
                     // Cambiamos de pantalla sin repetir el mismo destino.

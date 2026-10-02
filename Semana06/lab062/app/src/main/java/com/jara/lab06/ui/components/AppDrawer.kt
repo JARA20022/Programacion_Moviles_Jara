@@ -3,6 +3,7 @@ package com.jara.lab06.ui.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -13,12 +14,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppDrawer(
+    cantidadFavoritos: Int,
     rutaActual: String?,
     onSeleccionar: (String) -> Unit
 ) {
@@ -83,6 +88,31 @@ fun AppDrawer(
                 label = { Text("Favoritos") },
                 selected = rutaActual == "favoritos",
                 icon = { Icon(Icons.Default.Favorite, null) },
+                badge = {
+                    Badge(
+                        modifier = Modifier
+                            .height(24.dp)
+                            .defaultMinSize(minWidth = 24.dp)
+                            .clip(RoundedCornerShape(12.dp)),
+                        containerColor = Color(0xFF175CD3),
+                        contentColor = Color.White
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .padding(horizontal = 6.dp)
+                                .fillMaxHeight(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = cantidadFavoritos.toString(),
+                                fontSize = 12.sp,
+                                lineHeight = 16.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White
+                            )
+                        }
+                    }
+                },
                 onClick = { onSeleccionar("favoritos") }
             )
 
