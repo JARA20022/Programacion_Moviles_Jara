@@ -1,4 +1,10 @@
 package com.jara.lab06.model
 
-class Producto {
-}
+// Datos que tendrá cada producto.
+data class Producto(
+    val id: Int,
+    val nombre: String,
+    val precio: Double,
+    val categoria: String,
+    val descripcion: String
+)
