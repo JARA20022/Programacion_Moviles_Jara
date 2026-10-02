@@ -4,7 +4,10 @@ import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,7 +28,7 @@ fun TarjetaProducto(
 ) {
     val context = LocalContext.current
 
-    // Cada tarjeta abre y cierra su propio menú.
+    // Cada producto controla la apertura de su propio menú.
     var expanded by remember {
         mutableStateOf(false)
     }
@@ -36,7 +39,7 @@ fun TarjetaProducto(
 
     val esFavorito = producto.id in favoritosTienda
 
-    // Pedimos confirmación antes de registrar el reporte de práctica.
+    // Confirmación del reporte de práctica.
     if (mostrarReporte) {
         AlertDialog(
             onDismissRequest = {
@@ -119,7 +122,7 @@ fun TarjetaProducto(
                     }
                 }
 
-                // El menú queda junto al botón que lo abre.
+                // El Box mantiene el menú junto al botón de tres puntos.
                 Box {
                     IconButton(
                         onClick = {
@@ -149,6 +152,12 @@ fun TarjetaProducto(
                                     }
                                 )
                             },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Favorite,
+                                    contentDescription = null
+                                )
+                            },
                             onClick = {
                                 if (esFavorito) {
                                     favoritosTienda.remove(producto.id)
@@ -160,9 +169,17 @@ fun TarjetaProducto(
                             }
                         )
 
+                        HorizontalDivider()
+
                         DropdownMenuItem(
                             text = {
                                 Text("Compartir")
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Share,
+                                    contentDescription = null
+                                )
                             },
                             onClick = {
                                 expanded = false
@@ -194,9 +211,17 @@ fun TarjetaProducto(
                             }
                         )
 
+                        HorizontalDivider()
+
                         DropdownMenuItem(
                             text = {
                                 Text("Reportar")
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Warning,
+                                    contentDescription = null
+                                )
                             },
                             onClick = {
                                 expanded = false
