@@ -12,7 +12,10 @@ import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.jara.lab06.data.productosTienda
 import com.jara.lab06.screens.DetalleProductoScreen
+import com.jara.lab06.screens.FavoritosScreen
 import com.jara.lab06.screens.InicioScreen
+import com.jara.lab06.screens.PedidosScreen
+import com.jara.lab06.screens.PerfilScreen
 import com.jara.lab06.ui.components.AppDrawer
 import kotlinx.coroutines.launch
 
@@ -21,24 +24,33 @@ import kotlinx.coroutines.launch
 fun AppNavegacion() {
     val navController = rememberNavController()
 
-    // El menú comienza cerrado.
     val drawerState = rememberDrawerState(
         initialValue = DrawerValue.Closed
     )
 
-    // Permite realizar la animación de apertura y cierre.
     val scope = rememberCoroutineScope()
 
     val entradaActual by navController.currentBackStackEntryAsState()
     val rutaActual = entradaActual?.destination?.route
+    val esDetalle = rutaActual == "detalle/{productoId}"
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        gesturesEnabled = rutaActual == "inicio",
+        gesturesEnabled = !esDetalle,
         drawerContent = {
             AppDrawer(
-                onSeleccionar = {
-                    // En el siguiente avance conectaremos los destinos.
+                rutaActual = rutaActual,
+                onSeleccionar = { destino ->
+                    // Cambiamos de pantalla sin repetir el mismo destino.
+                    navController.navigate(destino) {
+                        popUpTo("inicio") {
+                            saveState = true
+                        }
+
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+
                     scope.launch {
                         drawerState.close()
                     }
@@ -48,8 +60,8 @@ fun AppNavegacion() {
     ) {
         Scaffold(
             topBar = {
-                // El detalle conserva su propia barra con Volver.
-                if (rutaActual == "inicio") {
+                // El detalle mantiene su propia barra con Volver.
+                if (!esDetalle) {
                     TopAppBar(
                         title = {
                             Text(
@@ -83,6 +95,18 @@ fun AppNavegacion() {
             ) {
                 composable("inicio") {
                     InicioScreen(navController)
+                }
+
+                composable("pedidos") {
+                    PedidosScreen()
+                }
+
+                composable("favoritos") {
+                    FavoritosScreen(navController)
+                }
+
+                composable("perfil") {
+                    PerfilScreen()
                 }
 
                 composable(
