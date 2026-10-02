@@ -1,5 +1,5 @@
 package com.jara.lab06.data
-
+import androidx.compose.runtime.mutableStateListOf
 import com.jara.lab06.model.Producto
 
 // Productos guardados en memoria.
@@ -39,4 +39,8 @@ val categoriasTienda = listOf(
     "Tecnología",
     "Útiles",
     "Accesorios"
+
 )
+// Estas listas guardan los cambios mientras la app permanece abierta.
+val favoritosTienda = mutableStateListOf<Int>()
+val reportadosTienda = mutableStateListOf<Int>()
