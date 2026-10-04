@@ -25,6 +25,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.saludplus.citas.data.repository.Repositorio
 import com.saludplus.citas.ui.components.BotonPrincipal
 import com.saludplus.citas.ui.screens.agendamiento.CitaExitosaScreen
 import com.saludplus.citas.ui.screens.agendamiento.ConfirmarCitaScreen
@@ -35,7 +36,10 @@ import com.saludplus.citas.ui.screens.auth.LoginScreen
 import com.saludplus.citas.ui.screens.auth.RegistroScreen
 import com.saludplus.citas.ui.screens.auth.SplashScreen
 import com.saludplus.citas.ui.screens.auth.TerminosScreen
+import com.saludplus.citas.ui.screens.citas.MisCitasScreen
 import com.saludplus.citas.ui.screens.home.HomeScreen
+import com.saludplus.citas.ui.screens.perfil.PerfilScreen
+import com.saludplus.citas.ui.screens.resultados.ResultadosScreen
 
 @Composable
 fun AppNavigation() {
@@ -60,11 +64,8 @@ fun AppNavigation() {
                     rutaActual = rutaActual,
                     onDestino = { ruta ->
                         navController.navigate(ruta) {
-                            popUpTo(Rutas.HOME) {
-                                saveState = true
-                            }
+                            popUpTo(Rutas.HOME)
                             launchSingleTop = true
-                            restoreState = true
                         }
                     }
                 )
@@ -235,21 +236,28 @@ fun AppNavigation() {
             }
 
             composable(Rutas.MIS_CITAS) {
-                DestinoTemporal("Mis citas") {
-                    navController.popBackStack()
-                }
+                MisCitasScreen(
+                    onAgendarCita = {
+                        navController.navigate(Rutas.ESPECIALIDADES)
+                    }
+                )
             }
 
             composable(Rutas.RESULTADOS) {
-                DestinoTemporal("Resultados") {
-                    navController.popBackStack()
-                }
+                ResultadosScreen()
             }
 
             composable(Rutas.PERFIL) {
-                DestinoTemporal("Perfil") {
-                    navController.popBackStack()
-                }
+                PerfilScreen(
+                    onCerrarSesion = {
+                        Repositorio.cerrarSesion()
+                        navController.navigate(Rutas.SPLASH) {
+                            popUpTo(Rutas.HOME) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                )
             }
 
             composable(Rutas.NOTIFICACIONES) {
