@@ -1,5 +1,7 @@
 package com.saludplus.citas.navigation
 
+import android.net.Uri
+
 object Rutas {
     const val SPLASH = "splash"
     const val REGISTRO = "registro"
@@ -10,6 +12,7 @@ object Rutas {
     const val ESPECIALIDADES = "especialidades"
     const val MEDICOS = "medicos/{especialidadId}"
     const val FECHA_HORA = "fecha_hora/{medicoId}"
+    const val CONFIRMAR_CITA = "confirmar/{medicoId}/{fecha}/{hora}"
 
     const val MIS_CITAS = "mis_citas"
     const val RESULTADOS = "resultados"
@@ -21,4 +24,10 @@ object Rutas {
 
     fun fechaHora(medicoId: Int): String =
         "fecha_hora/$medicoId"
+
+    fun confirmarCita(
+        medicoId: Int,
+        fecha: String,
+        hora: String
+    ): String = "confirmar/$medicoId/$fecha/${Uri.encode(hora)}"
 }

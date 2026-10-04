@@ -27,6 +27,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.saludplus.citas.ui.components.BotonPrincipal
 import com.saludplus.citas.ui.screens.agendamiento.EspecialidadesScreen
+import com.saludplus.citas.ui.screens.agendamiento.FechaHoraScreen
 import com.saludplus.citas.ui.screens.agendamiento.MedicosScreen
 import com.saludplus.citas.ui.screens.auth.LoginScreen
 import com.saludplus.citas.ui.screens.auth.RegistroScreen
@@ -170,10 +171,35 @@ fun AppNavigation() {
                 )
             }
 
-            composable(Rutas.FECHA_HORA) {
-                DestinoTemporal("Fecha y hora") {
-                    navController.popBackStack()
-                }
+            composable(Rutas.FECHA_HORA) { entrada ->
+                val medicoId = entrada.arguments
+                    ?.getString("medicoId")
+                    ?.toIntOrNull()
+                    ?: -1
+
+                FechaHoraScreen(
+                    medicoId = medicoId,
+                    onVolver = { navController.popBackStack() },
+                    onContinuar = { fecha, hora ->
+                        navController.navigate(
+                            Rutas.confirmarCita(medicoId, fecha, hora)
+                        )
+                    }
+                )
+            }
+
+            composable(Rutas.CONFIRMAR_CITA) { entrada ->
+                val fecha = entrada.arguments
+                    ?.getString("fecha")
+                    .orEmpty()
+                val hora = entrada.arguments
+                    ?.getString("hora")
+                    .orEmpty()
+
+                DestinoTemporal(
+                    titulo = "Confirmar cita\n$fecha · $hora",
+                    onVolver = { navController.popBackStack() }
+                )
             }
 
             composable(Rutas.MIS_CITAS) {

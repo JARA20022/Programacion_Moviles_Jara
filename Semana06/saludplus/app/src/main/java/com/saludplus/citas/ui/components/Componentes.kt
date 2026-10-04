@@ -14,10 +14,12 @@ import androidx.compose.ui.unit.dp
 fun BotonPrincipal(
     texto: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     Button(
         onClick = onClick,
+        enabled = enabled,
         modifier = modifier.fillMaxWidth().height(52.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = Color(0xFF1565C0)
