@@ -187,7 +187,18 @@ fun NavegacionClinica() {
             composable("mis_citas") {
                 MisCitas(
                     citas = citas,
-                    onAbrirMenu = abrirMenu
+                    onAbrirMenu = abrirMenu,
+                    onCancelar = { citaId ->
+                        // Se conserva la reserva y se cambia solamente su estado.
+                        // La comprobación evita cancelar citas completadas o canceladas.
+                        citas = citas.map { cita ->
+                            if (cita.id == citaId && cita.estado == "Confirmada") {
+                                cita.copy(estado = "Cancelada")
+                            } else {
+                                cita
+                            }
+                        }
+                    }
                 )
             }
 

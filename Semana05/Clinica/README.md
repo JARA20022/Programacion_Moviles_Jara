@@ -115,6 +115,39 @@ Estos son los pasos de comprobación, no una afirmación de pruebas automatizada
 - Los chips de fecha y hora tienen selección única porque cada grupo compara sus opciones con una sola variable de estado.
 - Separar modelos, datos, componentes y pantallas facilita ubicar cambios sin introducir ViewModel.
 
+## Mejora de la rama mejora-ia
+
+Se añadió la cancelación de citas, siguiendo el ejemplo de mejora propuesto en el Word:
+
+1. Mis citas ofrece Cancelar cita solo para reservas Confirmadas.
+2. La versión final abre un AlertDialog que muestra el médico, la fecha y la hora.
+3. Conservar cita, tocar fuera o pulsar Atrás cierra el diálogo sin cancelar.
+4. Sí, cancelar actualiza únicamente esa cita a Cancelada.
+5. La cita permanece visible con una etiqueta roja. Las Completadas y Canceladas no ofrecen otra cancelación.
+
+La lista continúa en remember/mutableStateOf. El callback onCancelar actualiza una copia de la cita dentro de una nueva lista. El estado del diálogo también utiliza remember/mutableStateOf.
+
+### Comprobar la mejora
+
+- Registra dos citas confirmadas.
+- En una de ellas, abre el diálogo y elige Conservar cita: ambas deben seguir Confirmadas.
+- Abre nuevamente el diálogo y confirma: solo esa cita debe aparecer Cancelada.
+- Comprueba que la otra cita mantiene sus datos y estado.
+- Comprueba que las citas Completadas y Canceladas no muestran Cancelar cita.
+- Cambia de sección y vuelve: el estado debe mantenerse durante la sesión.
+
+### Avances de la mejora y correcciones de integración
+
+1. Cancelación de una cita confirmada y representación del estado Cancelada.
+2. Confirmación mediante AlertDialog y posibilidad de conservar la cita.
+3. Documentación de los prompts, ajustes y uso en README y [PROMPTS.md](PROMPTS.md).
+
+Además de esos avances, el commit `01f9dd5` registró MainActivity y ClinicaColors, que habían quedado pendientes. El mínimo de tres commits no impide registrar correcciones adicionales.
+
+La rama remota mejora-ia ya contenía trabajo de Semana03. Sus commits deben conservarse al integrar la rama; para revisar esta aplicación se puede filtrar el historial con `git log --oneline -- Semana05/Clinica` desde la raíz del repositorio.
+
+La primera versión fue un avance intermedio con cancelación directa. La entrega final de esta rama utiliza el diálogo. La documentación de la asistencia utilizada y el prompt reutilizable están en PROMPTS.md.
+
 ## Corrección de la referencia visual
 
 Se incorporó Perfil, que se había omitido del drawer al implementar solo los tres destinos mínimos del texto. Esta corrección pertenece a la base y se conserva en mejora-ia. No sustituye la mejora de cancelación ni añade un requerimiento funcional escrito que el Word no enumera.

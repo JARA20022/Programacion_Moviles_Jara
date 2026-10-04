@@ -5,8 +5,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.jara.lab06.model.Producto
 import java.util.Locale
@@ -21,7 +23,12 @@ fun DetalleProductoScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("Detalle del producto")
+                    Text(
+                        text = "Detalle del producto",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White
+                    )
                 },
                 navigationIcon = {
                     TextButton(
@@ -29,9 +36,17 @@ fun DetalleProductoScreen(
                             navController.popBackStack()
                         }
                     ) {
-                        Text("Volver")
+                        Text(
+                            text = "Volver",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF5B2C83),
+                    titleContentColor = Color.White
+                )
             )
         }
     ) { espacio ->
@@ -44,19 +59,20 @@ fun DetalleProductoScreen(
         ) {
             if (producto == null) {
                 item {
-                    Text("No se encontró el producto.")
+                    Text("No se encontró el producto.", color = Color(0xFF242128))
                 }
             } else {
                 item {
                     Text(
                         text = producto.nombre,
                         style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF242128)
                     )
                 }
 
                 item {
-                    Text("Categoría: ${producto.categoria}")
+                    Text("Categoría: ${producto.categoria}", color = Color(0xFF665176))
                 }
 
                 item {
@@ -65,13 +81,13 @@ fun DetalleProductoScreen(
                             Locale.US, "S/ %.2f", producto.precio
                         ),
                         style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = Color(0xFF5B2C83),
                         fontWeight = FontWeight.Bold
                     )
                 }
 
                 item {
-                    Text(producto.descripcion)
+                    Text(producto.descripcion, color = Color(0xFF242128))
                 }
 
                 item {
@@ -79,6 +95,10 @@ fun DetalleProductoScreen(
                         onClick = {
                             navController.popBackStack()
                         },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF5B2C83),
+                            contentColor = Color.White
+                        ),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Volver a la tienda")

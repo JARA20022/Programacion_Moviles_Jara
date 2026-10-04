@@ -10,11 +10,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.jara.lab06.data.categoriasTienda
 import com.jara.lab06.data.productosTienda
 import com.jara.lab06.ui.components.TarjetaProducto
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InicioScreen(navController: NavHostController) {
     var categoriaSeleccionada by remember {
@@ -29,38 +31,38 @@ fun InicioScreen(navController: NavHostController) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        item {
-            Column {
-                Text(
-                    text = "Bienvenido a mi tienda",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = "Encuentra productos para tus clases.",
-                    color = Color.Gray
-                )
-            }
-        }
-
         item {
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(categoriasTienda) { categoria ->
+                    val selected = categoriaSeleccionada == categoria
                     FilterChip(
-                        selected = categoriaSeleccionada == categoria,
+                        selected = selected,
                         onClick = {
                             categoriaSeleccionada = categoria
                         },
                         label = {
-                            Text(categoria)
-                        }
+                            Text(
+                                text = categoria,
+                                fontSize = 14.sp,
+                                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = Color(0xFFEEE5F5),
+                            selectedLabelColor = Color(0xFF5B2C83),
+                            containerColor = Color(0xFFF4EFF8),
+                            labelColor = Color(0xFF242128)
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = selected,
+                            borderColor = Color(0xFFDEDEE2),
+                            selectedBorderColor = Color(0xFF5B2C83)
+                        )
                     )
                 }
             }
@@ -75,8 +77,10 @@ fun InicioScreen(navController: NavHostController) {
                 item {
                     Text(
                         text = seccion,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF242128),
+                        modifier = Modifier.padding(top = 4.dp, bottom = 4.dp)
                     )
                 }
 
