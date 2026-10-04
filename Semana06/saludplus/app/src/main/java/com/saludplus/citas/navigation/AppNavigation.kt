@@ -26,6 +26,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.saludplus.citas.ui.components.BotonPrincipal
+import com.saludplus.citas.ui.screens.agendamiento.EspecialidadesScreen
+import com.saludplus.citas.ui.screens.agendamiento.MedicosScreen
 import com.saludplus.citas.ui.screens.auth.LoginScreen
 import com.saludplus.citas.ui.screens.auth.RegistroScreen
 import com.saludplus.citas.ui.screens.auth.SplashScreen
@@ -35,9 +37,11 @@ import com.saludplus.citas.ui.screens.home.HomeScreen
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
-
-    val entradaActual = navController.currentBackStackEntryAsState().value
-    val rutaActual = entradaActual?.destination?.route
+    val rutaActual = navController
+        .currentBackStackEntryAsState()
+        .value
+        ?.destination
+        ?.route
 
     val destinosBarra = listOf(
         Rutas.HOME,
@@ -49,67 +53,18 @@ fun AppNavigation() {
     Scaffold(
         bottomBar = {
             if (rutaActual in destinosBarra) {
-                NavigationBar {
-                    NavigationBarItem(
-                        selected = rutaActual == Rutas.HOME,
-                        onClick = {
-                            navController.navigate(Rutas.HOME) {
-                                popUpTo(Rutas.HOME) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
+                BarraPrincipal(
+                    rutaActual = rutaActual,
+                    onDestino = { ruta ->
+                        navController.navigate(ruta) {
+                            popUpTo(Rutas.HOME) {
+                                saveState = true
                             }
-                        },
-                        icon = {
-                            Icon(Icons.Default.Home, contentDescription = null)
-                        },
-                        label = { Text("Inicio") }
-                    )
-
-                    NavigationBarItem(
-                        selected = rutaActual == Rutas.MIS_CITAS,
-                        onClick = {
-                            navController.navigate(Rutas.MIS_CITAS) {
-                                popUpTo(Rutas.HOME) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = {
-                            Icon(Icons.Default.EventNote, contentDescription = null)
-                        },
-                        label = { Text("Citas") }
-                    )
-
-                    NavigationBarItem(
-                        selected = rutaActual == Rutas.RESULTADOS,
-                        onClick = {
-                            navController.navigate(Rutas.RESULTADOS) {
-                                popUpTo(Rutas.HOME) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = {
-                            Icon(Icons.Default.Assessment, contentDescription = null)
-                        },
-                        label = { Text("Resultados") }
-                    )
-
-                    NavigationBarItem(
-                        selected = rutaActual == Rutas.PERFIL,
-                        onClick = {
-                            navController.navigate(Rutas.PERFIL) {
-                                popUpTo(Rutas.HOME) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = {
-                            Icon(Icons.Default.Person, contentDescription = null)
-                        },
-                        label = { Text("Perfil") }
-                    )
-                }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
             }
         }
     ) { espacio ->
@@ -133,7 +88,9 @@ fun AppNavigation() {
                 RegistroScreen(
                     onRegistroExitoso = {
                         navController.navigate(Rutas.HOME) {
-                            popUpTo(Rutas.SPLASH) { inclusive = true }
+                            popUpTo(Rutas.SPLASH) {
+                                inclusive = true
+                            }
                         }
                     },
                     onIniciarSesion = {
@@ -149,7 +106,9 @@ fun AppNavigation() {
                 LoginScreen(
                     onLoginExitoso = {
                         navController.navigate(Rutas.HOME) {
-                            popUpTo(Rutas.SPLASH) { inclusive = true }
+                            popUpTo(Rutas.SPLASH) {
+                                inclusive = true
+                            }
                         }
                     },
                     onRegistrarse = {
@@ -188,38 +147,50 @@ fun AppNavigation() {
             }
 
             composable(Rutas.ESPECIALIDADES) {
-                DestinoTemporal("Especialidades") {
-                    navController.popBackStack()
-                }
+                EspecialidadesScreen(
+                    onVolver = { navController.popBackStack() },
+                    onSeleccionarEspecialidad = { especialidadId ->
+                        navController.navigate(Rutas.medicos(especialidadId))
+                    }
+                )
             }
 
-            composable(Rutas.MEDICOS) {
-                DestinoTemporal("Médicos") {
+            composable(Rutas.MEDICOS) { entrada ->
+                val especialidadId = entrada.arguments
+                    ?.getString("especialidadId")
+                    ?.toIntOrNull()
+                    ?: -1
+
+                MedicosScreen(
+                    especialidadId = especialidadId,
+                    onVolver = { navController.popBackStack() },
+                    onSeleccionarMedico = { medicoId ->
+                        navController.navigate(Rutas.fechaHora(medicoId))
+                    }
+                )
+            }
+
+            composable(Rutas.FECHA_HORA) {
+                DestinoTemporal("Fecha y hora") {
                     navController.popBackStack()
                 }
             }
 
             composable(Rutas.MIS_CITAS) {
                 DestinoTemporal("Mis citas") {
-                    navController.navigate(Rutas.HOME) {
-                        popUpTo(Rutas.HOME) { inclusive = true }
-                    }
+                    navController.popBackStack()
                 }
             }
 
             composable(Rutas.RESULTADOS) {
                 DestinoTemporal("Resultados") {
-                    navController.navigate(Rutas.HOME) {
-                        popUpTo(Rutas.HOME) { inclusive = true }
-                    }
+                    navController.popBackStack()
                 }
             }
 
             composable(Rutas.PERFIL) {
                 DestinoTemporal("Perfil") {
-                    navController.navigate(Rutas.HOME) {
-                        popUpTo(Rutas.HOME) { inclusive = true }
-                    }
+                    navController.popBackStack()
                 }
             }
 
@@ -228,6 +199,32 @@ fun AppNavigation() {
                     navController.popBackStack()
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun BarraPrincipal(
+    rutaActual: String?,
+    onDestino: (String) -> Unit
+) {
+    val destinos = listOf(
+        Triple(Rutas.HOME, "Inicio", Icons.Default.Home),
+        Triple(Rutas.MIS_CITAS, "Citas", Icons.Default.EventNote),
+        Triple(Rutas.RESULTADOS, "Resultados", Icons.Default.Assessment),
+        Triple(Rutas.PERFIL, "Perfil", Icons.Default.Person)
+    )
+
+    NavigationBar {
+        destinos.forEach { (ruta, nombre, icono) ->
+            NavigationBarItem(
+                selected = rutaActual == ruta,
+                onClick = { onDestino(ruta) },
+                icon = {
+                    Icon(icono, contentDescription = nombre)
+                },
+                label = { Text(nombre) }
+            )
         }
     }
 }
@@ -252,7 +249,7 @@ private fun DestinoTemporal(
         Spacer(Modifier.height(24.dp))
 
         BotonPrincipal(
-            texto = "Volver a Inicio",
+            texto = "Volver",
             onClick = onVolver
         )
     }
