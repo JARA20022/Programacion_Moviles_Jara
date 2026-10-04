@@ -1,4 +1,4 @@
-package com.jara.saludplus
+package com.saludplus.citas
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -11,7 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.jara.saludplus.ui.theme.SaludPlusTheme
+import com.saludplus.citas.ui.theme.SaludPlusTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

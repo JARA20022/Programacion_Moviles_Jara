@@ -1,4 +1,4 @@
-package com.jara.saludplus.ui.theme
+package com.saludplus.citas.ui.theme
 
 import android.app.Activity
 import android.os.Build

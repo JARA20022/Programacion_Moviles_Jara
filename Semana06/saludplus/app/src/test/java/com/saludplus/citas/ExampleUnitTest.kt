@@ -1,4 +1,4 @@
-package com.jara.saludplus
+package com.saludplus.citas
 
 import org.junit.Test
 

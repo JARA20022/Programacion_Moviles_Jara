@@ -1,4 +1,4 @@
-package com.jara.saludplus.ui.theme
+package com.saludplus.citas.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
