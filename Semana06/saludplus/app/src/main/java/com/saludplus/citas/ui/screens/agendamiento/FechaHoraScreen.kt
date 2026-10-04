@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -35,11 +36,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.saludplus.citas.data.repository.Repositorio
 import com.saludplus.citas.ui.components.BotonPrincipal
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
-private data class DiaFijo(
-    val nombre: String,
-    val numero: String,
-    val fecha: String
+private data class DiaCalendario(
+    val dia: LocalDate,
+    val nombre: String
 )
 
 @Composable
@@ -49,6 +53,8 @@ fun FechaHoraScreen(
     onContinuar: (String, String) -> Unit
 ) {
     val medico = Repositorio.obtenerMedico(medicoId)
+    val hoy = LocalDate.now()
+    val idioma = Locale.forLanguageTag("es-PE")
 
     var fechaSeleccionada by rememberSaveable(medicoId) {
         mutableStateOf<String?>(null)
@@ -57,14 +63,28 @@ fun FechaHoraScreen(
         mutableStateOf<String?>(null)
     }
 
-    // Fase 1: lista fija. En mejora-ia se cambiará por LocalDate.
-    val dias = listOf(
-        DiaFijo("Lun", "5", "2026-10-05"),
-        DiaFijo("Mar", "6", "2026-10-06"),
-        DiaFijo("Mié", "7", "2026-10-07"),
-        DiaFijo("Jue", "8", "2026-10-08"),
-        DiaFijo("Vie", "9", "2026-10-09")
-    )
+    val dias = remember(hoy) {
+        generateSequence(hoy) { fecha -> fecha.plusDays(1) }
+            .filter { fecha ->
+                fecha.dayOfWeek != DayOfWeek.SATURDAY &&
+                        fecha.dayOfWeek != DayOfWeek.SUNDAY
+            }
+            .take(5)
+            .map { fecha ->
+                DiaCalendario(
+                    dia = fecha,
+                    nombre = fecha
+                        .format(DateTimeFormatter.ofPattern("EEE", idioma))
+                        .replace(".", "")
+                        .replaceFirstChar { it.titlecase(idioma) }
+                )
+            }
+            .toList()
+    }
+
+    val tituloMes = dias.first().dia
+        .format(DateTimeFormatter.ofPattern("MMMM yyyy", idioma))
+        .replaceFirstChar { it.titlecase(idioma) }
 
     val horarios = fechaSeleccionada?.let { fecha ->
         Repositorio.horariosDisponibles(medicoId, fecha)
@@ -75,9 +95,7 @@ fun FechaHoraScreen(
             .fillMaxSize()
             .padding(horizontal = 20.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onVolver) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
@@ -105,7 +123,7 @@ fun FechaHoraScreen(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = Repositorio
+                    Repositorio
                         .obtenerEspecialidad(medico.especialidadId)
                         ?.nombre
                         .orEmpty()
@@ -116,7 +134,7 @@ fun FechaHoraScreen(
         Spacer(Modifier.height(26.dp))
 
         Text(
-            text = "Octubre 2026",
+            text = tituloMes,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
@@ -126,12 +144,13 @@ fun FechaHoraScreen(
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            items(dias, key = { it.fecha }) { dia ->
-                val seleccionado = fechaSeleccionada == dia.fecha
+            items(dias, key = { it.dia.toString() }) { dia ->
+                val fecha = dia.dia.toString()
+                val seleccionado = fechaSeleccionada == fecha
 
                 Card(
                     onClick = {
-                        fechaSeleccionada = dia.fecha
+                        fechaSeleccionada = fecha
                         horaSeleccionada = null
                     },
                     modifier = Modifier
@@ -155,7 +174,7 @@ fun FechaHoraScreen(
                             color = if (seleccionado) Color.White else Color.Black
                         )
                         Text(
-                            text = dia.numero,
+                            text = dia.dia.dayOfMonth.toString(),
                             fontWeight = FontWeight.Bold,
                             color = if (seleccionado) Color.White else Color.Black
                         )
