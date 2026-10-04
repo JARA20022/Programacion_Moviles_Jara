@@ -26,6 +26,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.saludplus.citas.ui.components.BotonPrincipal
+import com.saludplus.citas.ui.screens.agendamiento.CitaExitosaScreen
+import com.saludplus.citas.ui.screens.agendamiento.ConfirmarCitaScreen
 import com.saludplus.citas.ui.screens.agendamiento.EspecialidadesScreen
 import com.saludplus.citas.ui.screens.agendamiento.FechaHoraScreen
 import com.saludplus.citas.ui.screens.agendamiento.MedicosScreen
@@ -189,6 +191,10 @@ fun AppNavigation() {
             }
 
             composable(Rutas.CONFIRMAR_CITA) { entrada ->
+                val medicoId = entrada.arguments
+                    ?.getString("medicoId")
+                    ?.toIntOrNull()
+                    ?: -1
                 val fecha = entrada.arguments
                     ?.getString("fecha")
                     .orEmpty()
@@ -196,9 +202,35 @@ fun AppNavigation() {
                     ?.getString("hora")
                     .orEmpty()
 
-                DestinoTemporal(
-                    titulo = "Confirmar cita\n$fecha · $hora",
-                    onVolver = { navController.popBackStack() }
+                ConfirmarCitaScreen(
+                    medicoId = medicoId,
+                    fecha = fecha,
+                    hora = hora,
+                    onVolver = { navController.popBackStack() },
+                    onCitaAgendada = { citaId ->
+                        navController.navigate(Rutas.citaExitosa(citaId)) {
+                            popUpTo(Rutas.HOME)
+                        }
+                    }
+                )
+            }
+
+            composable(Rutas.CITA_EXITOSA) { entrada ->
+                val citaId = entrada.arguments
+                    ?.getString("citaId")
+                    ?.toIntOrNull()
+                    ?: -1
+
+                CitaExitosaScreen(
+                    citaId = citaId,
+                    onVerMisCitas = {
+                        navController.navigate(Rutas.MIS_CITAS) {
+                            popUpTo(Rutas.HOME)
+                        }
+                    },
+                    onIrInicio = {
+                        navController.popBackStack(Rutas.HOME, false)
+                    }
                 )
             }
 
