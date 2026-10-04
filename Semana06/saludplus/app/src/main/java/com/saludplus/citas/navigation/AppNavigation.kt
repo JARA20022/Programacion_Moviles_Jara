@@ -15,12 +15,12 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.saludplus.citas.data.repository.Repositorio
 import com.saludplus.citas.ui.components.BotonPrincipal
 import com.saludplus.citas.ui.screens.auth.LoginScreen
 import com.saludplus.citas.ui.screens.auth.RegistroScreen
 import com.saludplus.citas.ui.screens.auth.SplashScreen
 import com.saludplus.citas.ui.screens.auth.TerminosScreen
+import com.saludplus.citas.ui.screens.home.HomeScreen
 
 @Composable
 fun AppNavigation() {
@@ -45,7 +45,9 @@ fun AppNavigation() {
             RegistroScreen(
                 onRegistroExitoso = {
                     navController.navigate(Rutas.HOME) {
-                        popUpTo(Rutas.SPLASH) { inclusive = true }
+                        popUpTo(Rutas.SPLASH) {
+                            inclusive = true
+                        }
                     }
                 },
                 onIniciarSesion = {
@@ -61,7 +63,9 @@ fun AppNavigation() {
             LoginScreen(
                 onLoginExitoso = {
                     navController.navigate(Rutas.HOME) {
-                        popUpTo(Rutas.SPLASH) { inclusive = true }
+                        popUpTo(Rutas.SPLASH) {
+                            inclusive = true
+                        }
                     }
                 },
                 onRegistrarse = {
@@ -72,46 +76,101 @@ fun AppNavigation() {
 
         composable(Rutas.TERMINOS) {
             TerminosScreen(
-                onVolver = { navController.popBackStack() }
+                onVolver = {
+                    navController.popBackStack()
+                }
             )
         }
 
         composable(Rutas.HOME) {
-            InicioTemporal(
-                onCerrarSesion = {
-                    Repositorio.cerrarSesion()
-                    navController.navigate(Rutas.SPLASH) {
-                        popUpTo(Rutas.HOME) { inclusive = true }
-                    }
+            HomeScreen(
+                onAgendarCita = {
+                    navController.navigate(Rutas.ESPECIALIDADES)
+                },
+                onMisCitas = {
+                    navController.navigate(Rutas.MIS_CITAS)
+                },
+                onPerfil = {
+                    navController.navigate(Rutas.PERFIL)
+                },
+                onResultados = {
+                    navController.navigate(Rutas.RESULTADOS)
+                },
+                onEspecialidad = { especialidadId ->
+                    navController.navigate(Rutas.medicos(especialidadId))
+                },
+                onNotificaciones = {
+                    navController.navigate(Rutas.NOTIFICACIONES)
                 }
+            )
+        }
+
+        composable(Rutas.ESPECIALIDADES) {
+            DestinoTemporal(
+                titulo = "Especialidades",
+                onVolver = { navController.popBackStack() }
+            )
+        }
+
+        composable(Rutas.MEDICOS) {
+            DestinoTemporal(
+                titulo = "Médicos",
+                onVolver = { navController.popBackStack() }
+            )
+        }
+
+        composable(Rutas.MIS_CITAS) {
+            DestinoTemporal(
+                titulo = "Mis citas",
+                onVolver = { navController.popBackStack() }
+            )
+        }
+
+        composable(Rutas.RESULTADOS) {
+            DestinoTemporal(
+                titulo = "Resultados",
+                onVolver = { navController.popBackStack() }
+            )
+        }
+
+        composable(Rutas.PERFIL) {
+            DestinoTemporal(
+                titulo = "Perfil",
+                onVolver = { navController.popBackStack() }
+            )
+        }
+
+        composable(Rutas.NOTIFICACIONES) {
+            DestinoTemporal(
+                titulo = "Notificaciones",
+                onVolver = { navController.popBackStack() }
             )
         }
     }
 }
 
 @Composable
-private fun InicioTemporal(onCerrarSesion: () -> Unit) {
-    val nombre = Repositorio.usuarioActual?.nombre ?: "Paciente"
-
+private fun DestinoTemporal(
+    titulo: String,
+    onVolver: () -> Unit
+) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Bienvenido, $nombre",
+            text = titulo,
             style = MaterialTheme.typography.headlineMedium
         )
 
-        Spacer(Modifier.height(12.dp))
-
-        Text("Clínica SaludPlus")
-
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(24.dp))
 
         BotonPrincipal(
-            texto = "Cerrar sesión",
-            onClick = onCerrarSesion
+            texto = "Volver a Inicio",
+            onClick = onVolver
         )
     }
 }

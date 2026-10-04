@@ -6,4 +6,14 @@ object Rutas {
     const val LOGIN = "login"
     const val TERMINOS = "terminos"
     const val HOME = "home"
+
+    const val ESPECIALIDADES = "especialidades"
+    const val MEDICOS = "medicos/{especialidadId}"
+    const val MIS_CITAS = "mis_citas"
+    const val RESULTADOS = "resultados"
+    const val PERFIL = "perfil"
+    const val NOTIFICACIONES = "notificaciones"
+
+    fun medicos(especialidadId: Int): String =
+        "medicos/$especialidadId"
 }
