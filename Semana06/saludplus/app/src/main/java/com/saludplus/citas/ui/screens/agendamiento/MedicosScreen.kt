@@ -12,8 +12,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.saludplus.citas.data.repository.Repositorio
+import com.saludplus.citas.ui.components.FotoMedico
 
 @Composable
 fun MedicosScreen(
@@ -40,9 +41,7 @@ fun MedicosScreen(
             .fillMaxSize()
             .padding(horizontal = 20.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onVolver) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
@@ -72,22 +71,28 @@ fun MedicosScreen(
                         onClick = {
                             onSeleccionarMedico(medico.id)
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color.White
+                        ),
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = 1.dp
+                        )
                     ) {
                         Row(
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = null,
-                                tint = Color(0xFF2563EB)
+                            FotoMedico(
+                                medicoId = medico.id,
+                                nombre = medico.nombre,
+                                tamaño = 56.dp
                             )
 
                             Column(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .padding(start = 16.dp)
+                                    .padding(start = 12.dp)
                             ) {
                                 Text(
                                     text = medico.nombre,
@@ -100,7 +105,8 @@ fun MedicosScreen(
                                 Text(
                                     text = "★ ${medico.calificacion} · " +
                                             "${medico.experiencia} años de experiencia",
-                                    style = MaterialTheme.typography.bodySmall
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFFEB9A24)
                                 )
                                 Text(
                                     text = "Consulta: S/ ${medico.precioConsulta.toInt()}",

@@ -1,6 +1,8 @@
 package com.saludplus.citas.ui.screens.agendamiento
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,11 +10,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -20,15 +31,24 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.saludplus.citas.data.repository.Repositorio
 import com.saludplus.citas.ui.components.BotonPrincipal
+import com.saludplus.citas.ui.components.FotoMedico
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+
+private val azulConfirmar = Color(0xFF2864E8)
+private val fondoConfirmar = Color(0xFFF5F8FD)
 
 @Composable
 fun ConfirmarCitaScreen(
@@ -39,10 +59,21 @@ fun ConfirmarCitaScreen(
     onCitaAgendada: (Int) -> Unit
 ) {
     val medico = Repositorio.obtenerMedico(medicoId)
-    val especialidad = medico?.let {
-        Repositorio.obtenerEspecialidad(it.especialidadId)
-    }
+    val especialidad = medico?.let { Repositorio.obtenerEspecialidad(it.especialidadId) }
     var error by rememberSaveable { mutableStateOf("") }
+    val fechaEnEspanol = remember(fecha) {
+        runCatching {
+            LocalDate.parse(fecha)
+                .format(
+                    DateTimeFormatter.ofPattern(
+                        "EEEE d 'de' MMMM yyyy",
+                        Locale.forLanguageTag("es-PE")
+                    )
+                )
+                .replace("septiembre", "setiembre", ignoreCase = true)
+                .replaceFirstChar { it.titlecase(Locale.forLanguageTag("es-PE")) }
+        }.getOrElse { fecha }
+    }
 
     Column(
         modifier = Modifier
@@ -52,10 +83,7 @@ fun ConfirmarCitaScreen(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onVolver) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Volver"
-                )
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
             }
             Text(
                 text = "Confirmar cita",
@@ -64,77 +92,111 @@ fun ConfirmarCitaScreen(
             )
         }
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(20.dp))
 
         if (medico == null) {
             Text("No se encontró el médico seleccionado.")
-        } else {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(18.dp)) {
+            return@Column
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = fondoConfirmar)
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                FotoMedico(medicoId = medico.id, nombre = medico.nombre, tamaño = 58.dp)
+                Column {
+                    Text(medico.nombre, fontWeight = FontWeight.Bold)
                     Text(
-                        text = medico.nombre,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        especialidad?.nombre.orEmpty(),
+                        color = Color(0xFF65728A)
                     )
-                    Text(especialidad?.nombre.orEmpty())
                 }
             }
+        }
 
-            Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(20.dp))
 
-            DatoCita("Fecha", fecha)
-            DatoCita("Hora", hora)
-            DatoCita(
-                "Precio de consulta",
-                "S/ ${medico.precioConsulta.toInt()}"
-            )
-
-            if (error.isNotEmpty()) {
-                Spacer(Modifier.height(12.dp))
-                Text(error, color = Color(0xFFB00020))
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(Modifier.padding(horizontal = 16.dp)) {
+                DatoCita(Icons.Filled.CalendarMonth, "Fecha", fechaEnEspanol)
+                HorizontalDivider(color = Color(0xFFE9EDF4))
+                DatoCita(Icons.Filled.AccessTime, "Hora", hora)
+                HorizontalDivider(color = Color(0xFFE9EDF4))
+                DatoCita(Icons.Filled.Place, "Tipo de atención", "Consulta presencial")
+                HorizontalDivider(color = Color(0xFFE9EDF4))
+                DatoCita(Icons.Filled.LocationOn, "Dirección", "Av. Los Olivos 123, Lima")
+                HorizontalDivider(color = Color(0xFFE9EDF4))
+                DatoCita(
+                    Icons.Filled.Payments,
+                    "Precio de consulta",
+                    "S/ ${medico.precioConsulta.toInt()}"
+                )
             }
+        }
 
-            Spacer(Modifier.height(30.dp))
+        if (error.isNotEmpty()) {
+            Spacer(Modifier.height(12.dp))
+            Text(error, color = Color(0xFFB00020))
+        }
 
-            BotonPrincipal(
-                texto = "Agendar cita",
-                onClick = {
-                    val usuarioId = Repositorio.usuarioActual?.id
+        Spacer(Modifier.height(26.dp))
 
-                    if (usuarioId == null) {
-                        error = "Inicia sesión para reservar una cita."
+        BotonPrincipal(
+            texto = "Agendar cita",
+            onClick = {
+                val usuarioId = Repositorio.usuarioActual?.id
+                if (usuarioId == null) {
+                    error = "Inicia sesión para reservar una cita."
+                } else {
+                    val cita = Repositorio.agendarCita(
+                        usuarioId = usuarioId,
+                        medicoId = medicoId,
+                        fecha = fecha,
+                        hora = hora
+                    )
+                    if (cita == null) {
+                        error = "Este horario ya no está disponible."
                     } else {
-                        val cita = Repositorio.agendarCita(
-                            usuarioId = usuarioId,
-                            medicoId = medicoId,
-                            fecha = fecha,
-                            hora = hora
-                        )
-
-                        if (cita == null) {
-                            error = "Este horario ya no está disponible."
-                        } else {
-                            onCitaAgendada(cita.id)
-                        }
+                        onCitaAgendada(cita.id)
                     }
                 }
-            )
-        }
+            }
+        )
+        Spacer(Modifier.height(20.dp))
     }
 }
 
 @Composable
-private fun DatoCita(etiqueta: String, valor: String) {
-    Column(modifier = Modifier.padding(vertical = 10.dp)) {
-        Text(
-            text = etiqueta,
-            style = MaterialTheme.typography.bodySmall,
-            color = Color.Gray
-        )
-        Text(
-            text = valor,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium
-        )
+private fun DatoCita(icono: ImageVector, etiqueta: String, valor: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(38.dp)
+                .background(Color(0xFFEAF2FF), RoundedCornerShape(10.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icono, contentDescription = null, tint = azulConfirmar,
+                modifier = Modifier.size(21.dp))
+        }
+        Column {
+            Text(etiqueta, style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFF65728A))
+            Text(valor, style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium)
+        }
     }
 }

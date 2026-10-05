@@ -15,7 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.EventNote
-import androidx.compose.material.icons.filled.LocalHospital
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
@@ -33,6 +32,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.saludplus.citas.data.repository.Repositorio
+import com.saludplus.citas.ui.components.IconoEspecialidad
 
 private val Azul = Color(0xFF2563EB)
 
@@ -153,7 +153,10 @@ fun HomeScreen(
                 ) { especialidad ->
                     Card(
                         onClick = { onEspecialidad(especialidad.id) },
-                        modifier = Modifier.size(width = 130.dp, height = 108.dp),
+                        modifier = Modifier.size(
+                            width = 130.dp,
+                            height = 108.dp
+                        ),
                         colors = CardDefaults.cardColors(
                             containerColor = Color(0xFFF5F8FC)
                         )
@@ -161,12 +164,11 @@ fun HomeScreen(
                         Column(
                             modifier = Modifier.padding(14.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.LocalHospital,
-                                contentDescription = null,
-                                tint = Azul
+                            IconoEspecialidad(
+                                nombre = especialidad.nombre,
+                                tamaño = 40.dp
                             )
-                            Spacer(Modifier.height(12.dp))
+                            Spacer(Modifier.height(8.dp))
                             Text(
                                 text = especialidad.nombre,
                                 style = MaterialTheme.typography.bodyMedium,
