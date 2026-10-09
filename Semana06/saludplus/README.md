@@ -221,3 +221,9 @@ El informe se presenta por separado e incluye:
 - Un mínimo de dos conclusiones.
 
 Las preguntas abordan la organización de archivos, el uso de Repositorio como object, la actualización de listas y horarios, navigate frente a popUpTo, las correcciones de IA y la comparación entre NavigationDrawer y NavigationBar.
+
+## Barras superiores
+
+`app/src/main/java/com/saludplus/citas/navigation/AppNavigation.kt` muestra una TopAppBar con flecha en Login, Cita agendada, Mis citas y Perfil.
+
+Login regresa a la pantalla anterior o a la bienvenida. Las otras tres flechas llevan a Inicio. La barra inferior y el contenido de las pantallas se conservan.

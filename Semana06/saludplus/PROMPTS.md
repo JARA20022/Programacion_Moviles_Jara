@@ -1510,3 +1510,19 @@ No hagas reset, no uses push --force y no mezcles ramas completas para copiar un
 
 Antes del commit y push, muestra el resultado de la compilación y las comprobaciones realizadas.
 
+
+
+\## Corrección: barras superiores con flecha
+
+
+
+\*\*Solicitud:\*\* Añadir barras superiores con flecha en Login, Cita agendada, Mis citas y Perfil, únicamente en mejora-ia, conservando las pantallas existentes.
+
+
+
+\*\*Respuesta resumida:\*\* Se añadió una TopAppBar condicional al Scaffold de AppNavigation.kt. La flecha de Login regresa a la pantalla anterior o a la bienvenida. Las flechas de Cita agendada, Mis citas y Perfil llevan a Inicio.
+
+
+
+\*\*Qué se corrigió:\*\* Estas cuatro pantallas no mostraban la barra superior indicada en el diseño. Se conectó el regreso sin cambiar sus parámetros ni restaurar el flujo de reserva después de confirmar.
+

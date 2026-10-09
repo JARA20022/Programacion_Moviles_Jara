@@ -7,21 +7,29 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.EventNote
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -42,6 +50,7 @@ import com.saludplus.citas.ui.screens.home.HomeScreen
 import com.saludplus.citas.ui.screens.perfil.PerfilScreen
 import com.saludplus.citas.ui.screens.resultados.ResultadosScreen
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
@@ -83,7 +92,86 @@ fun AppNavigation() {
         Rutas.PERFIL
     )
 
+    val volverInicio: () -> Unit = {
+        val regreso = navController.popBackStack(
+            Rutas.HOME,
+            false
+        )
+
+        if (!regreso) {
+            navController.navigate(Rutas.HOME) {
+                popUpTo(navController.graph.id) {
+                    inclusive = false
+                }
+                launchSingleTop = true
+            }
+        }
+    }
+
+    val volverDesdeLogin: () -> Unit = {
+        val regreso = if (navController.previousBackStackEntry != null) {
+            navController.popBackStack()
+        } else {
+            false
+        }
+
+        if (!regreso) {
+            navController.navigate(Rutas.SPLASH) {
+                popUpTo(navController.graph.id) {
+                    inclusive = false
+                }
+                launchSingleTop = true
+            }
+        }
+    }
+
+    val tituloBarraSuperior = when (rutaActual) {
+        Rutas.LOGIN -> "Iniciar sesión"
+        Rutas.CITA_EXITOSA -> "Cita agendada"
+        Rutas.MIS_CITAS -> "Mis citas"
+        Rutas.PERFIL -> "Perfil"
+        else -> null
+    }
+
     Scaffold(
+        topBar = {
+            tituloBarraSuperior?.let { titulo ->
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = titulo,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(
+                            onClick = {
+                                if (rutaActual == Rutas.LOGIN) {
+                                    volverDesdeLogin()
+                                } else {
+                                    volverInicio()
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = if (rutaActual == Rutas.LOGIN) {
+                                    "Volver"
+                                } else {
+                                    "Volver a Inicio"
+                                }
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color(0xFFF8FBFF),
+                        titleContentColor = Color(0xFF142C68),
+                        navigationIconContentColor = Color(0xFF2864E8)
+                    )
+                )
+            }
+        },
         bottomBar = {
             if (rutaActual in destinosBarra) {
                 BarraPrincipal(
@@ -279,12 +367,7 @@ fun AppNavigation() {
                             popUpTo(Rutas.HOME)
                         }
                     },
-                    onIrInicio = {
-                        navController.popBackStack(
-                            Rutas.HOME,
-                            false
-                        )
-                    }
+                    onIrInicio = volverInicio
                 )
             }
 
@@ -330,26 +413,10 @@ private fun BarraPrincipal(
     onDestino: (String) -> Unit
 ) {
     val destinos = listOf(
-        Triple(
-            Rutas.HOME,
-            "Inicio",
-            Icons.Default.Home
-        ),
-        Triple(
-            Rutas.MIS_CITAS,
-            "Citas",
-            Icons.Default.EventNote
-        ),
-        Triple(
-            Rutas.RESULTADOS,
-            "Resultados",
-            Icons.Default.Assessment
-        ),
-        Triple(
-            Rutas.PERFIL,
-            "Perfil",
-            Icons.Default.Person
-        )
+        Triple(Rutas.HOME, "Inicio", Icons.Default.Home),
+        Triple(Rutas.MIS_CITAS, "Citas", Icons.Default.EventNote),
+        Triple(Rutas.RESULTADOS, "Resultados", Icons.Default.Assessment),
+        Triple(Rutas.PERFIL, "Perfil", Icons.Default.Person)
     )
 
     NavigationBar {
