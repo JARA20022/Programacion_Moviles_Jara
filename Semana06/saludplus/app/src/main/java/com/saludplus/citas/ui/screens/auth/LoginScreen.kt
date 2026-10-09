@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -18,8 +19,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.saludplus.citas.data.ValidacionDatos
 import com.saludplus.citas.data.repository.Repositorio
 import com.saludplus.citas.ui.components.BotonPrincipal
 
@@ -33,7 +36,9 @@ fun LoginScreen(
     var error by rememberSaveable { mutableStateOf("") }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
         verticalArrangement = Arrangement.Center
     ) {
         Text(
@@ -45,19 +50,31 @@ fun LoginScreen(
 
         OutlinedTextField(
             value = correo,
-            onValueChange = { correo = it },
+            onValueChange = {
+                correo = it.take(254)
+                error = ""
+            },
             label = { Text("Correo electrónico") },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Email
+            )
         )
 
         OutlinedTextField(
             value = clave,
-            onValueChange = { clave = it },
+            onValueChange = {
+                clave = it.take(64)
+                error = ""
+            },
             label = { Text("Contraseña") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            visualTransformation = PasswordVisualTransformation()
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password
+            )
         )
 
         if (error.isNotEmpty()) {
@@ -70,15 +87,19 @@ fun LoginScreen(
         BotonPrincipal(
             texto = "Ingresar",
             onClick = {
-                error = when {
-                    correo.isBlank() || clave.isBlank() ->
-                        "Completa el correo y la contraseña"
+                error = ValidacionDatos.errorLogin(
+                    correo,
+                    clave
+                ) ?: when {
                     Repositorio.iniciarSesion(correo, clave) == null ->
                         "Correo o contraseña incorrectos"
+
                     else -> ""
                 }
 
-                if (error.isEmpty()) onLoginExitoso()
+                if (error.isEmpty()) {
+                    onLoginExitoso()
+                }
             }
         )
 

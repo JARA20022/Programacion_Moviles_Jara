@@ -1,6 +1,5 @@
 package com.saludplus.citas.ui.screens.agendamiento
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,10 +39,24 @@ fun ConfirmarCitaScreen(
     onCitaAgendada: (Int) -> Unit
 ) {
     val medico = Repositorio.obtenerMedico(medicoId)
+
     val especialidad = medico?.let {
         Repositorio.obtenerEspecialidad(it.especialidadId)
     }
-    var error by rememberSaveable { mutableStateOf("") }
+
+    var error by rememberSaveable {
+        mutableStateOf("")
+    }
+
+    var procesando by remember {
+        mutableStateOf(false)
+    }
+
+    val horarioDisponible =
+        hora in Repositorio.horariosDisponibles(
+            medicoId,
+            fecha
+        )
 
     Column(
         modifier = Modifier
@@ -57,6 +71,7 @@ fun ConfirmarCitaScreen(
                     contentDescription = "Volver"
                 )
             }
+
             Text(
                 text = "Confirmar cita",
                 style = MaterialTheme.typography.titleLarge,
@@ -76,6 +91,7 @@ fun ConfirmarCitaScreen(
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
+
                     Text(especialidad?.nombre.orEmpty())
                 }
             }
@@ -91,18 +107,36 @@ fun ConfirmarCitaScreen(
 
             if (error.isNotEmpty()) {
                 Spacer(Modifier.height(12.dp))
-                Text(error, color = Color(0xFFB00020))
+                Text(
+                    text = error,
+                    color = Color(0xFFB00020)
+                )
+            }
+
+            if (!horarioDisponible) {
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    text = "Esta fecha u hora no está disponible. Vuelve a elegir otra.",
+                    color = Color(0xFFB00020)
+                )
             }
 
             Spacer(Modifier.height(30.dp))
 
             BotonPrincipal(
                 texto = "Agendar cita",
+                enabled = horarioDisponible && !procesando,
                 onClick = {
+                    if (procesando) {
+                        return@BotonPrincipal
+                    }
+
+                    procesando = true
                     val usuarioId = Repositorio.usuarioActual?.id
 
                     if (usuarioId == null) {
                         error = "Inicia sesión para reservar una cita."
+                        procesando = false
                     } else {
                         val cita = Repositorio.agendarCita(
                             usuarioId = usuarioId,
@@ -112,7 +146,8 @@ fun ConfirmarCitaScreen(
                         )
 
                         if (cita == null) {
-                            error = "Este horario ya no está disponible."
+                            error = "No se pudo reservar. Revisa la fecha y el horario."
+                            procesando = false
                         } else {
                             onCitaAgendada(cita.id)
                         }
@@ -124,13 +159,19 @@ fun ConfirmarCitaScreen(
 }
 
 @Composable
-private fun DatoCita(etiqueta: String, valor: String) {
-    Column(modifier = Modifier.padding(vertical = 10.dp)) {
+private fun DatoCita(
+    etiqueta: String,
+    valor: String
+) {
+    Column(
+        modifier = Modifier.padding(vertical = 10.dp)
+    ) {
         Text(
             text = etiqueta,
             style = MaterialTheme.typography.bodySmall,
             color = Color.Gray
         )
+
         Text(
             text = valor,
             style = MaterialTheme.typography.bodyLarge,

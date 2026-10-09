@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -35,8 +36,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.saludplus.citas.data.repository.Repositorio
 import com.saludplus.citas.ui.components.BotonPrincipal
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
-private data class DiaFijo(
+private data class DiaCalendario(
     val nombre: String,
     val numero: String,
     val fecha: String
@@ -49,22 +54,40 @@ fun FechaHoraScreen(
     onContinuar: (String, String) -> Unit
 ) {
     val medico = Repositorio.obtenerMedico(medicoId)
+    val hoy = LocalDate.now()
+    val idioma = Locale.forLanguageTag("es-PE")
 
     var fechaSeleccionada by rememberSaveable(medicoId) {
         mutableStateOf<String?>(null)
     }
+
     var horaSeleccionada by rememberSaveable(medicoId) {
         mutableStateOf<String?>(null)
     }
 
-    // Fase 1: lista fija. En mejora-ia se cambiará por LocalDate.
-    val dias = listOf(
-        DiaFijo("Lun", "5", "2026-10-05"),
-        DiaFijo("Mar", "6", "2026-10-06"),
-        DiaFijo("Mié", "7", "2026-10-07"),
-        DiaFijo("Jue", "8", "2026-10-08"),
-        DiaFijo("Vie", "9", "2026-10-09")
-    )
+    val dias = remember(hoy) {
+        generateSequence(hoy) { it.plusDays(1) }
+            .filter {
+                it.dayOfWeek != DayOfWeek.SATURDAY &&
+                        it.dayOfWeek != DayOfWeek.SUNDAY
+            }
+            .take(5)
+            .map { fecha ->
+                DiaCalendario(
+                    nombre = fecha
+                        .format(DateTimeFormatter.ofPattern("EEE", idioma))
+                        .replace(".", "")
+                        .replaceFirstChar { it.titlecase(idioma) },
+                    numero = fecha.dayOfMonth.toString(),
+                    fecha = fecha.toString()
+                )
+            }
+            .toList()
+    }
+
+    val tituloMes = LocalDate.parse(dias.first().fecha)
+        .format(DateTimeFormatter.ofPattern("MMMM yyyy", idioma))
+        .replaceFirstChar { it.titlecase(idioma) }
 
     val horarios = fechaSeleccionada?.let { fecha ->
         Repositorio.horariosDisponibles(medicoId, fecha)
@@ -75,15 +98,14 @@ fun FechaHoraScreen(
             .fillMaxSize()
             .padding(horizontal = 20.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onVolver) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Volver"
                 )
             }
+
             Text(
                 text = "Seleccionar fecha y hora",
                 style = MaterialTheme.typography.titleLarge,
@@ -104,6 +126,7 @@ fun FechaHoraScreen(
                     text = medico.nombre,
                     fontWeight = FontWeight.Bold
                 )
+
                 Text(
                     text = Repositorio
                         .obtenerEspecialidad(medico.especialidadId)
@@ -116,7 +139,7 @@ fun FechaHoraScreen(
         Spacer(Modifier.height(26.dp))
 
         Text(
-            text = "Octubre 2026",
+            text = tituloMes,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
@@ -127,7 +150,8 @@ fun FechaHoraScreen(
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(dias, key = { it.fecha }) { dia ->
-                val seleccionado = fechaSeleccionada == dia.fecha
+                val seleccionado =
+                    fechaSeleccionada == dia.fecha
 
                 Card(
                     onClick = {
@@ -152,12 +176,21 @@ fun FechaHoraScreen(
                     ) {
                         Text(
                             text = dia.nombre,
-                            color = if (seleccionado) Color.White else Color.Black
+                            color = if (seleccionado) {
+                                Color.White
+                            } else {
+                                Color.Black
+                            }
                         )
+
                         Text(
                             text = dia.numero,
                             fontWeight = FontWeight.Bold,
-                            color = if (seleccionado) Color.White else Color.Black
+                            color = if (seleccionado) {
+                                Color.White
+                            } else {
+                                Color.Black
+                            }
                         )
                     }
                 }
@@ -188,10 +221,13 @@ fun FechaHoraScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 gridItems(horarios, key = { it }) { hora ->
-                    val seleccionado = horaSeleccionada == hora
+                    val seleccionado =
+                        horaSeleccionada == hora
 
                     Card(
-                        onClick = { horaSeleccionada = hora },
+                        onClick = {
+                            horaSeleccionada = hora
+                        },
                         modifier = Modifier.height(52.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = if (seleccionado) {
@@ -224,9 +260,18 @@ fun FechaHoraScreen(
 
         BotonPrincipal(
             texto = "Continuar",
-            enabled = fecha != null && hora != null,
+            enabled = fecha != null &&
+                    hora != null &&
+                    hora in horarios,
             onClick = {
-                if (fecha != null && hora != null) {
+                if (
+                    fecha != null &&
+                    hora != null &&
+                    hora in Repositorio.horariosDisponibles(
+                        medicoId,
+                        fecha
+                    )
+                ) {
                     onContinuar(fecha, hora)
                 }
             }

@@ -1,6 +1,5 @@
 package com.saludplus.citas.ui.screens.auth
 
-import android.util.Patterns
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -9,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -21,8 +21,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.saludplus.citas.data.ValidacionDatos
 import com.saludplus.citas.data.repository.Repositorio
 import com.saludplus.citas.ui.components.BotonPrincipal
 
@@ -55,7 +57,21 @@ fun RegistroScreen(
 
         OutlinedTextField(
             value = nombre,
-            onValueChange = { nombre = it },
+            onValueChange = { nuevo ->
+                if (
+                    nuevo.length <= 60 &&
+                    nuevo.all {
+                        it.isLetter() ||
+                                it == ' ' ||
+                                it == '-' ||
+                                it == '\'' ||
+                                it == '’'
+                    }
+                ) {
+                    nombre = nuevo
+                    error = ""
+                }
+            },
             label = { Text("Nombre completo") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
@@ -63,36 +79,62 @@ fun RegistroScreen(
 
         OutlinedTextField(
             value = correo,
-            onValueChange = { correo = it },
+            onValueChange = {
+                correo = it.take(254)
+                error = ""
+            },
             label = { Text("Correo electrónico") },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Email
+            )
         )
 
         OutlinedTextField(
             value = telefono,
-            onValueChange = { telefono = it },
+            onValueChange = { nuevo ->
+                telefono = nuevo
+                    .filter { caracter -> caracter in '0'..'9' }
+                    .take(9)
+                error = ""
+            },
             label = { Text("Teléfono") },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number
+            )
         )
 
         OutlinedTextField(
             value = clave,
-            onValueChange = { clave = it },
+            onValueChange = {
+                clave = it.take(64)
+                error = ""
+            },
             label = { Text("Contraseña") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            visualTransformation = PasswordVisualTransformation()
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password
+            )
         )
 
         OutlinedTextField(
             value = confirmarClave,
-            onValueChange = { confirmarClave = it },
+            onValueChange = {
+                confirmarClave = it.take(64)
+                error = ""
+            },
             label = { Text("Confirmar contraseña") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            visualTransformation = PasswordVisualTransformation()
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password
+            )
         )
 
         if (error.isNotEmpty()) {
@@ -105,18 +147,15 @@ fun RegistroScreen(
         BotonPrincipal(
             texto = "Registrarme",
             onClick = {
-                error = when {
-                    nombre.trim().length < 3 ->
-                        "Escribe tu nombre completo"
-                    !Patterns.EMAIL_ADDRESS.matcher(correo.trim()).matches() ->
-                        "Escribe un correo válido"
-                    telefono.count { it.isDigit() } != 9 ->
-                        "Escribe un teléfono de 9 dígitos"
-                    clave.length < 6 ->
-                        "La contraseña debe tener al menos 6 caracteres"
-                    clave != confirmarClave ->
-                        "Las contraseñas no coinciden"
-                    else -> ""
+                error = ValidacionDatos.errorRegistro(
+                    nombre,
+                    correo,
+                    telefono,
+                    clave
+                ) ?: if (clave != confirmarClave) {
+                    "Las contraseñas no coinciden"
+                } else {
+                    ""
                 }
 
                 if (error.isEmpty()) {
@@ -126,10 +165,11 @@ fun RegistroScreen(
                         clave = clave,
                         telefono = telefono
                     )
+
                     if (usuario != null) {
                         onRegistroExitoso()
                     } else {
-                        error = "Ese correo ya está registrado"
+                        error = "Ese correo o teléfono ya está registrado"
                     }
                 }
             }
