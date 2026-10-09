@@ -143,39 +143,41 @@ object Repositorio {
 
     fun horariosDisponibles(
         medicoId: Int,
-        fecha: String,
-        ahora: LocalDateTime = LocalDateTime.now()
+        fecha: String
     ): List<String> {
-        if (fecha.length != 10) return emptyList()
+        if (obtenerMedico(medicoId) == null || fecha.length != 10) {
+            return emptyList()
+        }
 
         val dia = runCatching {
             LocalDate.parse(fecha)
         }.getOrNull() ?: return emptyList()
 
+        val ahora = LocalDateTime.now()
+        val hoy = ahora.toLocalDate()
+
         if (
-            obtenerMedico(medicoId) == null ||
-            dia.isBefore(ahora.toLocalDate()) ||
-            dia.isAfter(ahora.toLocalDate().plusDays(90)) ||
+            dia.isBefore(hoy) ||
+            dia.isAfter(hoy.plusDays(90)) ||
             dia.dayOfWeek == DayOfWeek.SATURDAY ||
             dia.dayOfWeek == DayOfWeek.SUNDAY
         ) {
             return emptyList()
         }
 
-        val ocupados = citas
-            .filter {
-                it.medicoId == medicoId &&
-                        it.fecha == fecha &&
-                        it.estado == "Confirmada"
-            }
-            .map { it.hora }
+        val ocupados = citas.filter {
+            it.medicoId == medicoId &&
+                    it.fecha == fecha &&
+                    it.estado == "Confirmada"
+        }.map {
+            it.hora
+        }
 
         return horariosBase.filter { hora ->
-            hora !in ocupados &&
-                    (
-                            dia != ahora.toLocalDate() ||
-                                    LocalTime.parse(hora).isAfter(ahora.toLocalTime())
-                            )
+            val horarioFuturo =
+                dia != hoy || LocalTime.parse(hora).isAfter(ahora.toLocalTime())
+
+            hora !in ocupados && horarioFuturo
         }
     }
 
@@ -184,14 +186,28 @@ object Repositorio {
         usuarioId: Int,
         medicoId: Int,
         fecha: String,
-        hora: String,
-        ahora: LocalDateTime = LocalDateTime.now()
+        hora: String
     ): Cita? {
         if (
             usuarioActual?.id != usuarioId ||
-            medicos.none { it.id == medicoId } ||
-            hora !in horariosDisponibles(medicoId, fecha, ahora)
+            usuarios.none { it.id == usuarioId } ||
+            obtenerMedico(medicoId) == null
         ) {
+            return null
+        }
+
+        if (hora !in horariosDisponibles(medicoId, fecha)) {
+            return null
+        }
+
+        val horarioOcupado = citas.any {
+            it.medicoId == medicoId &&
+                    it.fecha == fecha &&
+                    it.hora == hora &&
+                    it.estado == "Confirmada"
+        }
+
+        if (horarioOcupado) {
             return null
         }
 
@@ -218,8 +234,7 @@ object Repositorio {
     @Synchronized
     fun cancelarCita(citaId: Int): Boolean {
         val cita = citas.find {
-            it.id == citaId &&
-                    it.usuarioId == usuarioActual?.id
+            it.id == citaId && it.usuarioId == usuarioActual?.id
         } ?: return false
 
         return citas.remove(cita)
