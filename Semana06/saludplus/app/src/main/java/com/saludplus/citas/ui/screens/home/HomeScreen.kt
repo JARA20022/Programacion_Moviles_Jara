@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Description
@@ -45,7 +47,8 @@ fun HomeScreen(
     onEspecialidad: (Int) -> Unit,
     onNotificaciones: () -> Unit
 ) {
-    val nombre = Repositorio.usuarioActual?.nombre
+    val nombre = Repositorio.usuarioActual
+        ?.nombre
         ?.trim()
         ?.substringBefore(" ")
         ?: "Paciente"
@@ -55,15 +58,22 @@ fun HomeScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 20.dp, end = 12.dp, top = 16.dp),
+                    .padding(
+                        start = 20.dp,
+                        end = 12.dp,
+                        top = 16.dp
+                    ),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
                     Text(
                         text = "¡Hola, $nombre!",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold
                     )
+
                     Text(
                         text = "¿Qué deseas hacer hoy?",
                         style = MaterialTheme.typography.bodyMedium,
@@ -84,6 +94,7 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(espacio)
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
         ) {
             Spacer(Modifier.height(28.dp))
@@ -100,6 +111,7 @@ fun HomeScreen(
                     onClick = onAgendarCita,
                     modifier = Modifier.weight(1f)
                 )
+
                 TarjetaAcceso(
                     titulo = "Mis citas",
                     icono = Icons.Default.EventNote,
@@ -124,6 +136,7 @@ fun HomeScreen(
                     onClick = onPerfil,
                     modifier = Modifier.weight(1f)
                 )
+
                 TarjetaAcceso(
                     titulo = "Resultados",
                     icono = Icons.Default.Description,
@@ -152,7 +165,9 @@ fun HomeScreen(
                     key = { it.id }
                 ) { especialidad ->
                     Card(
-                        onClick = { onEspecialidad(especialidad.id) },
+                        onClick = {
+                            onEspecialidad(especialidad.id)
+                        },
                         modifier = Modifier.size(
                             width = 130.dp,
                             height = 108.dp
@@ -168,7 +183,9 @@ fun HomeScreen(
                                 nombre = especialidad.nombre,
                                 tamaño = 40.dp
                             )
+
                             Spacer(Modifier.height(8.dp))
+
                             Text(
                                 text = especialidad.nombre,
                                 style = MaterialTheme.typography.bodyMedium,
@@ -179,6 +196,8 @@ fun HomeScreen(
                     }
                 }
             }
+
+            Spacer(Modifier.height(20.dp))
         }
     }
 }
@@ -195,7 +214,9 @@ private fun TarjetaAcceso(
     Card(
         onClick = onClick,
         modifier = modifier.height(116.dp),
-        colors = CardDefaults.cardColors(containerColor = fondo)
+        colors = CardDefaults.cardColors(
+            containerColor = fondo
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -207,7 +228,9 @@ private fun TarjetaAcceso(
                 tint = colorIcono,
                 modifier = Modifier.size(30.dp)
             )
+
             Spacer(Modifier.height(12.dp))
+
             Text(
                 text = titulo,
                 style = MaterialTheme.typography.bodyMedium,

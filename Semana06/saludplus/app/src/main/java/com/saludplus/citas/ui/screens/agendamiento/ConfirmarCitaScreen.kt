@@ -59,8 +59,25 @@ fun ConfirmarCitaScreen(
     onCitaAgendada: (Int) -> Unit
 ) {
     val medico = Repositorio.obtenerMedico(medicoId)
-    val especialidad = medico?.let { Repositorio.obtenerEspecialidad(it.especialidadId) }
-    var error by rememberSaveable { mutableStateOf("") }
+
+    val especialidad = medico?.let {
+        Repositorio.obtenerEspecialidad(it.especialidadId)
+    }
+
+    var error by rememberSaveable {
+        mutableStateOf("")
+    }
+
+    var procesando by remember {
+        mutableStateOf(false)
+    }
+
+    val horarioDisponible =
+        hora in Repositorio.horariosDisponibles(
+            medicoId,
+            fecha
+        )
+
     val fechaEnEspanol = remember(fecha) {
         runCatching {
             LocalDate.parse(fecha)
@@ -70,9 +87,19 @@ fun ConfirmarCitaScreen(
                         Locale.forLanguageTag("es-PE")
                     )
                 )
-                .replace("septiembre", "setiembre", ignoreCase = true)
-                .replaceFirstChar { it.titlecase(Locale.forLanguageTag("es-PE")) }
-        }.getOrElse { fecha }
+                .replace(
+                    "septiembre",
+                    "setiembre",
+                    ignoreCase = true
+                )
+                .replaceFirstChar {
+                    it.titlecase(
+                        Locale.forLanguageTag("es-PE")
+                    )
+                }
+        }.getOrElse {
+            fecha
+        }
     }
 
     Column(
@@ -81,10 +108,16 @@ fun ConfirmarCitaScreen(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             IconButton(onClick = onVolver) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Volver"
+                )
             }
+
             Text(
                 text = "Confirmar cita",
                 style = MaterialTheme.typography.titleLarge,
@@ -102,18 +135,29 @@ fun ConfirmarCitaScreen(
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = fondoConfirmar)
+            colors = CardDefaults.cardColors(
+                containerColor = fondoConfirmar
+            )
         ) {
             Row(
                 modifier = Modifier.padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                FotoMedico(medicoId = medico.id, nombre = medico.nombre, tamaño = 58.dp)
+                FotoMedico(
+                    medicoId = medico.id,
+                    nombre = medico.nombre,
+                    tamaño = 58.dp
+                )
+
                 Column {
-                    Text(medico.nombre, fontWeight = FontWeight.Bold)
                     Text(
-                        especialidad?.nombre.orEmpty(),
+                        text = medico.nombre,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Text(
+                        text = especialidad?.nombre.orEmpty(),
                         color = Color(0xFF65728A)
                     )
                 }
@@ -125,17 +169,53 @@ fun ConfirmarCitaScreen(
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White
+            )
         ) {
-            Column(Modifier.padding(horizontal = 16.dp)) {
-                DatoCita(Icons.Filled.CalendarMonth, "Fecha", fechaEnEspanol)
-                HorizontalDivider(color = Color(0xFFE9EDF4))
-                DatoCita(Icons.Filled.AccessTime, "Hora", hora)
-                HorizontalDivider(color = Color(0xFFE9EDF4))
-                DatoCita(Icons.Filled.Place, "Tipo de atención", "Consulta presencial")
-                HorizontalDivider(color = Color(0xFFE9EDF4))
-                DatoCita(Icons.Filled.LocationOn, "Dirección", "Av. Los Olivos 123, Lima")
-                HorizontalDivider(color = Color(0xFFE9EDF4))
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                DatoCita(
+                    Icons.Filled.CalendarMonth,
+                    "Fecha",
+                    fechaEnEspanol
+                )
+
+                HorizontalDivider(
+                    color = Color(0xFFE9EDF4)
+                )
+
+                DatoCita(
+                    Icons.Filled.AccessTime,
+                    "Hora",
+                    hora
+                )
+
+                HorizontalDivider(
+                    color = Color(0xFFE9EDF4)
+                )
+
+                DatoCita(
+                    Icons.Filled.Place,
+                    "Tipo de atención",
+                    "Consulta presencial"
+                )
+
+                HorizontalDivider(
+                    color = Color(0xFFE9EDF4)
+                )
+
+                DatoCita(
+                    Icons.Filled.LocationOn,
+                    "Dirección",
+                    "Av. Los Olivos 123, Lima"
+                )
+
+                HorizontalDivider(
+                    color = Color(0xFFE9EDF4)
+                )
+
                 DatoCita(
                     Icons.Filled.Payments,
                     "Precio de consulta",
@@ -146,17 +226,38 @@ fun ConfirmarCitaScreen(
 
         if (error.isNotEmpty()) {
             Spacer(Modifier.height(12.dp))
-            Text(error, color = Color(0xFFB00020))
+
+            Text(
+                text = error,
+                color = Color(0xFFB00020)
+            )
+        }
+
+        if (!horarioDisponible) {
+            Spacer(Modifier.height(12.dp))
+
+            Text(
+                text = "Esta fecha u hora ya no está disponible. Vuelve a elegir otra.",
+                color = Color(0xFFB00020)
+            )
         }
 
         Spacer(Modifier.height(26.dp))
 
         BotonPrincipal(
             texto = "Agendar cita",
+            enabled = horarioDisponible && !procesando,
             onClick = {
+                if (procesando) {
+                    return@BotonPrincipal
+                }
+
+                procesando = true
                 val usuarioId = Repositorio.usuarioActual?.id
+
                 if (usuarioId == null) {
                     error = "Inicia sesión para reservar una cita."
+                    procesando = false
                 } else {
                     val cita = Repositorio.agendarCita(
                         usuarioId = usuarioId,
@@ -164,39 +265,63 @@ fun ConfirmarCitaScreen(
                         fecha = fecha,
                         hora = hora
                     )
+
                     if (cita == null) {
-                        error = "Este horario ya no está disponible."
+                        error = "No se pudo reservar. Revisa la fecha y el horario."
+                        procesando = false
                     } else {
                         onCitaAgendada(cita.id)
                     }
                 }
             }
         )
+
         Spacer(Modifier.height(20.dp))
     }
 }
 
 @Composable
-private fun DatoCita(icono: ImageVector, etiqueta: String, valor: String) {
+private fun DatoCita(
+    icono: ImageVector,
+    etiqueta: String,
+    valor: String
+) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Box(
             modifier = Modifier
                 .size(38.dp)
-                .background(Color(0xFFEAF2FF), RoundedCornerShape(10.dp)),
+                .background(
+                    Color(0xFFEAF2FF),
+                    RoundedCornerShape(10.dp)
+                ),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icono, contentDescription = null, tint = azulConfirmar,
-                modifier = Modifier.size(21.dp))
+            Icon(
+                imageVector = icono,
+                contentDescription = null,
+                tint = azulConfirmar,
+                modifier = Modifier.size(21.dp)
+            )
         }
+
         Column {
-            Text(etiqueta, style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF65728A))
-            Text(valor, style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium)
+            Text(
+                text = etiqueta,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFF65728A)
+            )
+
+            Text(
+                text = valor,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium
+            )
         }
     }
 }

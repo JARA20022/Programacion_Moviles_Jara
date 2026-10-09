@@ -39,21 +39,28 @@ fun EspecialidadesScreen(
     onVolver: () -> Unit,
     onSeleccionarEspecialidad: (Int) -> Unit
 ) {
-    var busqueda by rememberSaveable { mutableStateOf("") }
-    val especialidades = Repositorio.buscarEspecialidades(busqueda)
+    var busqueda by rememberSaveable {
+        mutableStateOf("")
+    }
+
+    val especialidades =
+        Repositorio.buscarEspecialidades(busqueda)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             IconButton(onClick = onVolver) {
                 Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Volver"
                 )
             }
+
             Text(
                 text = "Especialidades",
                 style = MaterialTheme.typography.titleLarge,
@@ -65,10 +72,17 @@ fun EspecialidadesScreen(
 
         OutlinedTextField(
             value = busqueda,
-            onValueChange = { busqueda = it },
-            label = { Text("Buscar especialidad") },
+            onValueChange = {
+                busqueda = it.take(60)
+            },
+            label = {
+                Text("Buscar especialidad")
+            },
             leadingIcon = {
-                Icon(Icons.Default.Search, contentDescription = null)
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = null
+                )
             },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
@@ -88,7 +102,9 @@ fun EspecialidadesScreen(
                 ) { especialidad ->
                     Card(
                         onClick = {
-                            onSeleccionarEspecialidad(especialidad.id)
+                            onSeleccionarEspecialidad(
+                                especialidad.id
+                            )
                         },
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
@@ -116,6 +132,7 @@ fun EspecialidadesScreen(
                                     text = especialidad.nombre,
                                     fontWeight = FontWeight.SemiBold
                                 )
+
                                 Text(
                                     text = especialidad.descripcion,
                                     style = MaterialTheme.typography.bodySmall

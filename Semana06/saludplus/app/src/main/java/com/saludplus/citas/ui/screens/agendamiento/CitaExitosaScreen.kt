@@ -29,7 +29,10 @@ fun CitaExitosaScreen(
     onIrInicio: () -> Unit
 ) {
     val cita = Repositorio.obtenerCita(citaId)
-    val medico = cita?.let { Repositorio.obtenerMedico(it.medicoId) }
+
+    val medico = cita?.let {
+        Repositorio.obtenerMedico(it.medicoId)
+    }
 
     Column(
         modifier = Modifier
@@ -38,16 +41,22 @@ fun CitaExitosaScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Icon(
-            imageVector = Icons.Default.CheckCircle,
-            contentDescription = null,
-            tint = Color(0xFF22A06B)
-        )
+        if (cita != null) {
+            Icon(
+                imageVector = Icons.Default.CheckCircle,
+                contentDescription = null,
+                tint = Color(0xFF22A06B)
+            )
+        }
 
         Spacer(Modifier.height(16.dp))
 
         Text(
-            text = "¡Cita agendada!",
+            text = if (cita == null) {
+                "No se encontró la cita"
+            } else {
+                "¡Cita agendada!"
+            },
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
@@ -56,7 +65,7 @@ fun CitaExitosaScreen(
 
         Text(
             text = if (cita == null) {
-                "No se encontró el resumen de la cita."
+                "Vuelve a Mis citas o a Inicio para continuar."
             } else {
                 "${medico?.nombre.orEmpty()}\n${cita.fecha} a las ${cita.hora}"
             },

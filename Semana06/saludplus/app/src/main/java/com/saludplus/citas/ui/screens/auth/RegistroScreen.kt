@@ -1,6 +1,5 @@
 package com.saludplus.citas.ui.screens.auth
 
-import android.util.Patterns
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -37,6 +38,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.saludplus.citas.data.ValidacionDatos
 import com.saludplus.citas.data.repository.Repositorio
 import com.saludplus.citas.ui.components.BotonPrincipal
 
@@ -52,6 +54,7 @@ fun RegistroScreen(
     var correo by rememberSaveable { mutableStateOf("") }
     var telefono by rememberSaveable { mutableStateOf("") }
     var clave by rememberSaveable { mutableStateOf("") }
+    var confirmarClave by rememberSaveable { mutableStateOf("") }
     var error by rememberSaveable { mutableStateOf("") }
 
     val coloresCampo = OutlinedTextFieldDefaults.colors(
@@ -62,13 +65,24 @@ fun RegistroScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .imePadding()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 22.dp),
+            .padding(
+                horizontal = 24.dp,
+                vertical = 22.dp
+            ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(Modifier.height(22.dp))
-        Text("Crear cuenta", fontSize = 26.sp, fontWeight = FontWeight.Bold)
+
+        Text(
+            text = "Crear cuenta",
+            fontSize = 26.sp,
+            fontWeight = FontWeight.Bold
+        )
+
         Spacer(Modifier.height(4.dp))
+
         Text(
             text = "Regístrate para agendar tus citas",
             fontSize = 14.sp,
@@ -80,29 +94,66 @@ fun RegistroScreen(
 
         OutlinedTextField(
             value = nombre,
-            onValueChange = { nombre = it },
-            label = { Text("Nombre completo") },
-            leadingIcon = { androidx.compose.material3.Icon(Icons.Filled.Person, null) },
+            onValueChange = { nuevo ->
+                if (
+                    nuevo.length <= 60 &&
+                    nuevo.all {
+                        it.isLetter() ||
+                                it == ' ' ||
+                                it == '-' ||
+                                it == '\'' ||
+                                it == '’'
+                    }
+                ) {
+                    nombre = nuevo
+                    error = ""
+                } else {
+                    error = "En el nombre usa solo letras y un máximo de 60 caracteres."
+                }
+            },
+            label = {
+                Text("Nombre completo")
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Filled.Person,
+                    contentDescription = null
+                )
+            },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
             colors = coloresCampo,
             singleLine = true,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Next
+            )
         )
 
         Spacer(Modifier.height(10.dp))
 
         OutlinedTextField(
             value = telefono,
-            onValueChange = { telefono = it.filter(Char::isDigit).take(9) },
-            label = { Text("Teléfono") },
-            leadingIcon = { androidx.compose.material3.Icon(Icons.Filled.Phone, null) },
+            onValueChange = { nuevo ->
+                telefono = nuevo
+                    .filter { it in '0'..'9' }
+                    .take(9)
+                error = ""
+            },
+            label = {
+                Text("Teléfono")
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Filled.Phone,
+                    contentDescription = null
+                )
+            },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
             colors = coloresCampo,
             singleLine = true,
             keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Phone,
+                keyboardType = KeyboardType.Number,
                 imeAction = ImeAction.Next
             )
         )
@@ -111,9 +162,19 @@ fun RegistroScreen(
 
         OutlinedTextField(
             value = correo,
-            onValueChange = { correo = it },
-            label = { Text("Correo electrónico") },
-            leadingIcon = { androidx.compose.material3.Icon(Icons.Filled.Email, null) },
+            onValueChange = {
+                correo = it.take(254)
+                error = ""
+            },
+            label = {
+                Text("Correo electrónico")
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Filled.Email,
+                    contentDescription = null
+                )
+            },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
             colors = coloresCampo,
@@ -128,9 +189,47 @@ fun RegistroScreen(
 
         OutlinedTextField(
             value = clave,
-            onValueChange = { clave = it },
-            label = { Text("Contraseña") },
-            leadingIcon = { androidx.compose.material3.Icon(Icons.Filled.Lock, null) },
+            onValueChange = {
+                clave = it.take(64)
+                error = ""
+            },
+            label = {
+                Text("Contraseña")
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Filled.Lock,
+                    contentDescription = null
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(10.dp),
+            colors = coloresCampo,
+            singleLine = true,
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Next
+            )
+        )
+
+        Spacer(Modifier.height(10.dp))
+
+        OutlinedTextField(
+            value = confirmarClave,
+            onValueChange = {
+                confirmarClave = it.take(64)
+                error = ""
+            },
+            label = {
+                Text("Confirmar contraseña")
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Filled.Lock,
+                    contentDescription = null
+                )
+            },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
             colors = coloresCampo,
@@ -144,7 +243,10 @@ fun RegistroScreen(
 
         if (error.isNotEmpty()) {
             Spacer(Modifier.height(8.dp))
-            Text(error, color = Color(0xFFB00020))
+            Text(
+                text = error,
+                color = Color(0xFFB00020)
+            )
         }
 
         Spacer(Modifier.height(22.dp))
@@ -152,45 +254,65 @@ fun RegistroScreen(
         BotonPrincipal(
             texto = "Registrarme",
             onClick = {
-                error = when {
-                    nombre.trim().length < 3 -> "Escribe tu nombre completo"
-                    telefono.length != 9 -> "Escribe un teléfono de 9 dígitos"
-                    !Patterns.EMAIL_ADDRESS.matcher(correo.trim()).matches() ->
-                        "Escribe un correo válido"
-                    clave.length < 6 ->
-                        "La contraseña debe tener al menos 6 caracteres"
-                    else -> ""
+                error = ValidacionDatos.errorRegistro(
+                    nombre,
+                    correo,
+                    telefono,
+                    clave
+                ) ?: if (clave != confirmarClave) {
+                    "Las contraseñas no coinciden."
+                } else {
+                    ""
                 }
 
                 if (error.isEmpty()) {
                     val usuario = Repositorio.registrarUsuario(
-                        nombre = nombre.trim(),
-                        correo = correo.trim(),
+                        nombre = nombre,
+                        correo = correo,
                         clave = clave,
                         telefono = telefono
                     )
+
                     if (usuario != null) {
                         onRegistroExitoso()
                     } else {
-                        error = "Ese correo ya está registrado"
+                        error = "El correo o celular ya está registrado."
                     }
                 }
             }
         )
 
         Spacer(Modifier.height(4.dp))
-        Text("Al registrarte aceptas nuestros", fontSize = 12.sp,
-            color = Color(0xFF65728A))
+
+        Text(
+            text = "Al registrarte aceptas nuestros",
+            fontSize = 12.sp,
+            color = Color(0xFF65728A)
+        )
+
         TextButton(onClick = onVerTerminos) {
-            Text("Términos y Condiciones", color = azulRegistro)
+            Text(
+                text = "Términos y Condiciones",
+                color = azulRegistro
+            )
         }
 
         Spacer(Modifier.height(14.dp))
-        Row(verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center) {
-            Text("¿Ya tienes cuenta?", fontSize = 13.sp)
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "¿Ya tienes cuenta?",
+                fontSize = 13.sp
+            )
+
             TextButton(onClick = onIniciarSesion) {
-                Text("Iniciar sesión", color = azulRegistro)
+                Text(
+                    text = "Iniciar sesión",
+                    color = azulRegistro
+                )
             }
         }
     }

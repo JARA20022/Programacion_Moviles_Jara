@@ -18,6 +18,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -44,11 +45,36 @@ import com.saludplus.citas.ui.screens.resultados.ResultadosScreen
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
+
     val rutaActual = navController
         .currentBackStackEntryAsState()
         .value
         ?.destination
         ?.route
+
+    val usuarioActual = Repositorio.usuarioActual
+
+    val rutasPublicas = setOf(
+        Rutas.SPLASH,
+        Rutas.REGISTRO,
+        Rutas.LOGIN,
+        Rutas.TERMINOS
+    )
+
+    LaunchedEffect(rutaActual, usuarioActual) {
+        if (
+            rutaActual != null &&
+            rutaActual !in rutasPublicas &&
+            usuarioActual == null
+        ) {
+            navController.navigate(Rutas.SPLASH) {
+                popUpTo(navController.graph.id) {
+                    inclusive = false
+                }
+                launchSingleTop = true
+            }
+        }
+    }
 
     val destinosBarra = listOf(
         Rutas.HOME,
@@ -123,7 +149,9 @@ fun AppNavigation() {
 
             composable(Rutas.TERMINOS) {
                 TerminosScreen(
-                    onVolver = { navController.popBackStack() }
+                    onVolver = {
+                        navController.popBackStack()
+                    }
                 )
             }
 
@@ -142,7 +170,9 @@ fun AppNavigation() {
                         navController.navigate(Rutas.RESULTADOS)
                     },
                     onEspecialidad = { especialidadId ->
-                        navController.navigate(Rutas.medicos(especialidadId))
+                        navController.navigate(
+                            Rutas.medicos(especialidadId)
+                        )
                     },
                     onNotificaciones = {
                         navController.navigate(Rutas.NOTIFICACIONES)
@@ -152,9 +182,13 @@ fun AppNavigation() {
 
             composable(Rutas.ESPECIALIDADES) {
                 EspecialidadesScreen(
-                    onVolver = { navController.popBackStack() },
+                    onVolver = {
+                        navController.popBackStack()
+                    },
                     onSeleccionarEspecialidad = { especialidadId ->
-                        navController.navigate(Rutas.medicos(especialidadId))
+                        navController.navigate(
+                            Rutas.medicos(especialidadId)
+                        )
                     }
                 )
             }
@@ -167,9 +201,13 @@ fun AppNavigation() {
 
                 MedicosScreen(
                     especialidadId = especialidadId,
-                    onVolver = { navController.popBackStack() },
+                    onVolver = {
+                        navController.popBackStack()
+                    },
                     onSeleccionarMedico = { medicoId ->
-                        navController.navigate(Rutas.fechaHora(medicoId))
+                        navController.navigate(
+                            Rutas.fechaHora(medicoId)
+                        )
                     }
                 )
             }
@@ -182,10 +220,16 @@ fun AppNavigation() {
 
                 FechaHoraScreen(
                     medicoId = medicoId,
-                    onVolver = { navController.popBackStack() },
+                    onVolver = {
+                        navController.popBackStack()
+                    },
                     onContinuar = { fecha, hora ->
                         navController.navigate(
-                            Rutas.confirmarCita(medicoId, fecha, hora)
+                            Rutas.confirmarCita(
+                                medicoId,
+                                fecha,
+                                hora
+                            )
                         )
                     }
                 )
@@ -196,9 +240,11 @@ fun AppNavigation() {
                     ?.getString("medicoId")
                     ?.toIntOrNull()
                     ?: -1
+
                 val fecha = entrada.arguments
                     ?.getString("fecha")
                     .orEmpty()
+
                 val hora = entrada.arguments
                     ?.getString("hora")
                     .orEmpty()
@@ -207,9 +253,13 @@ fun AppNavigation() {
                     medicoId = medicoId,
                     fecha = fecha,
                     hora = hora,
-                    onVolver = { navController.popBackStack() },
+                    onVolver = {
+                        navController.popBackStack()
+                    },
                     onCitaAgendada = { citaId ->
-                        navController.navigate(Rutas.citaExitosa(citaId)) {
+                        navController.navigate(
+                            Rutas.citaExitosa(citaId)
+                        ) {
                             popUpTo(Rutas.HOME)
                         }
                     }
@@ -230,7 +280,10 @@ fun AppNavigation() {
                         }
                     },
                     onIrInicio = {
-                        navController.popBackStack(Rutas.HOME, false)
+                        navController.popBackStack(
+                            Rutas.HOME,
+                            false
+                        )
                     }
                 )
             }
@@ -251,10 +304,12 @@ fun AppNavigation() {
                 PerfilScreen(
                     onCerrarSesion = {
                         Repositorio.cerrarSesion()
+
                         navController.navigate(Rutas.SPLASH) {
-                            popUpTo(Rutas.HOME) {
-                                inclusive = true
+                            popUpTo(navController.graph.id) {
+                                inclusive = false
                             }
+                            launchSingleTop = true
                         }
                     }
                 )
@@ -275,21 +330,44 @@ private fun BarraPrincipal(
     onDestino: (String) -> Unit
 ) {
     val destinos = listOf(
-        Triple(Rutas.HOME, "Inicio", Icons.Default.Home),
-        Triple(Rutas.MIS_CITAS, "Citas", Icons.Default.EventNote),
-        Triple(Rutas.RESULTADOS, "Resultados", Icons.Default.Assessment),
-        Triple(Rutas.PERFIL, "Perfil", Icons.Default.Person)
+        Triple(
+            Rutas.HOME,
+            "Inicio",
+            Icons.Default.Home
+        ),
+        Triple(
+            Rutas.MIS_CITAS,
+            "Citas",
+            Icons.Default.EventNote
+        ),
+        Triple(
+            Rutas.RESULTADOS,
+            "Resultados",
+            Icons.Default.Assessment
+        ),
+        Triple(
+            Rutas.PERFIL,
+            "Perfil",
+            Icons.Default.Person
+        )
     )
 
     NavigationBar {
         destinos.forEach { (ruta, nombre, icono) ->
             NavigationBarItem(
                 selected = rutaActual == ruta,
-                onClick = { onDestino(ruta) },
-                icon = {
-                    Icon(icono, contentDescription = nombre)
+                onClick = {
+                    onDestino(ruta)
                 },
-                label = { Text(nombre) }
+                icon = {
+                    Icon(
+                        imageVector = icono,
+                        contentDescription = nombre
+                    )
+                },
+                label = {
+                    Text(nombre)
+                }
             )
         }
     }

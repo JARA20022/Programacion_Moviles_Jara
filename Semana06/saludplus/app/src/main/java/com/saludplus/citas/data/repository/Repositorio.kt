@@ -1,13 +1,18 @@
 package com.saludplus.citas.data.repository
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateListOf
+import com.saludplus.citas.data.ValidacionDatos
 import com.saludplus.citas.data.model.Cita
 import com.saludplus.citas.data.model.Especialidad
 import com.saludplus.citas.data.model.Medico
 import com.saludplus.citas.data.model.Usuario
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 
 object Repositorio {
 
@@ -31,6 +36,9 @@ object Repositorio {
     private val usuarios = mutableStateListOf<Usuario>()
     private val citas = mutableStateListOf<Cita>()
 
+    private var siguienteUsuarioId = 1
+    private var siguienteCitaId = 1
+
     var usuarioActual by mutableStateOf<Usuario?>(null)
         private set
 
@@ -39,30 +47,41 @@ object Repositorio {
         "14:00", "15:00", "16:00", "17:00"
     )
 
+    @Synchronized
     fun registrarUsuario(
         nombre: String,
         correo: String,
         clave: String,
         telefono: String
     ): Usuario? {
-        val correoLimpio = correo.trim()
-
-        if (nombre.isBlank() || correoLimpio.isBlank() ||
-            clave.isBlank() || telefono.isBlank()
+        if (
+            ValidacionDatos.errorRegistro(
+                nombre,
+                correo,
+                telefono,
+                clave
+            ) != null
         ) {
             return null
         }
 
-        if (usuarios.any { it.correo.equals(correoLimpio, ignoreCase = true) }) {
+        val correoLimpio = ValidacionDatos.normalizarCorreo(correo)
+
+        if (
+            usuarios.any {
+                it.correo == correoLimpio ||
+                        it.telefono == telefono
+            }
+        ) {
             return null
         }
 
         val usuario = Usuario(
-            id = (usuarios.maxOfOrNull { it.id } ?: 0) + 1,
-            nombre = nombre.trim(),
+            id = siguienteUsuarioId++,
+            nombre = ValidacionDatos.normalizarNombre(nombre),
             correo = correoLimpio,
             clave = clave,
-            telefono = telefono.trim()
+            telefono = telefono
         )
 
         usuarios.add(usuario)
@@ -71,8 +90,15 @@ object Repositorio {
     }
 
     fun iniciarSesion(correo: String, clave: String): Usuario? {
+        if (ValidacionDatos.errorLogin(correo, clave) != null) {
+            usuarioActual = null
+            return null
+        }
+
+        val correoLimpio = ValidacionDatos.normalizarCorreo(correo)
+
         val usuario = usuarios.find {
-            it.correo.equals(correo.trim(), ignoreCase = true) &&
+            it.correo == correoLimpio &&
                     it.clave == clave
         }
 
@@ -99,18 +125,48 @@ object Repositorio {
         medicos.find { it.id == id }
 
     fun obtenerCita(id: Int): Cita? =
-        citas.find { it.id == id }
+        citas.find {
+            it.id == id &&
+                    it.usuarioId == usuarioActual?.id
+        }
 
     fun medicosPorEspecialidad(especialidadId: Int): List<Medico> =
-        medicos.filter { it.especialidadId == especialidadId }
-            .sortedByDescending { it.calificacion }
+        medicos.filter {
+            it.especialidadId == especialidadId
+        }.sortedByDescending {
+            it.calificacion
+        }
 
     fun buscarMedicos(texto: String): List<Medico> =
         medicos.filter {
             it.nombre.contains(texto.trim(), ignoreCase = true)
-        }.sortedByDescending { it.calificacion }
+        }.sortedByDescending {
+            it.calificacion
+        }
 
-    fun horariosDisponibles(medicoId: Int, fecha: String): List<String> {
+    fun horariosDisponibles(
+        medicoId: Int,
+        fecha: String,
+        ahora: LocalDateTime = LocalDateTime.now()
+    ): List<String> {
+        if (fecha.length != 10) {
+            return emptyList()
+        }
+
+        val dia = runCatching {
+            LocalDate.parse(fecha)
+        }.getOrNull() ?: return emptyList()
+
+        if (
+            obtenerMedico(medicoId) == null ||
+            dia.isBefore(ahora.toLocalDate()) ||
+            dia.isAfter(ahora.toLocalDate().plusDays(90)) ||
+            dia.dayOfWeek == DayOfWeek.SATURDAY ||
+            dia.dayOfWeek == DayOfWeek.SUNDAY
+        ) {
+            return emptyList()
+        }
+
         val ocupados = citas
             .filter {
                 it.medicoId == medicoId &&
@@ -119,25 +175,38 @@ object Repositorio {
             }
             .map { it.hora }
 
-        return horariosBase.filter { it !in ocupados }
+        return horariosBase.filter { hora ->
+            hora !in ocupados &&
+                    (
+                            dia != ahora.toLocalDate() ||
+                                    LocalTime.parse(hora)
+                                        .isAfter(ahora.toLocalTime())
+                            )
+        }
     }
 
+    @Synchronized
     fun agendarCita(
         usuarioId: Int,
         medicoId: Int,
         fecha: String,
-        hora: String
+        hora: String,
+        ahora: LocalDateTime = LocalDateTime.now()
     ): Cita? {
-        if (fecha.isBlank() || hora !in horariosBase ||
-            usuarios.none { it.id == usuarioId } ||
+        if (
+            usuarioActual?.id != usuarioId ||
             medicos.none { it.id == medicoId } ||
-            hora !in horariosDisponibles(medicoId, fecha)
+            hora !in horariosDisponibles(
+                medicoId,
+                fecha,
+                ahora
+            )
         ) {
             return null
         }
 
         val cita = Cita(
-            id = (citas.maxOfOrNull { it.id } ?: 0) + 1,
+            id = siguienteCitaId++,
             usuarioId = usuarioId,
             medicoId = medicoId,
             fecha = fecha,
@@ -149,11 +218,20 @@ object Repositorio {
     }
 
     fun citasDelUsuario(usuarioId: Int): List<Cita> =
-        citas.filter { it.usuarioId == usuarioId }
-            .sortedWith(compareBy<Cita> { it.fecha }.thenBy { it.hora })
+        citas.filter {
+            it.usuarioId == usuarioId &&
+                    usuarioActual?.id == usuarioId
+        }.sortedWith(
+            compareBy<Cita> { it.fecha }.thenBy { it.hora }
+        )
 
+    @Synchronized
     fun cancelarCita(citaId: Int): Boolean {
-        val cita = citas.find { it.id == citaId } ?: return false
+        val cita = citas.find {
+            it.id == citaId &&
+                    it.usuarioId == usuarioActual?.id
+        } ?: return false
+
         return citas.remove(cita)
     }
 }
