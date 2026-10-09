@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import com.saludplus.citas.data.model.Cita
 import com.saludplus.citas.data.model.Especialidad
 import com.saludplus.citas.data.model.Medico
+import com.saludplus.citas.data.model.Sede
 import com.saludplus.citas.data.model.Usuario
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -32,6 +33,43 @@ object Repositorio {
         Medico(5, "Dra. Patricia Rojas", 4, 7, 4.8, 95.0),
         Medico(6, "Dr. Jorge Castillo", 5, 9, 4.7, 100.0)
     )
+
+    val sedes = listOf(
+        Sede(
+            1,
+            "Sede San Juan de Lurigancho",
+            "Av. Próceres de la Independencia 1500",
+            "San Juan de Lurigancho",
+            "(01) 555-1001",
+            "Lun-Sáb 8:00 a.m. - 8:00 p.m."
+        ),
+        Sede(
+            2,
+            "Sede Independencia",
+            "Av. Túpac Amaru 2200",
+            "Independencia",
+            "(01) 555-1002",
+            "Lun-Sáb 8:00 a.m. - 8:00 p.m."
+        ),
+        Sede(
+            3,
+            "Sede Miraflores",
+            "Av. Arequipa 4500",
+            "Miraflores",
+            "(01) 555-1003",
+            "Lun-Sáb 8:00 a.m. - 8:00 p.m."
+        ),
+        Sede(
+            4,
+            "Sede Los Olivos",
+            "Av. Carlos Izaguirre 900",
+            "Los Olivos",
+            "(01) 555-1004",
+            "Lun-Sáb 8:00 a.m. - 8:00 p.m."
+        )
+    )
+
+    var sedeSeleccionada by mutableStateOf<Sede?>(null)
 
     private val usuarios = mutableStateListOf<Usuario>()
     private val citas = mutableStateListOf<Cita>()
@@ -173,7 +211,6 @@ object Repositorio {
         )
 
         usuarios.add(usuario)
-        usuarioActual = usuario
         return usuario
     }
 

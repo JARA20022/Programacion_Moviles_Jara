@@ -1,5 +1,6 @@
 package com.saludplus.citas.ui.screens.auth
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -50,6 +52,7 @@ fun RegistroScreen(
     onIniciarSesion: () -> Unit,
     onVerTerminos: () -> Unit
 ) {
+    val context = LocalContext.current
     var nombre by rememberSaveable { mutableStateOf("") }
     var correo by rememberSaveable { mutableStateOf("") }
     var telefono by rememberSaveable { mutableStateOf("") }
@@ -274,6 +277,11 @@ fun RegistroScreen(
                     )
 
                     if (usuario != null) {
+                        Toast.makeText(
+                            context,
+                            "Cuenta creada exitosamente. Inicia sesión",
+                            Toast.LENGTH_SHORT
+                        ).show()
                         onRegistroExitoso()
                     } else {
                         error = "El correo o celular ya está registrado."

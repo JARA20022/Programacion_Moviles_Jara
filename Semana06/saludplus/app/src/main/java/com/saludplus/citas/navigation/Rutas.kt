@@ -10,6 +10,8 @@ object Rutas {
     const val HOME = "home"
 
     const val ESPECIALIDADES = "especialidades"
+    const val SEDES = "sedes"
+    const val MIS_DOCTORES = "mis_doctores"
     const val MEDICOS = "medicos/{especialidadId}"
     const val FECHA_HORA = "fecha_hora/{medicoId}"
     const val CONFIRMAR_CITA = "confirmar/{medicoId}/{fecha}/{hora}"

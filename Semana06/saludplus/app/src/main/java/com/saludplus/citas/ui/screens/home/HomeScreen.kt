@@ -17,6 +17,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.EventNote
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
@@ -45,7 +47,9 @@ fun HomeScreen(
     onPerfil: () -> Unit,
     onResultados: () -> Unit,
     onEspecialidad: (Int) -> Unit,
-    onNotificaciones: () -> Unit
+    onNotificaciones: () -> Unit,
+    onSedes: () -> Unit,
+    onMisDoctores: () -> Unit
 ) {
     val nombre = Repositorio.usuarioActual
         ?.nombre
@@ -143,6 +147,31 @@ fun HomeScreen(
                     fondo = Color(0xFFFFF0DB),
                     colorIcono = Color(0xFFE8912D),
                     onClick = onResultados,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                TarjetaAcceso(
+                    titulo = "Sedes",
+                    icono = Icons.Default.LocationOn,
+                    fondo = Color(0xFFE3F2FD),
+                    colorIcono = Color(0xFF0288D1),
+                    onClick = onSedes,
+                    modifier = Modifier.weight(1f)
+                )
+
+                TarjetaAcceso(
+                    titulo = "Mis doctores",
+                    icono = Icons.Default.MedicalServices,
+                    fondo = Color(0xFFF3E5F5),
+                    colorIcono = Color(0xFF7B1FA2),
+                    onClick = onMisDoctores,
                     modifier = Modifier.weight(1f)
                 )
             }

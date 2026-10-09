@@ -41,12 +41,14 @@ import com.saludplus.citas.ui.screens.agendamiento.ConfirmarCitaScreen
 import com.saludplus.citas.ui.screens.agendamiento.EspecialidadesScreen
 import com.saludplus.citas.ui.screens.agendamiento.FechaHoraScreen
 import com.saludplus.citas.ui.screens.agendamiento.MedicosScreen
+import com.saludplus.citas.ui.screens.agendamiento.SedesScreen
 import com.saludplus.citas.ui.screens.auth.LoginScreen
 import com.saludplus.citas.ui.screens.auth.RegistroScreen
 import com.saludplus.citas.ui.screens.auth.SplashScreen
 import com.saludplus.citas.ui.screens.auth.TerminosScreen
 import com.saludplus.citas.ui.screens.citas.MisCitasScreen
 import com.saludplus.citas.ui.screens.home.HomeScreen
+import com.saludplus.citas.ui.screens.home.MisDoctoresScreen
 import com.saludplus.citas.ui.screens.perfil.PerfilScreen
 import com.saludplus.citas.ui.screens.resultados.ResultadosScreen
 
@@ -126,7 +128,7 @@ fun AppNavigation() {
     }
 
     val tituloBarraSuperior = when (rutaActual) {
-        Rutas.LOGIN -> "Iniciar sesión"
+        Rutas.LOGIN -> "Volver"
         Rutas.CITA_EXITOSA -> "Cita agendada"
         Rutas.MIS_CITAS -> "Mis citas"
         Rutas.PERFIL -> "Perfil"
@@ -205,8 +207,8 @@ fun AppNavigation() {
             composable(Rutas.REGISTRO) {
                 RegistroScreen(
                     onRegistroExitoso = {
-                        navController.navigate(Rutas.HOME) {
-                            popUpTo(Rutas.SPLASH) {
+                        navController.navigate(Rutas.LOGIN) {
+                            popUpTo(Rutas.REGISTRO) {
                                 inclusive = true
                             }
                         }
@@ -246,7 +248,7 @@ fun AppNavigation() {
             composable(Rutas.HOME) {
                 HomeScreen(
                     onAgendarCita = {
-                        navController.navigate(Rutas.ESPECIALIDADES)
+                        navController.navigate(Rutas.SEDES)
                     },
                     onMisCitas = {
                         navController.navigate(Rutas.MIS_CITAS)
@@ -257,6 +259,12 @@ fun AppNavigation() {
                     onResultados = {
                         navController.navigate(Rutas.RESULTADOS)
                     },
+                    onSedes = {
+                        navController.navigate(Rutas.SEDES)
+                    },
+                    onMisDoctores = {
+                        navController.navigate(Rutas.MIS_DOCTORES)
+                    },
                     onEspecialidad = { especialidadId ->
                         navController.navigate(
                             Rutas.medicos(especialidadId)
@@ -264,6 +272,30 @@ fun AppNavigation() {
                     },
                     onNotificaciones = {
                         navController.navigate(Rutas.NOTIFICACIONES)
+                    }
+                )
+            }
+
+            composable(Rutas.SEDES) {
+                SedesScreen(
+                    onVolver = {
+                        navController.popBackStack()
+                    },
+                    onSeleccionarSede = {
+                        navController.navigate(Rutas.ESPECIALIDADES)
+                    }
+                )
+            }
+
+            composable(Rutas.MIS_DOCTORES) {
+                MisDoctoresScreen(
+                    onVolver = {
+                        navController.popBackStack()
+                    },
+                    onSeleccionarMedico = { medicoId ->
+                        navController.navigate(
+                            Rutas.fechaHora(medicoId)
+                        )
                     }
                 )
             }
