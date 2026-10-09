@@ -25,7 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.saludplus.citas.data.ValidacionDatos
+
 import com.saludplus.citas.data.repository.Repositorio
 import com.saludplus.citas.ui.components.BotonPrincipal
 
@@ -99,7 +99,7 @@ fun LoginScreen(
         BotonPrincipal(
             texto = "Ingresar",
             onClick = {
-                error = ValidacionDatos.errorLogin(
+                error = Repositorio.errorLogin(
                     correo,
                     clave
                 ) ?: when {
