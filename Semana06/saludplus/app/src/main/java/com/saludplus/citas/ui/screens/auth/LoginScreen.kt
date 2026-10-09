@@ -22,7 +22,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.saludplus.citas.data.ValidacionDatos
 import com.saludplus.citas.data.repository.Repositorio
 import com.saludplus.citas.ui.components.BotonPrincipal
 
@@ -79,7 +78,10 @@ fun LoginScreen(
 
         if (error.isNotEmpty()) {
             Spacer(Modifier.height(8.dp))
-            Text(error, color = Color(0xFFB00020))
+            Text(
+                text = error,
+                color = Color(0xFFB00020)
+            )
         }
 
         Spacer(Modifier.height(24.dp))
@@ -87,9 +89,9 @@ fun LoginScreen(
         BotonPrincipal(
             texto = "Ingresar",
             onClick = {
-                error = ValidacionDatos.errorLogin(
-                    correo,
-                    clave
+                error = Repositorio.errorLogin(
+                    correo = correo,
+                    clave = clave
                 ) ?: when {
                     Repositorio.iniciarSesion(correo, clave) == null ->
                         "Correo o contraseña incorrectos"
