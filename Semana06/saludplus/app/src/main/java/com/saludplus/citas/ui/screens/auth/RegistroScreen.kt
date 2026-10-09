@@ -1,6 +1,6 @@
 package com.saludplus.citas.ui.screens.auth
 
-import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +19,8 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -31,8 +33,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -40,11 +40,16 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
 import com.saludplus.citas.data.repository.Repositorio
 import com.saludplus.citas.ui.components.BotonPrincipal
-
-private val azulRegistro = Color(0xFF2864E8)
+import com.saludplus.citas.ui.theme.BackgroundMain
+import com.saludplus.citas.ui.theme.CardSurface
+import com.saludplus.citas.ui.theme.ErrorRed
+import com.saludplus.citas.ui.theme.PetroleumPrimary
+import com.saludplus.citas.ui.theme.PetroleumVariant
+import com.saludplus.citas.ui.theme.SurfaceWhite
+import com.saludplus.citas.ui.theme.TextPrimary
+import com.saludplus.citas.ui.theme.TextSecondary
 
 @Composable
 fun RegistroScreen(
@@ -52,7 +57,6 @@ fun RegistroScreen(
     onIniciarSesion: () -> Unit,
     onVerTerminos: () -> Unit
 ) {
-    val context = LocalContext.current
     var nombre by rememberSaveable { mutableStateOf("") }
     var correo by rememberSaveable { mutableStateOf("") }
     var telefono by rememberSaveable { mutableStateOf("") }
@@ -61,267 +65,287 @@ fun RegistroScreen(
     var error by rememberSaveable { mutableStateOf("") }
 
     val coloresCampo = OutlinedTextFieldDefaults.colors(
-        focusedBorderColor = azulRegistro,
-        focusedLeadingIconColor = azulRegistro
+        focusedBorderColor = PetroleumPrimary,
+        focusedLeadingIconColor = PetroleumPrimary,
+        focusedLabelColor = PetroleumPrimary,
+        unfocusedContainerColor = SurfaceWhite,
+        focusedContainerColor = SurfaceWhite
     )
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(BackgroundMain)
             .imePadding()
             .verticalScroll(rememberScrollState())
-            .padding(
-                horizontal = 24.dp,
-                vertical = 22.dp
-            ),
+            .padding(horizontal = 20.dp, vertical = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(Modifier.height(22.dp))
+        Spacer(Modifier.height(12.dp))
 
-        Text(
-            text = "Crear cuenta",
-            fontSize = 26.sp,
-            fontWeight = FontWeight.Bold
-        )
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = CardSurface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Crear cuenta",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextPrimary
+                )
 
-        Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(4.dp))
 
-        Text(
-            text = "Regístrate para agendar tus citas",
-            fontSize = 14.sp,
-            color = Color(0xFF65728A),
-            textAlign = TextAlign.Center
-        )
+                Text(
+                    text = "Regístrate para agendar tus citas médicas",
+                    fontSize = 13.sp,
+                    color = TextSecondary,
+                    textAlign = TextAlign.Center
+                )
 
-        Spacer(Modifier.height(27.dp))
+                Spacer(Modifier.height(20.dp))
 
-        OutlinedTextField(
-            value = nombre,
-            onValueChange = { nuevo ->
-                if (
-                    nuevo.length <= 60 &&
-                    nuevo.all {
-                        it.isLetter() ||
-                                it == ' ' ||
-                                it == '-' ||
-                                it == '\'' ||
-                                it == '’'
+                OutlinedTextField(
+                    value = nombre,
+                    onValueChange = { nuevo ->
+                        if (
+                            nuevo.length <= 60 &&
+                            nuevo.all {
+                                it.isLetter() ||
+                                        it == ' ' ||
+                                        it == '-' ||
+                                        it == '\'' ||
+                                        it == '’'
+                            }
+                        ) {
+                            nombre = nuevo
+                            error = ""
+                        } else {
+                            error = "En el nombre usa solo letras y un máximo de 60 caracteres."
+                        }
+                    },
+                    label = { Text("Nombre completo") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Filled.Person,
+                            contentDescription = null
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = coloresCampo,
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Next
+                    )
+                )
+
+                Spacer(Modifier.height(10.dp))
+
+                OutlinedTextField(
+                    value = telefono,
+                    onValueChange = { nuevo ->
+                        telefono = nuevo
+                            .filter { it in '0'..'9' }
+                            .take(9)
+                        error = ""
+                    },
+                    label = { Text("Teléfono celular") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Filled.Phone,
+                            contentDescription = null
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = coloresCampo,
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Next
+                    )
+                )
+
+                Spacer(Modifier.height(10.dp))
+
+                OutlinedTextField(
+                    value = correo,
+                    onValueChange = {
+                        correo = it.take(254)
+                        error = ""
+                    },
+                    label = { Text("Correo electrónico") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Filled.Email,
+                            contentDescription = null
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = coloresCampo,
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Next
+                    )
+                )
+
+                Spacer(Modifier.height(10.dp))
+
+                OutlinedTextField(
+                    value = clave,
+                    onValueChange = {
+                        clave = it.take(64)
+                        error = ""
+                    },
+                    label = { Text("Contraseña") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Filled.Lock,
+                            contentDescription = null
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = coloresCampo,
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Next
+                    )
+                )
+
+                Spacer(Modifier.height(10.dp))
+
+                OutlinedTextField(
+                    value = confirmarClave,
+                    onValueChange = {
+                        confirmarClave = it.take(64)
+                        error = ""
+                    },
+                    label = { Text("Confirmar contraseña") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Filled.Lock,
+                            contentDescription = null
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = coloresCampo,
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done
+                    )
+                )
+
+                if (error.isNotEmpty()) {
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = error,
+                        color = ErrorRed,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                Spacer(Modifier.height(20.dp))
+
+                BotonPrincipal(
+                    texto = "Registrarme",
+                    containerColor = PetroleumPrimary,
+                    onClick = {
+                        val errorValidacion = Repositorio.errorRegistro(
+                            nombre,
+                            correo,
+                            telefono,
+                            clave
+                        ) ?: if (clave != confirmarClave) {
+                            "Las contraseñas no coinciden."
+                        } else {
+                            null
+                        }
+
+                        if (errorValidacion != null) {
+                            error = errorValidacion
+                        } else {
+                            val usuario = Repositorio.registrarUsuario(
+                                nombre = nombre,
+                                correo = correo,
+                                clave = clave,
+                                telefono = telefono
+                            )
+
+                            if (usuario != null) {
+                                onRegistroExitoso()
+                            } else {
+                                error = "El correo o celular ya está registrado."
+                            }
+                        }
                     }
+                )
+
+                Spacer(Modifier.height(10.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    nombre = nuevo
-                    error = ""
-                } else {
-                    error = "En el nombre usa solo letras y un máximo de 60 caracteres."
-                }
-            },
-            label = {
-                Text("Nombre completo")
-            },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Filled.Person,
-                    contentDescription = null
-                )
-            },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(10.dp),
-            colors = coloresCampo,
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Next
-            )
-        )
-
-        Spacer(Modifier.height(10.dp))
-
-        OutlinedTextField(
-            value = telefono,
-            onValueChange = { nuevo ->
-                telefono = nuevo
-                    .filter { it in '0'..'9' }
-                    .take(9)
-                error = ""
-            },
-            label = {
-                Text("Teléfono")
-            },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Filled.Phone,
-                    contentDescription = null
-                )
-            },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(10.dp),
-            colors = coloresCampo,
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number,
-                imeAction = ImeAction.Next
-            )
-        )
-
-        Spacer(Modifier.height(10.dp))
-
-        OutlinedTextField(
-            value = correo,
-            onValueChange = {
-                correo = it.take(254)
-                error = ""
-            },
-            label = {
-                Text("Correo electrónico")
-            },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Filled.Email,
-                    contentDescription = null
-                )
-            },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(10.dp),
-            colors = coloresCampo,
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Email,
-                imeAction = ImeAction.Next
-            )
-        )
-
-        Spacer(Modifier.height(10.dp))
-
-        OutlinedTextField(
-            value = clave,
-            onValueChange = {
-                clave = it.take(64)
-                error = ""
-            },
-            label = {
-                Text("Contraseña")
-            },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Filled.Lock,
-                    contentDescription = null
-                )
-            },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(10.dp),
-            colors = coloresCampo,
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Next
-            )
-        )
-
-        Spacer(Modifier.height(10.dp))
-
-        OutlinedTextField(
-            value = confirmarClave,
-            onValueChange = {
-                confirmarClave = it.take(64)
-                error = ""
-            },
-            label = {
-                Text("Confirmar contraseña")
-            },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Filled.Lock,
-                    contentDescription = null
-                )
-            },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(10.dp),
-            colors = coloresCampo,
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Done
-            )
-        )
-
-        if (error.isNotEmpty()) {
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = error,
-                color = Color(0xFFB00020)
-            )
-        }
-
-        Spacer(Modifier.height(22.dp))
-
-        BotonPrincipal(
-            texto = "Registrarme",
-            onClick = {
-                error = Repositorio.errorRegistro(
-                    nombre,
-                    correo,
-                    telefono,
-                    clave
-                ) ?: if (clave != confirmarClave) {
-                    "Las contraseñas no coinciden."
-                } else {
-                    ""
-                }
-
-                if (error.isEmpty()) {
-                    val usuario = Repositorio.registrarUsuario(
-                        nombre = nombre,
-                        correo = correo,
-                        clave = clave,
-                        telefono = telefono
+                    Text(
+                        text = "Al registrarte aceptas nuestros ",
+                        fontSize = 13.sp,
+                        color = TextSecondary
                     )
 
-                    if (usuario != null) {
-                        Toast.makeText(
-                            context,
-                            "Cuenta creada exitosamente. Inicia sesión",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        onRegistroExitoso()
-                    } else {
-                        error = "El correo o celular ya está registrado."
+                    TextButton(
+                        onClick = onVerTerminos,
+                        modifier = Modifier.padding(start = 0.dp)
+                    ) {
+                        Text(
+                            text = "Términos",
+                            color = PetroleumVariant,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(2.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "¿Ya tienes una cuenta?",
+                        fontSize = 14.sp,
+                        color = TextSecondary
+                    )
+
+                    TextButton(onClick = onIniciarSesion) {
+                        Text(
+                            text = "Iniciar sesión",
+                            color = PetroleumVariant,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
-        )
-
-        Spacer(Modifier.height(4.dp))
-
-        Text(
-            text = "Al registrarte aceptas nuestros",
-            fontSize = 12.sp,
-            color = Color(0xFF65728A)
-        )
-
-        TextButton(onClick = onVerTerminos) {
-            Text(
-                text = "Términos y Condiciones",
-                color = azulRegistro
-            )
         }
 
-        Spacer(Modifier.height(14.dp))
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "¿Ya tienes cuenta?",
-                fontSize = 13.sp
-            )
-
-            TextButton(onClick = onIniciarSesion) {
-                Text(
-                    text = "Iniciar sesión",
-                    color = azulRegistro
-                )
-            }
-        }
+        Spacer(Modifier.height(16.dp))
     }
 }

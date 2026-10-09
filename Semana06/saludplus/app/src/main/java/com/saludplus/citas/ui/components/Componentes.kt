@@ -4,9 +4,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ChildCare
@@ -29,9 +30,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.saludplus.citas.R
+import com.saludplus.citas.ui.theme.OnPrimary
+import com.saludplus.citas.ui.theme.PetroleumPrimary
+import com.saludplus.citas.ui.theme.PetroleumVariant
+import com.saludplus.citas.ui.theme.SurfaceSecondary
 import java.util.Locale
 
 @Composable
@@ -39,19 +46,29 @@ fun BotonPrincipal(
     texto: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    containerColor: Color = PetroleumPrimary,
+    contentColor: Color = OnPrimary
 ) {
     Button(
         onClick = onClick,
         enabled = enabled,
         modifier = modifier
             .fillMaxWidth()
-            .height(52.dp),
+            .heightIn(min = 52.dp),
+        shape = RoundedCornerShape(14.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF1565C0)
+            containerColor = containerColor,
+            contentColor = contentColor,
+            disabledContainerColor = containerColor.copy(alpha = 0.4f),
+            disabledContentColor = contentColor.copy(alpha = 0.6f)
         )
     ) {
-        Text(texto)
+        Text(
+            text = texto,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.SemiBold
+        )
     }
 }
 
@@ -60,7 +77,7 @@ fun FotoMedico(
     medicoId: Int,
     nombre: String,
     modifier: Modifier = Modifier,
-    tamaño: Dp = 56.dp
+    tamaño: Dp = 72.dp
 ) {
     val foto = when (medicoId) {
         1 -> R.drawable.medico_1
@@ -68,7 +85,7 @@ fun FotoMedico(
         3 -> R.drawable.medico_2
         4 -> R.drawable.medico_5
         5 -> R.drawable.medico_4
-        6 -> R.drawable.medico_3
+        6 -> R.drawable.medico_6
         else -> R.drawable.medico_1
     }
 
@@ -86,38 +103,38 @@ fun FotoMedico(
 fun IconoEspecialidad(
     nombre: String,
     modifier: Modifier = Modifier,
-    tamaño: Dp = 42.dp
+    tamaño: Dp = 48.dp
 ) {
     val nombreNormalizado = nombre.lowercase(Locale.ROOT)
 
     val (icono, color) = when {
         "pediatr" in nombreNormalizado ->
-            Icons.Filled.ChildCare to Color(0xFFF5A33A)
+            Icons.Filled.ChildCare to PetroleumPrimary
 
         "gineco" in nombreNormalizado ->
-            Icons.Filled.Female to Color(0xFFE85093)
+            Icons.Filled.Female to PetroleumVariant
 
         "cardio" in nombreNormalizado ->
-            Icons.Filled.Favorite to Color(0xFFEB4C59)
+            Icons.Filled.Favorite to PetroleumPrimary
 
         "dermato" in nombreNormalizado ->
-            Icons.Filled.Spa to Color(0xFFE69A3A)
+            Icons.Filled.Spa to PetroleumVariant
 
         "traumato" in nombreNormalizado ->
-            Icons.Filled.Healing to Color(0xFF318BD2)
+            Icons.Filled.Healing to PetroleumPrimary
 
         "oftalmo" in nombreNormalizado ->
-            Icons.Filled.Visibility to Color(0xFF316BDF)
+            Icons.Filled.Visibility to PetroleumVariant
 
         else ->
-            Icons.Filled.MedicalServices to Color(0xFF3D7BDD)
+            Icons.Filled.MedicalServices to PetroleumPrimary
     }
 
     Box(
         modifier = modifier
             .size(tamaño)
             .background(
-                color = color.copy(alpha = 0.13f),
+                color = SurfaceSecondary,
                 shape = CircleShape
             ),
         contentAlignment = Alignment.Center
@@ -126,7 +143,7 @@ fun IconoEspecialidad(
             imageVector = icono,
             contentDescription = nombre,
             tint = color,
-            modifier = Modifier.size(tamaño * 0.58f)
+            modifier = Modifier.size(tamaño * 0.55f)
         )
     }
 }
@@ -135,26 +152,36 @@ fun IconoEspecialidad(
 fun IconoInicio(
     destino: String,
     modifier: Modifier = Modifier,
-    tamaño: Dp = 38.dp
+    tamaño: Dp = 48.dp
 ) {
     val (icono, color) = when (destino.lowercase(Locale.ROOT)) {
-        "agendar" ->
-            Icons.Filled.CalendarMonth to Color(0xFF2864E8)
+        "agendar", "sedes" ->
+            Icons.Filled.CalendarMonth to PetroleumPrimary
 
-        "citas" ->
-            Icons.Filled.CalendarMonth to Color(0xFF2BA777)
+        "citas", "doctores" ->
+            Icons.Filled.MedicalServices to PetroleumVariant
 
         "resultados" ->
-            Icons.Filled.Description to Color(0xFFE89932)
+            Icons.Filled.Description to PetroleumPrimary
 
         else ->
-            Icons.Filled.Person to Color(0xFF8A5BE2)
+            Icons.Filled.Person to PetroleumVariant
     }
 
-    Icon(
-        imageVector = icono,
-        contentDescription = destino,
-        tint = color,
-        modifier = modifier.size(tamaño)
-    )
+    Box(
+        modifier = modifier
+            .size(tamaño)
+            .background(
+                color = SurfaceSecondary,
+                shape = CircleShape
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = icono,
+            contentDescription = destino,
+            tint = color,
+            modifier = Modifier.size(tamaño * 0.55f)
+        )
+    }
 }

@@ -1,5 +1,6 @@
 package com.saludplus.citas.ui.screens.agendamiento
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,11 +12,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items as gridItems
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -25,7 +27,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,24 +37,31 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.saludplus.citas.data.repository.Repositorio
 import com.saludplus.citas.ui.components.BotonPrincipal
 import com.saludplus.citas.ui.components.FotoMedico
-import java.time.DayOfWeek
+import com.saludplus.citas.ui.theme.BackgroundMain
+import com.saludplus.citas.ui.theme.BluePrimary
+import com.saludplus.citas.ui.theme.CoralLight
+import com.saludplus.citas.ui.theme.ErrorRed
+import com.saludplus.citas.ui.theme.NavyBlue
+import com.saludplus.citas.ui.theme.PastelBlue
+import com.saludplus.citas.ui.theme.SurfaceWhite
+import com.saludplus.citas.ui.theme.TextPrimary
+import com.saludplus.citas.ui.theme.TextSecondary
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 private data class DiaCalendario(
     val fecha: LocalDate,
-    val nombre: String
+    val nombre: String,
+    val esLaborable: Boolean,
+    val esEmergencia: Boolean
 )
-
-private val azulFecha = Color(0xFF2864E8)
-private val fondoFecha = Color(0xFFF3F6FB)
 
 @Composable
 fun FechaHoraScreen(
@@ -83,109 +91,127 @@ fun FechaHoraScreen(
 
     val semanaMostrada = semanasAdelante.coerceIn(0, 12)
 
-    val dias = remember(hoy, semanaMostrada) {
-        val inicio = hoy.plusWeeks(semanaMostrada.toLong())
-        val formatoDia = DateTimeFormatter.ofPattern("EEE", idioma)
+    val dias = remember(hoy, semanaMostrada, medico) {
+        if (medico == null) emptyList()
+        else {
+            val inicio = hoy.plusWeeks(semanaMostrada.toLong())
+            val formatoDia = DateTimeFormatter.ofPattern("EEE", idioma)
 
-        // Siete días consecutivos contienen cinco días de lunes a viernes.
-        (0L..6L)
-            .map { desplazamiento ->
-                inicio.plusDays(desplazamiento)
-            }
-            .filter { fecha ->
-                fecha.dayOfWeek != DayOfWeek.SATURDAY &&
-                        fecha.dayOfWeek != DayOfWeek.SUNDAY
-            }
-            .map { fecha ->
+            (0L..6L).map { desplazamiento ->
+                val fechaCalculada = inicio.plusDays(desplazamiento)
+                val horarioMed = medico.horarios.find { it.dia == fechaCalculada.dayOfWeek }
+                val esLaborable = horarioMed != null
+                val esEmergencia = horarioMed?.emergencia == true
+
                 DiaCalendario(
-                    fecha = fecha,
-                    nombre = fecha
+                    fecha = fechaCalculada,
+                    nombre = fechaCalculada
                         .format(formatoDia)
                         .replace(".", "")
-                        .replaceFirstChar { it.titlecase(idioma) }
+                        .replaceFirstChar { it.titlecase(idioma) },
+                    esLaborable = esLaborable,
+                    esEmergencia = esEmergencia
                 )
             }
+        }
     }
 
-    val tituloMes = dias.first().fecha
-        .format(DateTimeFormatter.ofPattern("MMMM yyyy", idioma))
-        .replaceFirstChar { it.titlecase(idioma) }
+    val tituloMes = if (dias.isNotEmpty()) {
+        dias.first().fecha
+            .format(DateTimeFormatter.ofPattern("MMMM yyyy", idioma))
+            .replaceFirstChar { it.titlecase(idioma) }
+    } else ""
 
-    val fechaVisible = dias.any {
-        it.fecha.toString() == fechaSeleccionada
-    }
+    val fechaValida = dias.any { it.fecha.toString() == fechaSeleccionada && it.esLaborable }
 
     val horarios = fechaSeleccionada?.let { fecha ->
-        if (fechaVisible) {
+        if (fechaValida) {
             Repositorio.horariosDisponibles(medicoId, fecha)
         } else {
             emptyList()
         }
     } ?: emptyList()
 
+    val diaSeleccionadoObj = dias.find { it.fecha.toString() == fechaSeleccionada }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(BackgroundMain)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp)
     ) {
+        Spacer(Modifier.height(12.dp))
+
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onVolver) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Volver"
+                    contentDescription = "Volver",
+                    tint = NavyBlue
                 )
             }
 
             Text(
                 text = "Seleccionar fecha y hora",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = NavyBlue
             )
         }
 
         Spacer(Modifier.height(16.dp))
 
         if (medico == null) {
-            Text("No se encontró el médico seleccionado.")
+            Text("No se encontró el médico seleccionado.", color = ErrorRed)
             return@Column
         }
 
+        // Card médico
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = fondoFecha
-            )
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Row(
                 modifier = Modifier.padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 FotoMedico(
                     medicoId = medico.id,
                     nombre = medico.nombre,
-                    tamaño = 56.dp
+                    tamaño = 60.dp
                 )
 
                 Column {
                     Text(
                         text = medico.nombre,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = TextPrimary
                     )
 
                     Text(
-                        text = Repositorio
-                            .obtenerEspecialidad(medico.especialidadId)
-                            ?.nombre
-                            .orEmpty()
+                        text = Repositorio.obtenerEspecialidad(medico.especialidadId)?.nombre.orEmpty(),
+                        fontSize = 13.sp,
+                        color = BluePrimary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+
+                    Text(
+                        text = "CMP: ${medico.codigoProfesional} · S/ ${medico.precioConsulta.toInt()}",
+                        fontSize = 12.sp,
+                        color = TextSecondary
                     )
                 }
             }
         }
 
-        Spacer(Modifier.height(19.dp))
+        Spacer(Modifier.height(20.dp))
 
+        // Selector semana
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -202,14 +228,16 @@ fun FechaHoraScreen(
             ) {
                 Icon(
                     imageVector = Icons.Filled.ChevronLeft,
-                    contentDescription = "Semana anterior"
+                    contentDescription = "Semana anterior",
+                    tint = if (semanaMostrada > 0) NavyBlue else TextSecondary
                 )
             }
 
             Text(
                 text = tituloMes,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = NavyBlue
             )
 
             IconButton(
@@ -223,37 +251,46 @@ fun FechaHoraScreen(
             ) {
                 Icon(
                     imageVector = Icons.Filled.ChevronRight,
-                    contentDescription = "Semana siguiente"
+                    contentDescription = "Semana siguiente",
+                    tint = if (semanaMostrada < 12) NavyBlue else TextSecondary
                 )
             }
         }
 
         Spacer(Modifier.height(8.dp))
 
+        // Días row
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(dias, key = { it.fecha.toString() }) { dia ->
-                val fecha = dia.fecha.toString()
-                val seleccionado = fechaSeleccionada == fecha
+                val fechaStr = dia.fecha.toString()
+                val seleccionado = fechaSeleccionada == fechaStr
 
                 Card(
                     onClick = {
-                        fechaSeleccionada = fecha
-                        horaSeleccionada = null
-                        error = ""
+                        if (dia.esLaborable) {
+                            fechaSeleccionada = fechaStr
+                            horaSeleccionada = null
+                            error = ""
+                        } else {
+                            error = "El doctor no atiende este día."
+                        }
                     },
                     modifier = Modifier
-                        .width(60.dp)
-                        .height(74.dp),
+                        .width(64.dp)
+                        .height(82.dp),
+                    shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = if (seleccionado) {
-                            azulFecha
-                        } else {
-                            fondoFecha
+                        containerColor = when {
+                            seleccionado -> BluePrimary
+                            dia.esLaborable && dia.esEmergencia -> CoralLight
+                            dia.esLaborable -> PastelBlue
+                            else -> BackgroundMain
                         }
-                    )
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = if (seleccionado) 4.dp else 1.dp)
                 ) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
@@ -262,22 +299,35 @@ fun FechaHoraScreen(
                     ) {
                         Text(
                             text = dia.nombre,
-                            color = if (seleccionado) {
-                                Color.White
-                            } else {
-                                Color.DarkGray
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = when {
+                                seleccionado -> SurfaceWhite
+                                dia.esLaborable && dia.esEmergencia -> ErrorRed
+                                dia.esLaborable -> NavyBlue
+                                else -> TextSecondary
                             }
                         )
 
                         Text(
                             text = dia.fecha.dayOfMonth.toString(),
+                            fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (seleccionado) {
-                                Color.White
-                            } else {
-                                Color.Black
+                            color = when {
+                                seleccionado -> SurfaceWhite
+                                dia.esLaborable -> TextPrimary
+                                else -> TextSecondary
                             }
                         )
+
+                        if (dia.esEmergencia) {
+                            Text(
+                                text = "Emerg.",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (seleccionado) SurfaceWhite else ErrorRed
+                            )
+                        }
                     }
                 }
             }
@@ -285,25 +335,57 @@ fun FechaHoraScreen(
 
         Spacer(Modifier.height(22.dp))
 
-        Text(
-            text = "Horarios disponibles",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Horarios disponibles",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = NavyBlue
+            )
+
+            if (diaSeleccionadoObj?.esEmergencia == true) {
+                Spacer(Modifier.width(10.dp))
+                Box(
+                    modifier = Modifier
+                        .background(CoralLight, RoundedCornerShape(8.dp))
+                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = "Atención de Emergencia",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = ErrorRed
+                    )
+                }
+            }
+        }
 
         Spacer(Modifier.height(12.dp))
 
-        if (!fechaVisible) {
-            Text("Selecciona primero un día.")
+        if (fechaSeleccionada == null) {
+            Text(
+                text = "Selecciona un día disponible para ver sus horarios.",
+                fontSize = 13.sp,
+                color = TextSecondary
+            )
+        } else if (!fechaValida) {
+            Text(
+                text = "El doctor no atiende en el día seleccionado.",
+                fontSize = 13.sp,
+                color = ErrorRed
+            )
         } else if (horarios.isEmpty()) {
-            Text("No quedan horarios disponibles para este día.")
+            Text(
+                text = "No quedan horarios disponibles para este día.",
+                fontSize = 13.sp,
+                color = TextSecondary
+            )
         } else {
             val filas = (horarios.size + 2) / 3
-            val alturaCuadricula = (
-                    filas * 51 + (filas - 1) * 10
-                    ).dp
+            val alturaCuadricula = (filas * 50 + (filas - 1) * 10).dp
 
-            // Altura definida para colocar la cuadrícula dentro del scroll.
             LazyVerticalGrid(
                 columns = GridCells.Fixed(3),
                 modifier = Modifier
@@ -321,14 +403,12 @@ fun FechaHoraScreen(
                             horaSeleccionada = hora
                             error = ""
                         },
-                        modifier = Modifier.height(51.dp),
+                        modifier = Modifier.height(50.dp),
+                        shape = RoundedCornerShape(14.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = if (seleccionado) {
-                                azulFecha
-                            } else {
-                                fondoFecha
-                            }
-                        )
+                            containerColor = if (seleccionado) BluePrimary else SurfaceWhite
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = if (seleccionado) 3.dp else 1.dp)
                     ) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
@@ -336,11 +416,9 @@ fun FechaHoraScreen(
                         ) {
                             Text(
                                 text = hora,
-                                color = if (seleccionado) {
-                                    Color.White
-                                } else {
-                                    Color.Black
-                                }
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (seleccionado) SurfaceWhite else TextPrimary
                             )
                         }
                     }
@@ -352,26 +430,25 @@ fun FechaHoraScreen(
             Spacer(Modifier.height(12.dp))
             Text(
                 text = error,
-                color = Color(0xFFB00020)
+                color = ErrorRed,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium
             )
         }
 
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(24.dp))
 
         val fecha = fechaSeleccionada
         val hora = horaSeleccionada
 
         BotonPrincipal(
             texto = "Continuar",
-            enabled = fechaVisible &&
-                    fecha != null &&
-                    hora != null &&
-                    hora in horarios,
+            containerColor = BluePrimary,
+            enabled = fechaValida && fecha != null && hora != null && hora in horarios,
             onClick = {
                 if (
                     fecha != null &&
                     hora != null &&
-                    dias.any { it.fecha.toString() == fecha } &&
                     hora in Repositorio.horariosDisponibles(medicoId, fecha)
                 ) {
                     error = ""
@@ -383,6 +460,6 @@ fun FechaHoraScreen(
             }
         )
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(24.dp))
     }
 }

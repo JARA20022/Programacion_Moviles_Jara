@@ -5,12 +5,14 @@ import android.net.Uri
 object Rutas {
     const val SPLASH = "splash"
     const val REGISTRO = "registro"
+    const val REGISTRO_EXITOSO = "registro_exitoso"
     const val LOGIN = "login"
+    const val LOGIN_EXITOSO = "login_exitoso"
     const val TERMINOS = "terminos"
     const val HOME = "home"
 
-    const val ESPECIALIDADES = "especialidades"
     const val SEDES = "sedes"
+    const val ESPECIALIDADES = "especialidades"
     const val MIS_DOCTORES = "mis_doctores"
     const val MEDICOS = "medicos/{especialidadId}"
     const val FECHA_HORA = "fecha_hora/{medicoId}"

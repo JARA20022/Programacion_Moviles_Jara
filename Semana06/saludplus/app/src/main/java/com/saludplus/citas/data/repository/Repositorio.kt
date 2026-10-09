@@ -6,32 +6,28 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.saludplus.citas.data.model.Cita
 import com.saludplus.citas.data.model.Especialidad
+import com.saludplus.citas.data.model.HorarioMedico
 import com.saludplus.citas.data.model.Medico
+import com.saludplus.citas.data.model.ResultadoLaboratorio
 import com.saludplus.citas.data.model.Sede
 import com.saludplus.citas.data.model.Usuario
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 object Repositorio {
 
     val especialidades = listOf(
-        Especialidad(1, "Medicina general", "Atención y evaluación de salud"),
-        Especialidad(2, "Pediatría", "Atención médica para niños"),
-        Especialidad(3, "Cardiología", "Cuidado del corazón"),
-        Especialidad(4, "Dermatología", "Cuidado de la piel"),
-        Especialidad(5, "Traumatología", "Atención de huesos y articulaciones")
-    )
-
-    val medicos = listOf(
-        Medico(1, "Dra. Ana Torres", 1, 8, 4.9, 80.0),
-        Medico(2, "Dr. Luis Ramírez", 1, 6, 4.7, 75.0),
-        Medico(3, "Dra. María Flores", 2, 10, 4.9, 90.0),
-        Medico(4, "Dr. Carlos Mendoza", 3, 12, 4.8, 120.0),
-        Medico(5, "Dra. Patricia Rojas", 4, 7, 4.8, 95.0),
-        Medico(6, "Dr. Jorge Castillo", 5, 9, 4.7, 100.0)
+        Especialidad(1, "Medicina general", "Atención y evaluación médica integral"),
+        Especialidad(2, "Pediatría", "Atención médica especializada para niños y adolescentes"),
+        Especialidad(3, "Ginecología", "Cuidado integral de la salud de la mujer"),
+        Especialidad(4, "Cardiología", "Prevención, diagnóstico y tratamiento del corazón"),
+        Especialidad(5, "Dermatología", "Cuidado integral de la piel, cabello y uñas"),
+        Especialidad(6, "Traumatología", "Atención de lesiones en huesos y articulaciones"),
+        Especialidad(7, "Odontología", "Salud bucal, prevención y tratamiento dental")
     )
 
     val sedes = listOf(
@@ -41,7 +37,7 @@ object Repositorio {
             "Av. Próceres de la Independencia 1500",
             "San Juan de Lurigancho",
             "(01) 555-1001",
-            "Lun-Sáb 8:00 a.m. - 8:00 p.m."
+            "Lun-Dom 8:00 a.m. - 8:00 p.m."
         ),
         Sede(
             2,
@@ -49,7 +45,7 @@ object Repositorio {
             "Av. Túpac Amaru 2200",
             "Independencia",
             "(01) 555-1002",
-            "Lun-Sáb 8:00 a.m. - 8:00 p.m."
+            "Lun-Dom 8:00 a.m. - 8:00 p.m."
         ),
         Sede(
             3,
@@ -57,7 +53,7 @@ object Repositorio {
             "Av. Arequipa 4500",
             "Miraflores",
             "(01) 555-1003",
-            "Lun-Sáb 8:00 a.m. - 8:00 p.m."
+            "Lun-Dom 8:00 a.m. - 8:00 p.m."
         ),
         Sede(
             4,
@@ -71,6 +67,235 @@ object Repositorio {
 
     var sedeSeleccionada by mutableStateOf<Sede?>(null)
 
+    val medicos = listOf(
+        Medico(
+            id = 1,
+            nombre = "Dra. Ana Torres",
+            especialidadId = 1,
+            experiencia = 8,
+            calificacion = 4.9,
+            precioConsulta = 80.0,
+            codigoProfesional = "CMP-1001",
+            sedeId = 1,
+            telefono = "987654321",
+            horarios = listOf(
+                HorarioMedico(DayOfWeek.MONDAY, LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                HorarioMedico(DayOfWeek.TUESDAY, LocalTime.of(8, 0), LocalTime.of(12, 0))
+            )
+        ),
+        Medico(
+            id = 2,
+            nombre = "Dr. Luis Ramírez",
+            especialidadId = 1,
+            experiencia = 6,
+            calificacion = 4.7,
+            precioConsulta = 75.0,
+            codigoProfesional = "CMP-1002",
+            sedeId = 1,
+            telefono = "987654322",
+            horarios = listOf(
+                HorarioMedico(DayOfWeek.WEDNESDAY, LocalTime.of(14, 0), LocalTime.of(18, 0)),
+                HorarioMedico(DayOfWeek.THURSDAY, LocalTime.of(14, 0), LocalTime.of(18, 0))
+            )
+        ),
+        Medico(
+            id = 3,
+            nombre = "Dra. María Flores",
+            especialidadId = 2,
+            experiencia = 10,
+            calificacion = 4.9,
+            precioConsulta = 90.0,
+            codigoProfesional = "CMP-2001",
+            sedeId = 1,
+            telefono = "987654323",
+            horarios = listOf(
+                HorarioMedico(DayOfWeek.MONDAY, LocalTime.of(9, 0), LocalTime.of(13, 0)),
+                HorarioMedico(DayOfWeek.FRIDAY, LocalTime.of(9, 0), LocalTime.of(13, 0)),
+                HorarioMedico(DayOfWeek.SUNDAY, LocalTime.of(9, 0), LocalTime.of(13, 0), emergencia = true)
+            )
+        ),
+        Medico(
+            id = 4,
+            nombre = "Dra. Carmen Ugarte",
+            especialidadId = 3,
+            experiencia = 11,
+            calificacion = 4.8,
+            precioConsulta = 110.0,
+            codigoProfesional = "CMP-3005",
+            sedeId = 1,
+            telefono = "987654331",
+            horarios = listOf(
+                HorarioMedico(DayOfWeek.TUESDAY, LocalTime.of(14, 0), LocalTime.of(18, 0)),
+                HorarioMedico(DayOfWeek.THURSDAY, LocalTime.of(14, 0), LocalTime.of(18, 0))
+            )
+        ),
+        Medico(
+            id = 5,
+            nombre = "Dr. Carlos Mendoza",
+            especialidadId = 4,
+            experiencia = 12,
+            calificacion = 4.8,
+            precioConsulta = 120.0,
+            codigoProfesional = "CMP-4001",
+            sedeId = 2,
+            telefono = "987654324",
+            horarios = listOf(
+                HorarioMedico(DayOfWeek.TUESDAY, LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                HorarioMedico(DayOfWeek.THURSDAY, LocalTime.of(8, 0), LocalTime.of(12, 0))
+            )
+        ),
+        Medico(
+            id = 6,
+            nombre = "Dra. Patricia Rojas",
+            especialidadId = 5,
+            experiencia = 7,
+            calificacion = 4.8,
+            precioConsulta = 95.0,
+            codigoProfesional = "CMP-5001",
+            sedeId = 2,
+            telefono = "987654325",
+            horarios = listOf(
+                HorarioMedico(DayOfWeek.WEDNESDAY, LocalTime.of(14, 0), LocalTime.of(18, 0)),
+                HorarioMedico(DayOfWeek.FRIDAY, LocalTime.of(14, 0), LocalTime.of(18, 0)),
+                HorarioMedico(DayOfWeek.SUNDAY, LocalTime.of(10, 0), LocalTime.of(14, 0), emergencia = true)
+            )
+        ),
+        Medico(
+            id = 7,
+            nombre = "Dr. Jorge Castillo",
+            especialidadId = 6,
+            experiencia = 9,
+            calificacion = 4.7,
+            precioConsulta = 100.0,
+            codigoProfesional = "CMP-6001",
+            sedeId = 3,
+            telefono = "987654326",
+            horarios = listOf(
+                HorarioMedico(DayOfWeek.MONDAY, LocalTime.of(9, 0), LocalTime.of(13, 0)),
+                HorarioMedico(DayOfWeek.WEDNESDAY, LocalTime.of(9, 0), LocalTime.of(13, 0))
+            )
+        ),
+        Medico(
+            id = 8,
+            nombre = "Dra. Elena Morales",
+            especialidadId = 1,
+            experiencia = 11,
+            calificacion = 4.9,
+            precioConsulta = 85.0,
+            codigoProfesional = "CMP-1003",
+            sedeId = 3,
+            telefono = "987654327",
+            horarios = listOf(
+                HorarioMedico(DayOfWeek.THURSDAY, LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                HorarioMedico(DayOfWeek.FRIDAY, LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                HorarioMedico(DayOfWeek.SUNDAY, LocalTime.of(8, 0), LocalTime.of(12, 0), emergencia = true)
+            )
+        ),
+        Medico(
+            id = 9,
+            nombre = "Dr. Roberto Gómez",
+            especialidadId = 2,
+            experiencia = 8,
+            calificacion = 4.6,
+            precioConsulta = 85.0,
+            codigoProfesional = "CMP-2002",
+            sedeId = 2,
+            telefono = "987654328",
+            horarios = listOf(
+                HorarioMedico(DayOfWeek.MONDAY, LocalTime.of(10, 0), LocalTime.of(14, 0)),
+                HorarioMedico(DayOfWeek.WEDNESDAY, LocalTime.of(10, 0), LocalTime.of(14, 0))
+            )
+        ),
+        Medico(
+            id = 10,
+            nombre = "Dra. Sofía Vargas",
+            especialidadId = 4,
+            experiencia = 14,
+            calificacion = 5.0,
+            precioConsulta = 130.0,
+            codigoProfesional = "CMP-4002",
+            sedeId = 4,
+            telefono = "987654329",
+            horarios = listOf(
+                HorarioMedico(DayOfWeek.MONDAY, LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                HorarioMedico(DayOfWeek.FRIDAY, LocalTime.of(8, 0), LocalTime.of(12, 0))
+            )
+        ),
+        Medico(
+            id = 11,
+            nombre = "Dr. Miguel Ángel",
+            especialidadId = 5,
+            experiencia = 9,
+            calificacion = 4.8,
+            precioConsulta = 100.0,
+            codigoProfesional = "CMP-5002",
+            sedeId = 4,
+            telefono = "987654330",
+            horarios = listOf(
+                HorarioMedico(DayOfWeek.TUESDAY, LocalTime.of(9, 0), LocalTime.of(13, 0)),
+                HorarioMedico(DayOfWeek.SATURDAY, LocalTime.of(8, 0), LocalTime.of(14, 0))
+            )
+        ),
+        Medico(
+            id = 12,
+            nombre = "Dra. Lucía Paredes",
+            especialidadId = 7,
+            experiencia = 10,
+            calificacion = 4.9,
+            precioConsulta = 95.0,
+            codigoProfesional = "COP-7001",
+            sedeId = 3,
+            telefono = "987654332",
+            horarios = listOf(
+                HorarioMedico(DayOfWeek.MONDAY, LocalTime.of(14, 0), LocalTime.of(18, 0)),
+                HorarioMedico(DayOfWeek.THURSDAY, LocalTime.of(9, 0), LocalTime.of(13, 0))
+            )
+        )
+    )
+
+    private val resultadosLaboratorio = listOf(
+        ResultadoLaboratorio(
+            id = 1,
+            usuarioId = 0,
+            examen = "Hemograma completo",
+            fecha = "10/05/2025",
+            estado = "Disponible",
+            resultado = "14.2",
+            unidad = "g/dL",
+            referencia = "12.0 - 16.0"
+        ),
+        ResultadoLaboratorio(
+            id = 2,
+            usuarioId = 0,
+            examen = "Glucosa en sangre",
+            fecha = "10/05/2025",
+            estado = "Disponible",
+            resultado = "92",
+            unidad = "mg/dL",
+            referencia = "70 - 100"
+        ),
+        ResultadoLaboratorio(
+            id = 3,
+            usuarioId = 0,
+            examen = "Perfil lipídico (Colesterol total)",
+            fecha = "12/05/2025",
+            estado = "Disponible",
+            resultado = "185",
+            unidad = "mg/dL",
+            referencia = "< 200"
+        ),
+        ResultadoLaboratorio(
+            id = 4,
+            usuarioId = 0,
+            examen = "Examen completo de orina",
+            fecha = "18/05/2025",
+            estado = "Pendiente",
+            resultado = "-",
+            unidad = "-",
+            referencia = "Normal"
+        )
+    )
+
     private val usuarios = mutableStateListOf<Usuario>()
     private val citas = mutableStateListOf<Cita>()
 
@@ -80,12 +305,7 @@ object Repositorio {
     var usuarioActual by mutableStateOf<Usuario?>(null)
         private set
 
-    val horariosBase = listOf(
-        "08:00", "09:00", "10:00", "11:00",
-        "14:00", "15:00", "16:00", "17:00"
-    )
-
-    // Validaciones que antes estaban en ValidacionDatos.kt.
+    // Validaciones
 
     private val nombrePermitido =
         Regex("^[\\p{L}]+(?:[ '\u2019-][\\p{L}]+)*$")
@@ -240,7 +460,7 @@ object Repositorio {
         }
 
     fun especialidadesDestacadas(): List<Especialidad> =
-        especialidades.take(4)
+        especialidades
 
     fun obtenerEspecialidad(id: Int): Especialidad? =
         especialidades.find { it.id == id }
@@ -255,23 +475,39 @@ object Repositorio {
 
     fun medicosPorEspecialidad(especialidadId: Int): List<Medico> =
         medicos.filter {
-            it.especialidadId == especialidadId
+            it.especialidadId == especialidadId &&
+                    (sedeSeleccionada == null || it.sedeId == sedeSeleccionada?.id)
         }.sortedByDescending {
             it.calificacion
         }
 
     fun buscarMedicos(texto: String): List<Medico> =
         medicos.filter {
-            it.nombre.contains(texto.trim(), ignoreCase = true)
+            it.nombre.contains(texto.trim(), ignoreCase = true) &&
+                    (sedeSeleccionada == null || it.sedeId == sedeSeleccionada?.id)
         }.sortedByDescending {
             it.calificacion
         }
 
+    fun medicosPorSede(sedeId: Int): List<Medico> =
+        medicos.filter { it.sedeId == sedeId }
+
+    fun resultadosDelUsuario(usuarioId: Int): List<ResultadoLaboratorio> =
+        resultadosLaboratorio.filter {
+            it.usuarioId == usuarioId || it.usuarioId == 0
+        }
+
     fun horariosDisponibles(
         medicoId: Int,
-        fecha: String
+        fecha: String,
+        ahoraOpcional: LocalDateTime? = null
     ): List<String> {
-        if (obtenerMedico(medicoId) == null || fecha.length != 10) {
+        val medico = obtenerMedico(medicoId) ?: return emptyList()
+
+        if (fecha.length != 10) return emptyList()
+
+        // Si hay sede seleccionada, verificar pertenencia del médico a la sede
+        if (sedeSeleccionada != null && medico.sedeId != sedeSeleccionada?.id) {
             return emptyList()
         }
 
@@ -279,32 +515,38 @@ object Repositorio {
             LocalDate.parse(fecha)
         }.getOrNull() ?: return emptyList()
 
-        val ahora = LocalDateTime.now()
+        val ahora = ahoraOpcional ?: LocalDateTime.now()
         val hoy = ahora.toLocalDate()
 
-        if (
-            dia.isBefore(hoy) ||
-            dia.isAfter(hoy.plusDays(90)) ||
-            dia.dayOfWeek == DayOfWeek.SATURDAY ||
-            dia.dayOfWeek == DayOfWeek.SUNDAY
-        ) {
+        if (dia.isBefore(hoy) || dia.isAfter(hoy.plusDays(90))) {
             return emptyList()
         }
 
-        val ocupados = citas.filter {
-            it.medicoId == medicoId &&
-                    it.fecha == fecha &&
-                    it.estado == "Confirmada"
-        }.map {
-            it.hora
+        val horarioMedico = medico.horarios.find { it.dia == dia.dayOfWeek }
+            ?: return emptyList()
+
+        val franjas = mutableListOf<String>()
+        var actual = horarioMedico.horaInicio
+        val formatoHora = DateTimeFormatter.ofPattern("HH:mm")
+
+        while (actual.isBefore(horarioMedico.horaFin)) {
+            val horaTexto = actual.format(formatoHora)
+            val horarioFuturo = dia != hoy || actual.isAfter(ahora.toLocalTime())
+
+            val ocupado = citas.any {
+                it.medicoId == medicoId &&
+                        it.fecha == fecha &&
+                        it.hora == horaTexto &&
+                        it.estado == "Confirmada"
+            }
+
+            if (horarioFuturo && !ocupado) {
+                franjas.add(horaTexto)
+            }
+            actual = actual.plusHours(1)
         }
 
-        return horariosBase.filter { hora ->
-            val horarioFuturo =
-                dia != hoy || LocalTime.parse(hora).isAfter(ahora.toLocalTime())
-
-            hora !in ocupados && horarioFuturo
-        }
+        return franjas
     }
 
     @Synchronized
@@ -314,15 +556,23 @@ object Repositorio {
         fecha: String,
         hora: String
     ): Cita? {
+        val usuarioSesion = usuarioActual
         if (
-            usuarioActual?.id != usuarioId ||
-            usuarios.none { it.id == usuarioId } ||
-            obtenerMedico(medicoId) == null
+            usuarioSesion == null ||
+            usuarioSesion.id != usuarioId ||
+            usuarios.none { it.id == usuarioId }
         ) {
             return null
         }
 
-        if (hora !in horariosDisponibles(medicoId, fecha)) {
+        val medico = obtenerMedico(medicoId) ?: return null
+
+        if (sedeSeleccionada != null && medico.sedeId != sedeSeleccionada?.id) {
+            return null
+        }
+
+        val disponibles = horariosDisponibles(medicoId, fecha)
+        if (hora !in disponibles) {
             return null
         }
 
@@ -342,7 +592,9 @@ object Repositorio {
             usuarioId = usuarioId,
             medicoId = medicoId,
             fecha = fecha,
-            hora = hora
+            hora = hora,
+            estado = "Confirmada",
+            sedeId = sedeSeleccionada?.id ?: medico.sedeId
         )
 
         citas.add(cita)

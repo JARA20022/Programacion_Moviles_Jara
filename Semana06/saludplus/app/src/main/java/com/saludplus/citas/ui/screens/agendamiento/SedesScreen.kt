@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChevronRight
@@ -23,16 +24,21 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.saludplus.citas.data.repository.Repositorio
+import com.saludplus.citas.ui.theme.BackgroundMain
+import com.saludplus.citas.ui.theme.BluePrimary
+import com.saludplus.citas.ui.theme.NavyBlue
+import com.saludplus.citas.ui.theme.PastelBlue
+import com.saludplus.citas.ui.theme.SurfaceWhite
+import com.saludplus.citas.ui.theme.TextPrimary
+import com.saludplus.citas.ui.theme.TextSecondary
 
 @Composable
 fun SedesScreen(
@@ -44,56 +50,73 @@ fun SedesScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(BackgroundMain)
             .padding(horizontal = 20.dp)
     ) {
+        Spacer(Modifier.height(12.dp))
+
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onVolver) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Volver"
+                    contentDescription = "Volver",
+                    tint = NavyBlue
                 )
             }
 
             Text(
-                text = "Nuestras Sedes",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                text = "Seleccionar Sede",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = NavyBlue
             )
         }
+
+        Spacer(Modifier.height(8.dp))
+
+        Text(
+            text = "Elige la sede médica donde deseas recibir atención",
+            fontSize = 14.sp,
+            color = TextSecondary,
+            modifier = Modifier.padding(start = 12.dp)
+        )
 
         Spacer(Modifier.height(16.dp))
 
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             items(
                 items = sedes,
                 key = { it.id }
             ) { sede ->
+                val esSeleccionada = Repositorio.sedeSeleccionada?.id == sede.id
+
                 Card(
                     onClick = {
                         Repositorio.sedeSeleccionada = sede
                         onSeleccionarSede()
                     },
                     modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color.White
+                        containerColor = SurfaceWhite
                     ),
                     elevation = CardDefaults.cardElevation(
-                        defaultElevation = 1.dp
+                        defaultElevation = if (esSeleccionada) 4.dp else 2.dp
                     )
                 ) {
                     Row(
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier.padding(18.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(44.dp)
+                                .size(48.dp)
                                 .background(
-                                    color = Color(0xFFE6F1FF),
+                                    color = PastelBlue,
                                     shape = CircleShape
                                 ),
                             contentAlignment = Alignment.Center
@@ -101,8 +124,8 @@ fun SedesScreen(
                             Icon(
                                 imageVector = Icons.Default.LocationOn,
                                 contentDescription = null,
-                                tint = Color(0xFF2864E8),
-                                modifier = Modifier.size(24.dp)
+                                tint = BluePrimary,
+                                modifier = Modifier.size(26.dp)
                             )
                         }
 
@@ -115,40 +138,35 @@ fun SedesScreen(
                                 text = sede.nombre,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp,
-                                color = Color(0xFF142C68)
+                                color = TextPrimary
                             )
 
                             Spacer(Modifier.height(4.dp))
 
                             Text(
                                 text = sede.direccion,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color(0xFF4B5563)
+                                fontSize = 13.sp,
+                                color = TextSecondary
                             )
 
                             Text(
                                 text = "Distrito: ${sede.distrito}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF6B7280)
+                                fontSize = 12.sp,
+                                color = BluePrimary,
+                                fontWeight = FontWeight.SemiBold
                             )
 
                             Text(
-                                text = "Tel: ${sede.telefono}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF6B7280)
-                            )
-
-                            Text(
-                                text = "Horario: ${sede.horario}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF6B7280)
+                                text = "Tel: ${sede.telefono} · ${sede.horario}",
+                                fontSize = 11.sp,
+                                color = TextSecondary
                             )
                         }
 
                         Icon(
                             imageVector = Icons.Default.ChevronRight,
-                            contentDescription = null,
-                            tint = Color.Gray
+                            contentDescription = "Elegir sede",
+                            tint = BluePrimary
                         )
                     }
                 }

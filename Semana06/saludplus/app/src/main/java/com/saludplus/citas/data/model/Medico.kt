@@ -6,5 +6,9 @@ data class Medico(
     val especialidadId: Int,
     val experiencia: Int,
     val calificacion: Double,
-    val precioConsulta: Double
+    val precioConsulta: Double,
+    val codigoProfesional: String = "CMP-1001",
+    val sedeId: Int = 1,
+    val telefono: String = "999999999",
+    val horarios: List<HorarioMedico> = emptyList()
 )
