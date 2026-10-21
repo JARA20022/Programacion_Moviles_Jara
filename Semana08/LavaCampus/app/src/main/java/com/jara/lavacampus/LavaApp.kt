@@ -4,6 +4,8 @@ import android.app.Application
 import android.util.Log
 import com.jara.lavacampus.data.local.DatosIniciales
 import com.jara.lavacampus.data.local.LavaDatabase
+import com.jara.lavacampus.data.repository.LavaRepository
+import com.jara.lavacampus.data.repository.LavaRepositoryRoom
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -12,6 +14,10 @@ import kotlinx.coroutines.launch
 class LavaApp : Application() {
 
     val db: LavaDatabase by lazy { LavaDatabase.obtener(this) }
+
+    val repository: LavaRepository by lazy {
+        LavaRepositoryRoom(db)
+    }
 
     private val alcance = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
