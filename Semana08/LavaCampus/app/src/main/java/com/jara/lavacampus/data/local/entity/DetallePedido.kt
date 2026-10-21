@@ -17,8 +17,7 @@ import androidx.room.PrimaryKey
         ForeignKey(
             entity = Servicio::class,
             parentColumns = ["id"],
-            childColumns = ["servicioId"],
-            onDelete = ForeignKey.RESTRICT
+            childColumns = ["servicioId"]
         )
     ],
     indices = [
