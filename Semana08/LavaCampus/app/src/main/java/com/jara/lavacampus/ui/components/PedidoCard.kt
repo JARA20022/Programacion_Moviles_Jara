@@ -11,6 +11,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.Surface
+import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -61,7 +63,18 @@ fun PedidoCard(
             )
             EstadoPedidoChip(estado)
             if (estado == EstadoPedido.LISTO && datos.casillero != null) {
-                Text("Recógelo en el casillero ${datos.casillero}", fontWeight = FontWeight.Bold)
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color(0xFFD9F2DF),
+                    contentColor = Color(0xFF164C31),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        "Recógelo en el casillero ${datos.casillero}",
+                        modifier = Modifier.padding(12.dp),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }

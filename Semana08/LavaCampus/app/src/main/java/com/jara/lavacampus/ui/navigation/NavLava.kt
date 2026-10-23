@@ -19,6 +19,9 @@ import com.jara.lavacampus.LavaApp
 import com.jara.lavacampus.ui.estudiante.InicioScreen
 import com.jara.lavacampus.ui.estudiante.NuevoPedidoScreen
 import com.jara.lavacampus.viewmodel.NuevoPedidoViewModel
+import com.jara.lavacampus.viewmodel.MisPedidosViewModel
+import com.jara.lavacampus.ui.estudiante.MisPedidosScreen
+import com.jara.lavacampus.ui.estudiante.TarifasScreen
 import com.jara.lavacampus.viewmodel.DetallePedidoViewModel
 import com.jara.lavacampus.ui.estudiante.DetallePedidoScreen
 import com.jara.lavacampus.viewmodel.InicioViewModel
@@ -70,8 +73,6 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 SplashSesion()
             }
         }
-        // Los destinos se registran ahora; sus pantallas se completan
-        // en los pasos 8, 9 y 10, manteniendo un commit por paso.
         composable(Rutas.NUEVO_PEDIDO) {
             val actual = usuario
             if (actual != null && actual.rol == Rol.CLIENTE.name) {
@@ -90,10 +91,30 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
             }
         }
         composable(Rutas.MIS_PEDIDOS) {
-            DestinoSiguiente("Mis pedidos") { nav.popBackStack() }
+            val actual = usuario
+            if (actual != null && actual.rol == Rol.CLIENTE.name) {
+                val factory = remember(actual.id) { LavaViewModelFactory(app, actual) }
+                val pedidos: MisPedidosViewModel = viewModel(key = "pedidos-${actual.id}", factory = factory)
+                MisPedidosScreen(
+                    vm = pedidos,
+                    onVolver = { nav.popBackStack() },
+                    onNuevoPedido = { nav.navigate(Rutas.NUEVO_PEDIDO) },
+                    onDetalle = { id -> nav.navigate(Rutas.detallePedido(id)) },
+                    onTarifas = { nav.navigate(Rutas.TARIFAS) }
+                )
+            } else {
+                SplashSesion()
+            }
         }
         composable(Rutas.TARIFAS) {
-            DestinoSiguiente("Tarifas") { nav.popBackStack() }
+            val actual = usuario
+            if (actual != null && actual.rol == Rol.CLIENTE.name) {
+                val factory = remember(actual.id) { LavaViewModelFactory(app, actual) }
+                val tarifas: MisPedidosViewModel = viewModel(key = "tarifas-${actual.id}", factory = factory)
+                TarifasScreen(vm = tarifas, onVolver = { nav.popBackStack() })
+            } else {
+                SplashSesion()
+            }
         }
         composable(
             route = Rutas.DETALLE_PEDIDO,
@@ -177,19 +198,5 @@ private fun DestinoSesion(
         if (usuario.codigo.isNotBlank()) Text("Código: ${usuario.codigo}")
         error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         LavaButton("Cerrar sesión", onSalir, colorDelRol(rol), cargando = cargando)
-    }
-}
-
-// Estructura de navegación para las pantallas de los siguientes pasos.
-@Composable
-private fun DestinoSiguiente(titulo: String, onVolver: () -> Unit) {
-    Column(
-        Modifier.fillMaxSize().padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
-    ) {
-        Text(titulo, style = MaterialTheme.typography.headlineMedium)
-        androidx.compose.material3.TextButton(onClick = onVolver) {
-            Text("Volver al inicio")
-        }
     }
 }

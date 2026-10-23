@@ -38,6 +38,12 @@ class LavaViewModelFactory(
                 app.repository
             ) as T
         }
+        if (modelClass.isAssignableFrom(MisPedidosViewModel::class.java)) {
+            return MisPedidosViewModel(
+                requireNotNull(estudiante) { "Mis pedidos requiere un estudiante autenticado." },
+                app.repository
+            ) as T
+        }
         throw IllegalArgumentException("ViewModel no registrado: ${modelClass.name}")
     }
 }
