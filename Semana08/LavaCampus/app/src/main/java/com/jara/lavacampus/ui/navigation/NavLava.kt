@@ -17,6 +17,8 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.jara.lavacampus.LavaApp
 import com.jara.lavacampus.ui.estudiante.InicioScreen
+import com.jara.lavacampus.ui.estudiante.NuevoPedidoScreen
+import com.jara.lavacampus.viewmodel.NuevoPedidoViewModel
 import com.jara.lavacampus.viewmodel.InicioViewModel
 import com.jara.lavacampus.viewmodel.LavaViewModelFactory
 import androidx.compose.ui.Alignment
@@ -69,7 +71,21 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
         // Los destinos se registran ahora; sus pantallas se completan
         // en los pasos 8, 9 y 10, manteniendo un commit por paso.
         composable(Rutas.NUEVO_PEDIDO) {
-            DestinoSiguiente("Nuevo pedido") { nav.popBackStack() }
+            val actual = usuario
+            if (actual != null && actual.rol == Rol.CLIENTE.name) {
+                val factory = remember(actual.id) { LavaViewModelFactory(app, actual) }
+                val nuevo: NuevoPedidoViewModel = viewModel(key = "nuevo-${actual.id}", factory = factory)
+                NuevoPedidoScreen(
+                    vm = nuevo,
+                    onVolver = { nav.popBackStack() },
+                    onCreado = {
+                        nav.navigate(Rutas.MIS_PEDIDOS) {
+                            popUpTo(Rutas.NUEVO_PEDIDO) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
         }
         composable(Rutas.MIS_PEDIDOS) {
             DestinoSiguiente("Mis pedidos") { nav.popBackStack() }
