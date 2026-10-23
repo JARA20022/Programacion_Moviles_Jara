@@ -18,6 +18,8 @@ class LavaRepositoryRoom(
     private val db: LavaDatabase
 ) : LavaRepository {
 
+    override suspend fun obtenerUsuario(id: Int): Usuario? = db.usuarioDao().obtener(id)
+
     private val usuarios = db.usuarioDao()
     private val servicios = db.servicioDao()
     private val pedidos = db.pedidoDao()
