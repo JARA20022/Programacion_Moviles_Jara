@@ -19,6 +19,8 @@ import com.jara.lavacampus.LavaApp
 import com.jara.lavacampus.ui.estudiante.InicioScreen
 import com.jara.lavacampus.ui.estudiante.NuevoPedidoScreen
 import com.jara.lavacampus.viewmodel.NuevoPedidoViewModel
+import com.jara.lavacampus.viewmodel.PanelViewModel
+import com.jara.lavacampus.ui.administrador.PanelScreen
 import com.jara.lavacampus.viewmodel.MisPedidosViewModel
 import com.jara.lavacampus.ui.estudiante.MisPedidosScreen
 import com.jara.lavacampus.ui.estudiante.TarifasScreen
@@ -28,17 +30,13 @@ import com.jara.lavacampus.viewmodel.InicioViewModel
 import com.jara.lavacampus.viewmodel.LavaViewModelFactory
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.jara.lavacampus.data.local.entity.Usuario
 import com.jara.lavacampus.model.Rol
-import com.jara.lavacampus.ui.components.LavaButton
 import com.jara.lavacampus.ui.estudiante.LoginScreen
-import com.jara.lavacampus.ui.theme.colorDelRol
 import com.jara.lavacampus.viewmodel.SesionViewModel
 
 @Composable
@@ -133,7 +131,14 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
         composable(Rutas.PANEL) {
             val actual = usuario
             if (actual != null && actual.rol == Rol.ADMIN.name) {
-                DestinoSesion("Panel", actual, cargando, error, vm::cerrarSesion)
+                val factory = remember(actual.id) { LavaViewModelFactory(app) }
+                val panel: PanelViewModel = viewModel(key = "panel-${actual.id}", factory = factory)
+                PanelScreen(
+                    vm = panel,
+                    onSalir = vm::cerrarSesion,
+                    cerrandoSesion = cargando,
+                    errorSesion = error
+                )
             } else {
                 SplashSesion()
             }
@@ -167,36 +172,5 @@ private fun SplashSesion() {
         Text("LAVACAMPUS", style = MaterialTheme.typography.headlineMedium)
         CircularProgressIndicator()
         Text("Preparando tu espacio")
-    }
-}
-
-@Composable
-private fun DestinoSesion(
-    titulo: String,
-    usuario: Usuario,
-    cargando: Boolean,
-    error: String?,
-    onSalir: () -> Unit
-) {
-    val rol = Rol.valueOf(usuario.rol)
-    Column(
-        Modifier.fillMaxSize().padding(28.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp, Alignment.CenterVertically)
-    ) {
-        Text(
-            titulo.uppercase(),
-            color = MaterialTheme.colorScheme.primary,
-            style = MaterialTheme.typography.labelLarge
-        )
-        Text(
-            "Hola, ${usuario.nombre}",
-            style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.Bold
-        )
-        Text(rol.titulo, style = MaterialTheme.typography.titleMedium)
-        Text(usuario.correo)
-        if (usuario.codigo.isNotBlank()) Text("Código: ${usuario.codigo}")
-        error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-        LavaButton("Cerrar sesión", onSalir, colorDelRol(rol), cargando = cargando)
     }
 }

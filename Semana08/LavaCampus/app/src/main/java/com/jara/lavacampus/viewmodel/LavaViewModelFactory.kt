@@ -44,6 +44,9 @@ class LavaViewModelFactory(
                 app.repository
             ) as T
         }
+        if (modelClass.isAssignableFrom(PanelViewModel::class.java)) {
+            return PanelViewModel(app.repository) as T
+        }
         throw IllegalArgumentException("ViewModel no registrado: ${modelClass.name}")
     }
 }
