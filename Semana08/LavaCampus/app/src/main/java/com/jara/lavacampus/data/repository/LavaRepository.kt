@@ -10,6 +10,11 @@ import com.jara.lavacampus.model.LineaPedido
 import kotlinx.coroutines.flow.Flow
 
 interface LavaRepository {
+    // Permite validar y guardar una operación con una misma lectura consistente.
+    suspend fun <T> enTransaccion(bloque: suspend () -> T): T
+    suspend fun obtenerPedido(id: Int): PedidoConDetalle?
+    suspend fun obtenerCasillerosOcupados(): List<String>
+
 
     suspend fun obtenerUsuario(id: Int): Usuario?
 

@@ -40,6 +40,8 @@ import com.jara.lavacampus.viewmodel.PanelViewModel
 fun PanelScreen(
     vm: PanelViewModel,
     onSalir: () -> Unit,
+    onBandeja: () -> Unit,
+    onVerListos: () -> Unit,
     cerrandoSesion: Boolean = false,
     errorSesion: String? = null
 ) {
@@ -52,7 +54,6 @@ fun PanelScreen(
     val listos by vm.listos.collectAsStateWithLifecycle()
     val cargando by vm.cargando.collectAsStateWithLifecycle()
     val error by vm.error.collectAsStateWithLifecycle()
-    var verListos by rememberSaveable { mutableStateOf(false) }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(22.dp),
@@ -68,6 +69,11 @@ fun PanelScreen(
                 }
                 Text("Control del día", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.ExtraBold)
                 Text(fechaPedido(vm.hoy), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        item {
+            androidx.compose.material3.Button(onClick = onBandeja, modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(16.dp)) {
+                Text("Abrir bandeja de pedidos")
             }
         }
         if (cargando) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
@@ -94,7 +100,7 @@ fun PanelScreen(
                 }
             }
         }
-        if (recoger > 0) {
+        if (recoger > 0 || listos.isNotEmpty()) {
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -104,7 +110,7 @@ fun PanelScreen(
                     Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("$recoger ${if (recoger == 1) "pedido listo" else "pedidos listos"} para recoger", fontWeight = FontWeight.Bold)
                         Text("Consulta quiénes tienen ropa esperando en los casilleros.")
-                        TextButton(onClick = { verListos = true }) { Text("Ver", color = Color(0xFF164C31)) }
+                        TextButton(onClick = onVerListos) { Text("Ver", color = Color(0xFF164C31)) }
                     }
                 }
             }
@@ -135,25 +141,6 @@ fun PanelScreen(
                 }
             }
         }
-    }
-    if (verListos) {
-        AlertDialog(
-            onDismissRequest = { verListos = false },
-            title = { Text("Pendientes de recojo") },
-            text = {
-                Column(Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(18.dp)) {
-                    if (listos.isEmpty()) Text("No hay pedidos listos esperando recojo.")
-                    listos.forEach { datos ->
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text("#${datos.pedido.id} · ${datos.usuario.nombre}", fontWeight = FontWeight.Bold)
-                            Text("Casillero: ${datos.pedido.casillero ?: "sin asignar"}")
-                            Text("${importeSoles(datos.pedido.total)} · ${if (datos.pedido.pagado) "Pagado" else "Pago pendiente"}")
-                        }
-                    }
-                }
-            },
-            confirmButton = { TextButton(onClick = { verListos = false }) { Text("Cerrar") } }
-        )
     }
 }
 

@@ -8,7 +8,8 @@ import com.jara.lavacampus.data.local.entity.Usuario
 class LavaViewModelFactory(
     private val app: LavaApp,
     private val estudiante: Usuario? = null,
-    private val pedidoId: Int? = null
+    private val pedidoId: Int? = null,
+    private val filtroInicial: String = "TODOS"
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -46,6 +47,12 @@ class LavaViewModelFactory(
         }
         if (modelClass.isAssignableFrom(PanelViewModel::class.java)) {
             return PanelViewModel(app.repository) as T
+        }
+        if (modelClass.isAssignableFrom(BandejaViewModel::class.java)) {
+            return BandejaViewModel(app.repository, filtroInicial) as T
+        }
+        if (modelClass.isAssignableFrom(GestionPedidoViewModel::class.java)) {
+            return GestionPedidoViewModel(requireNotNull(pedidoId), app.repository) as T
         }
         throw IllegalArgumentException("ViewModel no registrado: ${modelClass.name}")
     }

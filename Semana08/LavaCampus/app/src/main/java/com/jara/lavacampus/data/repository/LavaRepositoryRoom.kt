@@ -17,6 +17,10 @@ import kotlinx.coroutines.flow.Flow
 class LavaRepositoryRoom(
     private val db: LavaDatabase
 ) : LavaRepository {
+    override suspend fun <T> enTransaccion(bloque: suspend () -> T): T = db.withTransaction { bloque() }
+    override suspend fun obtenerPedido(id: Int): PedidoConDetalle? = db.pedidoDao().obtenerConDetalle(id)
+    override suspend fun obtenerCasillerosOcupados(): List<String> = db.pedidoDao().obtenerCasillerosOcupados()
+
 
     override suspend fun obtenerUsuario(id: Int): Usuario? = db.usuarioDao().obtener(id)
 

@@ -10,6 +10,13 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PedidoDao {
+    @Transaction
+    @Query("SELECT * FROM pedidos WHERE id = :id")
+    suspend fun obtenerConDetalle(id: Int): PedidoConDetalle?
+
+    @Query("SELECT casillero FROM pedidos WHERE estado = 'LISTO' AND casillero IS NOT NULL")
+    suspend fun obtenerCasillerosOcupados(): List<String>
+
 
     @Insert
     suspend fun insertar(p: Pedido): Long

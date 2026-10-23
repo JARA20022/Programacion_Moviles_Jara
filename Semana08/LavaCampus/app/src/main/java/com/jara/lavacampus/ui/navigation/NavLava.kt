@@ -20,6 +20,10 @@ import com.jara.lavacampus.ui.estudiante.InicioScreen
 import com.jara.lavacampus.ui.estudiante.NuevoPedidoScreen
 import com.jara.lavacampus.viewmodel.NuevoPedidoViewModel
 import com.jara.lavacampus.viewmodel.PanelViewModel
+import com.jara.lavacampus.viewmodel.BandejaViewModel
+import com.jara.lavacampus.viewmodel.GestionPedidoViewModel
+import com.jara.lavacampus.ui.administrador.BandejaScreen
+import com.jara.lavacampus.ui.administrador.GestionPedidoScreen
 import com.jara.lavacampus.ui.administrador.PanelScreen
 import com.jara.lavacampus.viewmodel.MisPedidosViewModel
 import com.jara.lavacampus.ui.estudiante.MisPedidosScreen
@@ -128,6 +132,30 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 SplashSesion()
             }
         }
+        composable(
+            Rutas.BANDEJA,
+            arguments = listOf(navArgument("estado") { type = NavType.StringType; defaultValue = "TODOS" })
+        ) { entrada ->
+            val actual = usuario
+            if (actual != null && actual.rol == Rol.ADMIN.name) {
+                val filtro = entrada.arguments?.getString("estado") ?: "TODOS"
+                val factory = remember(actual.id, filtro) { LavaViewModelFactory(app, filtroInicial = filtro) }
+                val bandeja: BandejaViewModel = viewModel(key = "bandeja-${actual.id}-$filtro", factory = factory)
+                BandejaScreen(vm = bandeja, onVolver = { nav.popBackStack() }, onGestion = { id -> nav.navigate(Rutas.gestionPedido(id)) })
+            } else { SplashSesion() }
+        }
+        composable(
+            Rutas.GESTION_PEDIDO,
+            arguments = listOf(navArgument("id") { type = NavType.IntType })
+        ) { entrada ->
+            val actual = usuario
+            if (actual != null && actual.rol == Rol.ADMIN.name) {
+                val id = requireNotNull(entrada.arguments).getInt("id")
+                val factory = remember(actual.id, id) { LavaViewModelFactory(app, pedidoId = id) }
+                val gestion: GestionPedidoViewModel = viewModel(key = "gestion-${actual.id}-$id", factory = factory)
+                GestionPedidoScreen(vm = gestion, onVolver = { nav.popBackStack() })
+            } else { SplashSesion() }
+        }
         composable(Rutas.PANEL) {
             val actual = usuario
             if (actual != null && actual.rol == Rol.ADMIN.name) {
@@ -136,6 +164,8 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 PanelScreen(
                     vm = panel,
                     onSalir = vm::cerrarSesion,
+                    onBandeja = { nav.navigate(Rutas.bandeja()) },
+                    onVerListos = { nav.navigate(Rutas.bandeja("LISTO")) },
                     cerrandoSesion = cargando,
                     errorSesion = error
                 )
