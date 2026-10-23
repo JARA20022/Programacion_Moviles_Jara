@@ -28,7 +28,8 @@ import com.jara.lavacampus.model.EstadoPedido
 fun StepperEstado(
     estado: EstadoPedido,
     modifier: Modifier = Modifier,
-    sobreOscuro: Boolean = false
+    sobreOscuro: Boolean = false,
+    vertical: Boolean = false
 ) {
     if (estado == EstadoPedido.CANCELADO) {
         Text("Pedido cancelado", modifier = modifier, color = MaterialTheme.colorScheme.error)
@@ -45,6 +46,51 @@ fun StepperEstado(
     val acento = if (sobreOscuro) Color(0xFFFFC5AD) else MaterialTheme.colorScheme.primary
     val tenue = if (sobreOscuro) Color(0xFF82908F) else MaterialTheme.colorScheme.outline
     val texto = if (sobreOscuro) Color.White else MaterialTheme.colorScheme.onSurface
+
+    if (vertical) {
+        Column(modifier.fillMaxWidth()) {
+            pasos.forEachIndexed { indice, paso ->
+                val alcanzado = indice <= actual
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Surface(
+                        modifier = Modifier.size(32.dp),
+                        shape = CircleShape,
+                        color = if (alcanzado) acento else Color.Transparent,
+                        border = BorderStroke(2.dp, if (alcanzado) acento else tenue)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                (indice + 1).toString(),
+                                color = if (alcanzado) {
+                                    if (sobreOscuro) Color(0xFF20262A) else MaterialTheme.colorScheme.onPrimary
+                                } else texto,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                    Column {
+                        Text(nombreEstado(paso), color = if (alcanzado) texto else tenue, fontWeight = FontWeight.Bold)
+                        Text(
+                            when { indice < actual -> "Completado"; indice == actual -> "Estado actual"; else -> "Pendiente" },
+                            color = tenue,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+                if (indice < pasos.lastIndex) {
+                    Canvas(Modifier.size(width = 32.dp, height = 24.dp)) {
+                        drawLine(
+                            color = if (indice < actual) acento else tenue,
+                            start = Offset(size.width / 2, 0f),
+                            end = Offset(size.width / 2, size.height),
+                            strokeWidth = 2.dp.toPx()
+                        )
+                    }
+                }
+            }
+        }
+        return
+    }
 
     Row(modifier.fillMaxWidth()) {
         pasos.forEachIndexed { indice, paso ->

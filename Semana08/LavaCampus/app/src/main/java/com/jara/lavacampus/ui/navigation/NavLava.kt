@@ -19,6 +19,8 @@ import com.jara.lavacampus.LavaApp
 import com.jara.lavacampus.ui.estudiante.InicioScreen
 import com.jara.lavacampus.ui.estudiante.NuevoPedidoScreen
 import com.jara.lavacampus.viewmodel.NuevoPedidoViewModel
+import com.jara.lavacampus.viewmodel.DetallePedidoViewModel
+import com.jara.lavacampus.ui.estudiante.DetallePedidoScreen
 import com.jara.lavacampus.viewmodel.InicioViewModel
 import com.jara.lavacampus.viewmodel.LavaViewModelFactory
 import androidx.compose.ui.Alignment
@@ -98,7 +100,14 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
             arguments = listOf(navArgument("id") { type = NavType.IntType })
         ) { entrada ->
             val id = requireNotNull(entrada.arguments).getInt("id")
-            DestinoSiguiente("Detalle del pedido #$id") { nav.popBackStack() }
+            val actual = usuario
+            if (actual != null && actual.rol == Rol.CLIENTE.name) {
+                val factory = remember(actual.id, id) { LavaViewModelFactory(app, actual, id) }
+                val detalle: DetallePedidoViewModel = viewModel(key = "detalle-${actual.id}-$id", factory = factory)
+                DetallePedidoScreen(vm = detalle, onVolver = { nav.popBackStack() })
+            } else {
+                SplashSesion()
+            }
         }
         composable(Rutas.PANEL) {
             val actual = usuario
