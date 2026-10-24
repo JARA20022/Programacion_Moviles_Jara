@@ -21,6 +21,7 @@ class PreferenciasStore(context: Context) {
     private object Claves {
         val PERFIL_ACTIVO = stringPreferencesKey("perfilActivo")
         val USUARIO_ID = intPreferencesKey("usuarioId")
+        val ULTIMO_ESTUDIANTE = intPreferencesKey("ultimoEstudianteId")
         val MODO_OSCURO = booleanPreferencesKey("modoOscuro")
         val NOTIFICACIONES = booleanPreferencesKey("notificaciones")
         val RECIBIR_PEDIDOS = booleanPreferencesKey("recibirPedidos")
@@ -42,6 +43,8 @@ class PreferenciasStore(context: Context) {
         it[Claves.USUARIO_ID] ?: 0
     }
 
+    val ultimoEstudianteId: Flow<Int> = preferencias.map { it[Claves.ULTIMO_ESTUDIANTE] ?: 0 }
+
     val modoOscuro: Flow<Boolean> = preferencias.map {
         it[Claves.MODO_OSCURO] ?: false
     }
@@ -54,7 +57,7 @@ class PreferenciasStore(context: Context) {
         it[Claves.RECIBIR_PEDIDOS] ?: true
     }
 
-    suspend fun guardarSesion(rol: String, usuarioId: Int) {
+    suspend fun guardarSesion(rol: String, usuarioId: Int, estudianteAnteriorId: Int? = null) {
         require(rol == "CLIENTE" || rol == "ADMIN") {
             "El rol debe ser CLIENTE o ADMIN."
         }
@@ -65,6 +68,8 @@ class PreferenciasStore(context: Context) {
         store.edit {
             it[Claves.PERFIL_ACTIVO] = rol
             it[Claves.USUARIO_ID] = usuarioId
+            if (rol == "CLIENTE") it[Claves.ULTIMO_ESTUDIANTE] = usuarioId
+            else if (estudianteAnteriorId != null && estudianteAnteriorId > 0) it[Claves.ULTIMO_ESTUDIANTE] = estudianteAnteriorId
         }
     }
 

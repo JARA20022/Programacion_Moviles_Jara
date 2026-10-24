@@ -20,6 +20,13 @@ import com.jara.lavacampus.ui.estudiante.InicioScreen
 import com.jara.lavacampus.ui.estudiante.NuevoPedidoScreen
 import com.jara.lavacampus.viewmodel.NuevoPedidoViewModel
 import com.jara.lavacampus.viewmodel.PanelViewModel
+import com.jara.lavacampus.viewmodel.ServiciosViewModel
+import com.jara.lavacampus.viewmodel.ClientesViewModel
+import com.jara.lavacampus.ui.administrador.ServiciosScreen
+import com.jara.lavacampus.ui.administrador.FormularioServicioScreen
+import com.jara.lavacampus.ui.administrador.ClientesScreen
+import com.jara.lavacampus.ui.administrador.AjustesScreen
+import com.jara.lavacampus.ui.estudiante.PerfilScreen
 import com.jara.lavacampus.viewmodel.BandejaViewModel
 import com.jara.lavacampus.viewmodel.GestionPedidoViewModel
 import com.jara.lavacampus.ui.administrador.BandejaScreen
@@ -49,6 +56,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
     val nav = rememberNavController()
     val usuario by vm.usuarioActual.collectAsStateWithLifecycle()
     val restaurando by vm.restaurando.collectAsStateWithLifecycle()
+    val recibirPedidos by vm.recibirPedidos.collectAsStateWithLifecycle()
     val cargando by vm.cargando.collectAsStateWithLifecycle()
     val error by vm.error.collectAsStateWithLifecycle()
 
@@ -63,6 +71,8 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 val inicio: InicioViewModel = viewModel(key = "inicio-${actual.id}", factory = factory)
                 InicioScreen(
                     vm = inicio,
+                    onPerfil = { nav.navigate(Rutas.PERFIL) },
+                    recibirPedidos = recibirPedidos,
                     onNuevoPedido = { nav.navigate(Rutas.NUEVO_PEDIDO) },
                     onMisPedidos = { nav.navigate(Rutas.MIS_PEDIDOS) },
                     onTarifas = { nav.navigate(Rutas.TARIFAS) },
@@ -156,6 +166,47 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 GestionPedidoScreen(vm = gestion, onVolver = { nav.popBackStack() })
             } else { SplashSesion() }
         }
+        composable(Rutas.PERFIL) {
+            val actual = usuario
+            if (actual != null && actual.rol == Rol.CLIENTE.name) {
+                val factory = remember(actual.id) { LavaViewModelFactory(app, actual) }
+                val inicio: InicioViewModel = viewModel(key = "perfil-${actual.id}", factory = factory)
+                PerfilScreen(sesion = vm, inicio = inicio, onVolver = { nav.popBackStack() })
+            } else { SplashSesion() }
+        }
+        composable(Rutas.AJUSTES) {
+            if (usuario?.rol == Rol.ADMIN.name) AjustesScreen(vm, onVolver = { nav.popBackStack() })
+            else SplashSesion()
+        }
+        composable(Rutas.SERVICIOS) {
+            val actual = usuario
+            if (actual != null && actual.rol == Rol.ADMIN.name) {
+                val factory = remember(actual.id) { LavaViewModelFactory(app) }
+                val servicios: ServiciosViewModel = viewModel(key = "servicios-${actual.id}", factory = factory)
+                ServiciosScreen(
+                    vm = servicios, onVolver = { nav.popBackStack() },
+                    onNuevo = { nav.navigate(Rutas.formularioServicio()) },
+                    onEditar = { id -> nav.navigate(Rutas.formularioServicio(id)) }
+                )
+            } else { SplashSesion() }
+        }
+        composable(Rutas.FORMULARIO_SERVICIO, arguments = listOf(navArgument("id") { type = NavType.IntType })) { entrada ->
+            val actual = usuario
+            if (actual != null && actual.rol == Rol.ADMIN.name) {
+                val id = requireNotNull(entrada.arguments).getInt("id")
+                val factory = remember(actual.id, id) { LavaViewModelFactory(app, servicioId = id) }
+                val servicio: ServiciosViewModel = viewModel(key = "formulario-${actual.id}-$id", factory = factory)
+                FormularioServicioScreen(vm = servicio, esEdicion = id != 0, onVolver = { nav.popBackStack() })
+            } else { SplashSesion() }
+        }
+        composable(Rutas.CLIENTES) {
+            val actual = usuario
+            if (actual != null && actual.rol == Rol.ADMIN.name) {
+                val factory = remember(actual.id) { LavaViewModelFactory(app) }
+                val clientes: ClientesViewModel = viewModel(key = "clientes-${actual.id}", factory = factory)
+                ClientesScreen(vm = clientes, onVolver = { nav.popBackStack() })
+            } else { SplashSesion() }
+        }
         composable(Rutas.PANEL) {
             val actual = usuario
             if (actual != null && actual.rol == Rol.ADMIN.name) {
@@ -166,6 +217,9 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                     onSalir = vm::cerrarSesion,
                     onBandeja = { nav.navigate(Rutas.bandeja()) },
                     onVerListos = { nav.navigate(Rutas.bandeja("LISTO")) },
+                    onServicios = { nav.navigate(Rutas.SERVICIOS) },
+                    onClientes = { nav.navigate(Rutas.CLIENTES) },
+                    onAjustes = { nav.navigate(Rutas.AJUSTES) },
                     cerrandoSesion = cargando,
                     errorSesion = error
                 )

@@ -56,6 +56,9 @@ fun NuevoPedidoScreen(vm: NuevoPedidoViewModel, onVolver: () -> Unit, onCreado: 
                 Text("Elige el servicio y ajusta la cantidad. El resumen se actualiza al instante.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
+        if (!estado.recibirPedidos) {
+            item { Text("La lavandería no está recibiendo pedidos", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold) }
+        }
         if (estado.cargando) {
             item { CircularProgressIndicator() }
         } else if (estado.servicios.isEmpty()) {

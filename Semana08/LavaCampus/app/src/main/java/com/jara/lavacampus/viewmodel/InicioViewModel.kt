@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 
+data class ResumenPerfil(val activos: Int = 0, val totales: Int = 0, val kilosLavados: Double = 0.0)
+
 class InicioViewModel(
     val estudiante: Usuario,
     repository: LavaRepository
@@ -47,6 +49,16 @@ class InicioViewModel(
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    val resumenPerfil: StateFlow<ResumenPerfil> = pedidos.map { lista ->
+        ResumenPerfil(
+            activos = lista.count { it.pedido.estado in setOf("RECIBIDO", "EN_PROCESO", "LISTO") },
+            totales = lista.size,
+            kilosLavados = lista.filter { it.pedido.estado == "ENTREGADO" }.sumOf { pedido ->
+                pedido.detalles.filter { it.servicio.unidad == "KG" }.sumOf { it.detalle.cantidad }
+            }
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ResumenPerfil())
 
     val recientes: StateFlow<List<PedidoConDetalle>> = pedidos.map { lista ->
         lista.take(2)

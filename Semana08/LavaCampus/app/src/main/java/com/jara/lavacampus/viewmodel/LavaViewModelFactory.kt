@@ -9,7 +9,8 @@ class LavaViewModelFactory(
     private val app: LavaApp,
     private val estudiante: Usuario? = null,
     private val pedidoId: Int? = null,
-    private val filtroInicial: String = "TODOS"
+    private val filtroInicial: String = "TODOS",
+    private val servicioId: Int = 0
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -29,7 +30,8 @@ class LavaViewModelFactory(
         if (modelClass.isAssignableFrom(NuevoPedidoViewModel::class.java)) {
             return NuevoPedidoViewModel(
                 requireNotNull(estudiante) { "Nuevo pedido requiere un estudiante autenticado." },
-                app.repository
+                app.repository,
+                app.preferencias
             ) as T
         }
         if (modelClass.isAssignableFrom(DetallePedidoViewModel::class.java)) {
@@ -53,6 +55,12 @@ class LavaViewModelFactory(
         }
         if (modelClass.isAssignableFrom(GestionPedidoViewModel::class.java)) {
             return GestionPedidoViewModel(requireNotNull(pedidoId), app.repository) as T
+        }
+        if (modelClass.isAssignableFrom(ServiciosViewModel::class.java)) {
+            return ServiciosViewModel(app.repository, servicioId) as T
+        }
+        if (modelClass.isAssignableFrom(ClientesViewModel::class.java)) {
+            return ClientesViewModel(app.repository) as T
         }
         throw IllegalArgumentException("ViewModel no registrado: ${modelClass.name}")
     }

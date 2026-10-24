@@ -38,6 +38,51 @@ class SesionViewModel(
         false
     )
 
+    val notificaciones = preferencias.notificaciones.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
+    val recibirPedidos = preferencias.recibirPedidos.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
+    private val _guardandoPreferencias = MutableStateFlow(false)
+    val guardandoPreferencias = _guardandoPreferencias.asStateFlow()
+
+    private fun guardarPreferencia(accion: suspend () -> Unit) {
+        if (_guardandoPreferencias.value || _cargando.value) return
+        _guardandoPreferencias.value = true
+        _error.value = null
+        viewModelScope.launch {
+            try { accion()
+            } catch (e: CancellationException) { throw e
+            } catch (e: Exception) { _error.value = "No se pudo guardar el ajuste. Intenta nuevamente."
+            } finally { _guardandoPreferencias.value = false }
+        }
+    }
+    fun cambiarModoOscuro(b: Boolean) = guardarPreferencia { preferencias.guardarModoOscuro(b) }
+    fun cambiarNotificaciones(b: Boolean) = guardarPreferencia { preferencias.guardarNotificaciones(b) }
+    fun cambiarRecibirPedidos(b: Boolean) {
+        if (_usuarioActual.value?.rol != Rol.ADMIN.name) return
+        guardarPreferencia { preferencias.guardarRecibirPedidos(b) }
+    }
+
+    fun cambiarPerfil() {
+        if (_cargando.value || _restaurando.value || _guardandoPreferencias.value) return
+        val actual = _usuarioActual.value ?: return
+        _cargando.value = true
+        _error.value = null
+        viewModelScope.launch {
+            try {
+                val destino = if (actual.rol == Rol.CLIENTE.name) Rol.ADMIN else Rol.CLIENTE
+                val recordado = if (destino == Rol.CLIENTE) {
+                    repository.obtenerUsuario(preferencias.ultimoEstudianteId.first())?.takeIf { it.rol == Rol.CLIENTE.name }
+                } else null
+                val otro = requireNotNull(recordado ?: repository.obtenerUsuarioPorRol(destino.name)) {
+                    "No existe una cuenta para el otro perfil."
+                }
+                preferencias.guardarSesion(otro.rol, otro.id, if (actual.rol == Rol.CLIENTE.name) actual.id else null)
+                _usuarioActual.value = otro
+            } catch (e: CancellationException) { throw e
+            } catch (e: Exception) { _error.value = "No se pudo cambiar de perfil. Intenta nuevamente."
+            } finally { _cargando.value = false }
+        }
+    }
+
     init {
         viewModelScope.launch {
             try {

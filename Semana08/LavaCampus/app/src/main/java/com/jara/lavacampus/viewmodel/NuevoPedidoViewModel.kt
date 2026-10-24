@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.jara.lavacampus.data.local.entity.Servicio
 import com.jara.lavacampus.data.local.entity.Usuario
 import com.jara.lavacampus.data.repository.LavaRepository
+import com.jara.lavacampus.data.prefs.PreferenciasStore
 import com.jara.lavacampus.model.LineaPedido
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -25,21 +26,30 @@ data class NuevoPedidoEstado(
     val fechaEntrega: String? = null,
     val cargando: Boolean = true,
     val guardando: Boolean = false,
+    val recibirPedidos: Boolean = false,
     val error: String? = null,
     val pedidoCreado: Long? = null
 ) {
     val puedeConfirmar: Boolean
-        get() = !cargando && !guardando && pedidoCreado == null && cantidades.values.any { it > 0.0 }
+        get() = recibirPedidos && !cargando && !guardando && pedidoCreado == null && cantidades.values.any { it > 0.0 }
 }
 
 class NuevoPedidoViewModel(
     private val estudiante: Usuario,
-    private val repo: LavaRepository
+    private val repo: LavaRepository,
+    private val preferencias: PreferenciasStore
 ) : ViewModel() {
     private val _estado = MutableStateFlow(NuevoPedidoEstado())
     val estado = _estado.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            preferencias.recibirPedidos.catch { e ->
+                if (e is CancellationException) throw e
+                _estado.value = _estado.value.copy(error = "No se pudo consultar la disponibilidad de la lavandería.")
+                emit(false)
+            }.collect { abierto -> _estado.value = _estado.value.copy(recibirPedidos = abierto) }
+        }
         viewModelScope.launch {
             repo.observarServiciosActivos()
                 .catch { e ->
@@ -95,35 +105,34 @@ class NuevoPedidoViewModel(
 
     fun confirmar() {
         val solicitud = _estado.value
+        if (!solicitud.recibirPedidos) {
+            _estado.value = solicitud.copy(error = "La lavandería no está recibiendo pedidos")
+            return
+        }
         if (!solicitud.puedeConfirmar) return
-        // Bloqueo inmediato: dos toques no pueden lanzar dos inserciones.
         _estado.value = solicitud.copy(guardando = true, error = null)
         viewModelScope.launch {
             try {
-                if (repo.contarActivos(estudiante.id) >= 3) {
-                    _estado.value = _estado.value.copy(guardando = false, error = "Ya tienes 3 pedidos activos")
-                    return@launch
+                require(preferencias.recibirPedidos.first()) { "La lavandería no está recibiendo pedidos" }
+                val id = repo.enTransaccion {
+                    require(repo.contarActivos(estudiante.id) < 3) { "Ya tienes 3 pedidos activos" }
+                    val serviciosActuales = solicitud.cantidades.keys.map { id ->
+                        val servicio = requireNotNull(repo.obtenerServicio(id)) { "Un servicio ya no existe. Revisa tu pedido." }
+                        require(servicio.activo) { "Un servicio fue desactivado. Revisa tu pedido." }
+                        require(servicio.precio == solicitud.servicios.firstOrNull { it.id == id }?.precio) { "Los precios cambiaron. Revisa el resumen y confirma nuevamente." }
+                        servicio
+                    }
+                    val revisada = recalcular(solicitud.copy(servicios = serviciosActuales))
+                    repo.crearPedido(
+                        usuarioId = estudiante.id,
+                        lineas = revisada.cantidades.map { (id, cantidad) -> LineaPedido(id, cantidad) },
+                        fechaEntrega = requireNotNull(revisada.fechaEntrega), nota = revisada.nota.trim()
+                    )
                 }
-                val serviciosActuales = repo.observarServiciosActivos().first()
-                val revisada = recalcular(solicitud.copy(servicios = serviciosActuales))
-                val cambioPrecio = solicitud.servicios.any { anterior ->
-                    anterior.id in solicitud.cantidades &&
-                        serviciosActuales.firstOrNull { it.id == anterior.id }?.precio != anterior.precio
-                }
-                if (revisada.cantidades != solicitud.cantidades || cambioPrecio) {
-                    _estado.value = revisada.copy(error = "Los servicios cambiaron. Revisa el resumen antes de confirmar.")
-                    return@launch
-                }
-                val fecha = requireNotNull(revisada.fechaEntrega)
-                val id = repo.crearPedido(
-                    usuarioId = estudiante.id,
-                    lineas = revisada.cantidades.map { (id, cantidad) -> LineaPedido(id, cantidad) },
-                    fechaEntrega = fecha,
-                    nota = revisada.nota.trim()
-                )
-                _estado.value = revisada.copy(pedidoCreado = id)
-            } catch (e: CancellationException) {
-                throw e
+                _estado.value = _estado.value.copy(guardando = false, pedidoCreado = id)
+            } catch (e: CancellationException) { throw e
+            } catch (e: IllegalArgumentException) {
+                _estado.value = _estado.value.copy(guardando = false, error = e.message)
             } catch (e: Exception) {
                 _estado.value = _estado.value.copy(guardando = false, error = "No se pudo guardar el pedido. Intenta nuevamente.")
             }

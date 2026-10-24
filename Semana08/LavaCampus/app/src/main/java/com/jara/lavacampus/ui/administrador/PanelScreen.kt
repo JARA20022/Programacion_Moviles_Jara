@@ -42,6 +42,9 @@ fun PanelScreen(
     onSalir: () -> Unit,
     onBandeja: () -> Unit,
     onVerListos: () -> Unit,
+    onServicios: () -> Unit,
+    onClientes: () -> Unit,
+    onAjustes: () -> Unit,
     cerrandoSesion: Boolean = false,
     errorSesion: String? = null
 ) {
@@ -74,6 +77,15 @@ fun PanelScreen(
         item {
             androidx.compose.material3.Button(onClick = onBandeja, modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(16.dp)) {
                 Text("Abrir bandeja de pedidos")
+            }
+        }
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.material3.OutlinedButton(onClick = onServicios, modifier = Modifier.fillMaxWidth()) { Text("Servicios y precios") }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    androidx.compose.material3.OutlinedButton(onClick = onClientes, modifier = Modifier.weight(1f)) { Text("Clientes") }
+                    androidx.compose.material3.OutlinedButton(onClick = onAjustes, modifier = Modifier.weight(1f)) { Text("Ajustes") }
+                }
             }
         }
         if (cargando) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }

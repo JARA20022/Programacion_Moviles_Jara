@@ -5,6 +5,13 @@ object Rutas {
     const val LOGIN = "login"
     const val INICIO = "inicio"
     const val PANEL = "panel"
+    const val SERVICIOS = "servicios"
+    const val CLIENTES = "clientes"
+    const val AJUSTES = "ajustes"
+    const val PERFIL = "perfil"
+    const val FORMULARIO_SERVICIO = "servicio/{id}"
+    fun formularioServicio(id: Int = 0): String = "servicio/$id"
+
     const val BANDEJA = "bandeja?estado={estado}"
     const val GESTION_PEDIDO = "gestion_pedido/{id}"
     fun bandeja(estado: String = "TODOS"): String = "bandeja?estado=$estado"

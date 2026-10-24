@@ -46,6 +46,8 @@ fun InicioScreen(
     onTarifas: () -> Unit,
     onDetalle: (Int) -> Unit,
     onSalir: () -> Unit,
+    onPerfil: () -> Unit,
+    recibirPedidos: Boolean,
     cerrandoSesion: Boolean = false,
     errorSesion: String? = null
 ) {
@@ -103,10 +105,23 @@ fun InicioScreen(
         }
 
         item {
-            LavaButton("Nuevo pedido", onNuevoPedido, TerracotaCampus)
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                if (!recibirPedidos) Text("La lavandería no está recibiendo pedidos", color = MaterialTheme.colorScheme.error)
+                androidx.compose.material3.Button(
+                    onClick = onNuevoPedido, enabled = recibirPedidos, modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(18.dp), shape = RoundedCornerShape(16.dp),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = TerracotaCampus)
+                ) { Text("Nuevo pedido") }
+            }
         }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = onPerfil, modifier = Modifier.fillMaxWidth()) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Mi perfil")
+                        Text("Ajustes y cuenta →")
+                    }
+                }
                 OutlinedButton(onClick = onMisPedidos, modifier = Modifier.fillMaxWidth()) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Mis pedidos")

@@ -9,6 +9,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UsuarioDao {
+    @Query("SELECT * FROM usuarios WHERE rol = :rol ORDER BY id LIMIT 1")
+    suspend fun obtenerPorRol(rol: String): Usuario?
+
 
     @Query("SELECT * FROM usuarios WHERE id = :id LIMIT 1")
     suspend fun obtener(id: Int): Usuario?
