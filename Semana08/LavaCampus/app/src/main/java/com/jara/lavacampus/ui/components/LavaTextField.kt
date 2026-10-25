@@ -29,12 +29,19 @@ fun LavaTextField(
     habilitado: Boolean = true,
     imeAction: ImeAction = ImeAction.Next,
     onSiguiente: () -> Unit = {},
-    onListo: () -> Unit = {}
+    onListo: () -> Unit = {},
+    maxLongitud: Int = Int.MAX_VALUE
 ) {
     var visible by remember { mutableStateOf(false) }
+    var excedido by remember { mutableStateOf(false) }
     OutlinedTextField(
         value = valor,
-        onValueChange = onCambio,
+        onValueChange = { nuevo ->
+            excedido = nuevo.length > maxLongitud
+            if (!excedido) onCambio(nuevo)
+        },
+        isError = excedido,
+        supportingText = if (excedido) { { Text("Máximo $maxLongitud caracteres.") } } else null,
         modifier = modifier.fillMaxWidth(),
         label = { Text(etiqueta) },
         enabled = habilitado,

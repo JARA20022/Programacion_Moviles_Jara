@@ -11,6 +11,7 @@ import com.jara.lavacampus.model.ClienteResumen
 import com.jara.lavacampus.model.EstadoPedido
 import com.jara.lavacampus.model.IngresoServicio
 import com.jara.lavacampus.model.LineaPedido
+import com.jara.lavacampus.model.Validaciones
 import java.time.LocalDate
 import kotlinx.coroutines.flow.Flow
 
@@ -36,7 +37,10 @@ class LavaRepositoryRoom(
     override suspend fun login(
         correo: String,
         clave: String
-    ): Usuario? = usuarios.login(correo, clave)
+    ): Usuario? {
+        require(Validaciones.errorLogin(correo, clave) == null) { "Correo o contraseña con formato inválido." }
+        return usuarios.login(Validaciones.normalizarCorreo(correo), clave)
+    }
 
     override fun observarClientes(): Flow<List<ClienteResumen>> =
         usuarios.observarClientes()
@@ -49,19 +53,34 @@ class LavaRepositoryRoom(
         servicios.observarActivos()
 
     override suspend fun guardarServicio(s: Servicio) {
-        if (s.id == 0) {
-            servicios.insertar(s)
-        } else {
-            servicios.actualizar(s)
+        Validaciones.validarServicio(s)
+        db.withTransaction {
+            val limpio = s.copy(nombre = Validaciones.normalizarNombre(s.nombre), descripcion = s.descripcion.trim())
+            require(servicios.obtenerTodos().none { it.id != s.id && Validaciones.claveNombre(it.nombre) == Validaciones.claveNombre(limpio.nombre) }) { "Ya existe un servicio con ese nombre." }
+            if (limpio.id == 0) servicios.insertar(limpio)
+            else {
+                requireNotNull(servicios.obtener(limpio.id)) { "El servicio ya no existe." }
+                servicios.actualizar(limpio)
+            }
         }
     }
 
     override suspend fun eliminarServicio(s: Servicio) {
-        servicios.eliminar(s)
+        db.withTransaction {
+            require(s.id > 0) { "Servicio inválido." }
+            require(detalles.contarPorServicio(s.id) == 0) { "El servicio ya se usa en pedidos. Solo puedes desactivarlo." }
+            requireNotNull(servicios.obtener(s.id)) { "El servicio ya no existe." }
+            servicios.eliminar(s)
+        }
     }
 
     override suspend fun cambiarActivo(id: Int, activo: Boolean) {
-        servicios.cambiarActivo(id, activo)
+        db.withTransaction {
+            require(id > 0) { "Servicio inválido." }
+            val actual = requireNotNull(servicios.obtener(id)) { "El servicio ya no existe." }
+            if (activo) Validaciones.validarServicio(actual)
+            servicios.cambiarActivo(id, activo)
+        }
     }
 
     override suspend fun servicioTieneDetalles(id: Int): Boolean =
@@ -75,17 +94,28 @@ class LavaRepositoryRoom(
         nota: String
     ): Long = db.withTransaction {
 
+        require(usuarioId > 0 && usuarios.obtener(usuarioId)?.rol == "CLIENTE") { "Estudiante inválido." }
+        Validaciones.validarLineas(lineas)
+        require(Validaciones.errorTexto(nota, "La nota") == null) { "La nota no es válida." }
+        require(pedidos.contarActivos(usuarioId) < 3) { "Ya tienes 3 pedidos activos" }
+        val elegidos = lineas.map { requireNotNull(servicios.obtener(it.servicioId)) { "Un servicio ya no existe." } }
+        val fechaEsperada = Validaciones.fechaEntrega(elegidos.maxOf { it.horasEntrega }).toString()
+        require(fechaEntrega == fechaEsperada) { "La fecha de entrega no corresponde a los servicios elegidos." }
+
         // Los precios se consultan en Room dentro de la transacción.
         val detallesNuevos = lineas.map { linea ->
             val servicio = servicios.obtener(linea.servicioId)
                 ?: error("No existe el servicio ${linea.servicioId}.")
 
+            require(servicio.activo) { "Un servicio está inactivo." }
+            require(Validaciones.precioValido(servicio.precio)) { "La tarifa no es válida." }
+            require(Validaciones.cantidadValida(servicio.unidad, linea.cantidad)) { "Cantidad inválida para ${servicio.nombre}." }
             DetallePedido(
                 pedidoId = 0,
                 servicioId = servicio.id,
                 cantidad = linea.cantidad,
                 precioUnitario = servicio.precio,
-                subtotal = linea.cantidad * servicio.precio
+                subtotal = Validaciones.subtotal(linea.cantidad, servicio.precio)
             )
         }
 
@@ -95,10 +125,10 @@ class LavaRepositoryRoom(
                 fechaRegistro = LocalDate.now().toString(),
                 fechaEntrega = fechaEntrega,
                 estado = EstadoPedido.RECIBIDO.name,
-                total = detallesNuevos.sumOf { it.subtotal },
+                total = Validaciones.total(detallesNuevos.map { it.subtotal }),
                 casillero = null,
                 pagado = false,
-                nota = nota
+                nota = nota.trim()
             )
         )
 

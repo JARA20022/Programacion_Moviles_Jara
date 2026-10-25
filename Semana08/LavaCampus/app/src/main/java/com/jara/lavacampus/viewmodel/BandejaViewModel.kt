@@ -1,5 +1,6 @@
 package com.jara.lavacampus.viewmodel
 
+import com.jara.lavacampus.model.Validaciones
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jara.lavacampus.data.local.relation.PedidoConDetalle
@@ -56,7 +57,9 @@ class BandejaViewModel(private val repo: LavaRepository, filtroInicial: String =
 
     private fun normalizar(texto: String): String = Normalizer.normalize(texto, Normalizer.Form.NFD)
         .replace(Regex("\\p{M}+"), "").lowercase(java.util.Locale.ROOT)
-    fun cambiarBusqueda(texto: String) { _busqueda.value = texto }
+    fun cambiarBusqueda(texto: String) {
+        if (Validaciones.textoEditable(texto, Validaciones.MAX_BUSQUEDA)) _busqueda.value = texto
+    }
     fun cambiarFiltro(filtro: FiltroBandeja) { _filtro.value = filtro }
 
     fun iniciar(pedido: PedidoConDetalle) {

@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.jara.lavacampus.model.Validaciones
 import com.jara.lavacampus.ui.components.SelectorCantidad
 import com.jara.lavacampus.ui.components.fechaPedido
 import com.jara.lavacampus.ui.components.importeSoles
@@ -87,7 +88,7 @@ fun NuevoPedidoScreen(vm: NuevoPedidoViewModel, onVolver: () -> Unit, onCreado: 
                         habilitado = !estado.guardando && estado.pedidoCreado == null,
                         servicio = servicio.nombre
                     )
-                    if (cantidad > 0.0) Text("Subtotal: ${importeSoles(cantidad * servicio.precio)}", color = MaterialTheme.colorScheme.primary)
+                    if (cantidad > 0.0) Text("Subtotal: ${importeSoles(Validaciones.subtotal(cantidad, servicio.precio))}", color = MaterialTheme.colorScheme.primary)
                 }
             }
         }
@@ -96,6 +97,7 @@ fun NuevoPedidoScreen(vm: NuevoPedidoViewModel, onVolver: () -> Unit, onCreado: 
                 value = estado.nota,
                 onValueChange = vm::cambiarNota,
                 label = { Text("Nota para la lavandería (opcional)") },
+                supportingText = { Text("${estado.nota.length}/300") },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !estado.guardando && estado.pedidoCreado == null,
                 minLines = 2,
@@ -115,7 +117,7 @@ fun NuevoPedidoScreen(vm: NuevoPedidoViewModel, onVolver: () -> Unit, onCreado: 
                     estado.servicios.filter { (estado.cantidades[it.id] ?: 0.0) > 0.0 }.forEach { servicio ->
                         val cantidad = estado.cantidades.getValue(servicio.id)
                         val numero = if (servicio.unidad == "KG") String.format(Locale.US, "%.1f kg", cantidad) else "${cantidad.toInt()} ${if (servicio.unidad == "PRENDA") "prendas" else "unidades"}"
-                        Text("${servicio.nombre} · $numero\n${importeSoles(cantidad * servicio.precio)}")
+                        Text("${servicio.nombre} · $numero\n${importeSoles(Validaciones.subtotal(cantidad, servicio.precio))}")
                     }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Total", style = MaterialTheme.typography.titleLarge)

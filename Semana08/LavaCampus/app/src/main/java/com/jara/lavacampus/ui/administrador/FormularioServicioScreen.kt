@@ -25,6 +25,7 @@ fun FormularioServicioScreen(vm: ServiciosViewModel, esEdicion: Boolean, onVolve
     val guardando by vm.guardando.collectAsStateWithLifecycle()
     val guardado by vm.guardado.collectAsStateWithLifecycle()
     val error by vm.error.collectAsStateWithLifecycle()
+    val errores by vm.erroresCampos.collectAsStateWithLifecycle()
     LaunchedEffect(guardado) { if (guardado) onVolver() }
     BackHandler(enabled = guardando) { }
     val habilitado = !cargando && !guardando && !guardado
@@ -34,7 +35,7 @@ fun FormularioServicioScreen(vm: ServiciosViewModel, esEdicion: Boolean, onVolve
             Text(if (esEdicion) "Editar servicio" else "Nuevo servicio", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.ExtraBold)
         }
         if (cargando) item { CircularProgressIndicator() }
-        item { OutlinedTextField(f.nombre, { vm.editar(f.copy(nombre = it)) }, label = { Text("Nombre del servicio") }, modifier = Modifier.fillMaxWidth(), singleLine = true, enabled = habilitado) }
+        item { OutlinedTextField(f.nombre, { vm.editar(f.copy(nombre = it)) }, label = { Text("Nombre del servicio") }, isError = "nombre" in errores, supportingText = { Text(errores["nombre"] ?: "${f.nombre.length}/60 · letras y separadores") }, modifier = Modifier.fillMaxWidth(), singleLine = true, enabled = habilitado) }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Se cobra por", fontWeight = FontWeight.Bold)
@@ -45,7 +46,7 @@ fun FormularioServicioScreen(vm: ServiciosViewModel, esEdicion: Boolean, onVolve
                 }
             }
         }
-        item { OutlinedTextField(f.precio, { vm.editar(f.copy(precio = it)) }, label = { Text("Precio en soles") }, modifier = Modifier.fillMaxWidth(), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), enabled = habilitado) }
+        item { OutlinedTextField(f.precio, { vm.editar(f.copy(precio = it)) }, label = { Text("Precio en soles") }, isError = "precio" in errores, supportingText = { Text(errores["precio"] ?: "S/ 0.01 a S/ 9999.99 · hasta 2 decimales") }, modifier = Modifier.fillMaxWidth(), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), enabled = habilitado) }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Tiempo de entrega", fontWeight = FontWeight.Bold)
@@ -56,7 +57,7 @@ fun FormularioServicioScreen(vm: ServiciosViewModel, esEdicion: Boolean, onVolve
                 }
             }
         }
-        item { OutlinedTextField(f.descripcion, { vm.editar(f.copy(descripcion = it)) }, label = { Text("Descripción") }, modifier = Modifier.fillMaxWidth(), minLines = 2, maxLines = 4, enabled = habilitado) }
+        item { OutlinedTextField(f.descripcion, { vm.editar(f.copy(descripcion = it)) }, label = { Text("Descripción") }, isError = "descripcion" in errores, supportingText = { Text(errores["descripcion"] ?: "${f.descripcion.length}/300") }, modifier = Modifier.fillMaxWidth(), minLines = 2, maxLines = 4, enabled = habilitado) }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text("Ícono", fontWeight = FontWeight.Bold)

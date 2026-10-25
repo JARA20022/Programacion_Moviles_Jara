@@ -6,6 +6,7 @@ import com.jara.lavacampus.data.local.entity.Usuario
 import com.jara.lavacampus.data.prefs.PreferenciasStore
 import com.jara.lavacampus.data.repository.LavaRepository
 import com.jara.lavacampus.model.Rol
+import com.jara.lavacampus.model.Validaciones
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -116,17 +117,15 @@ class SesionViewModel(
 
     fun login(correo: String, clave: String, rolSeleccionado: Rol) {
         if (_cargando.value || _restaurando.value) return
-        if (correo.isBlank() || clave.isBlank()) {
-            _error.value = "Completa el correo y la contraseña."
-            return
-        }
+        val errorEntrada = Validaciones.errorLogin(correo, clave)
+        if (errorEntrada != null) { _error.value = errorEntrada; return }
 
         _error.value = null
         _cargando.value = true
         viewModelScope.launch {
             try {
                 prepararDatos()
-                val usuario = repository.login(correo.trim(), clave)
+                val usuario = repository.login(Validaciones.normalizarCorreo(correo), clave)
                 when {
                     usuario == null -> {
                         _error.value = "Correo o contraseña incorrectos"

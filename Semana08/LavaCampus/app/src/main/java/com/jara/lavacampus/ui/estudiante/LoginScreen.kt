@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jara.lavacampus.model.Rol
+import com.jara.lavacampus.model.Validaciones
 import com.jara.lavacampus.ui.components.LavaButton
 import com.jara.lavacampus.ui.components.LavaTextField
 import com.jara.lavacampus.ui.theme.TintaCampus
@@ -131,6 +132,7 @@ fun LoginScreen(vm: SesionViewModel) {
 
             LavaTextField(
                 valor = correo,
+                maxLongitud = Validaciones.MAX_CORREO,
                 onCambio = { correo = it; vm.limpiarError() },
                 etiqueta = "Correo electrónico",
                 habilitado = !cargando,
@@ -138,6 +140,7 @@ fun LoginScreen(vm: SesionViewModel) {
             )
             LavaTextField(
                 valor = clave,
+                maxLongitud = Validaciones.MAX_CLAVE,
                 onCambio = { clave = it; vm.limpiarError() },
                 etiqueta = "Contraseña",
                 esClave = true,

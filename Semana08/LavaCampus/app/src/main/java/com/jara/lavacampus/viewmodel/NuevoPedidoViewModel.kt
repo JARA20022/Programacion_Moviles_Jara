@@ -7,6 +7,7 @@ import com.jara.lavacampus.data.local.entity.Usuario
 import com.jara.lavacampus.data.repository.LavaRepository
 import com.jara.lavacampus.data.prefs.PreferenciasStore
 import com.jara.lavacampus.model.LineaPedido
+import com.jara.lavacampus.model.Validaciones
 import java.time.DayOfWeek
 import java.time.LocalDate
 import kotlin.math.ceil
@@ -69,7 +70,7 @@ class NuevoPedidoViewModel(
         val idsActivos = actual.servicios.map { it.id }.toSet()
         val cantidades = actual.cantidades.filter { (id, cantidad) -> id in idsActivos && cantidad > 0.0 }
         val elegidos = actual.servicios.filter { it.id in cantidades }
-        val total = elegidos.sumOf { it.precio * cantidades.getValue(it.id) }
+        val total = Validaciones.total(elegidos.map { Validaciones.subtotal(cantidades.getValue(it.id), it.precio) })
         val fecha = elegidos.maxOfOrNull { it.horasEntrega }?.let { horas ->
             var entrega = LocalDate.now().plusDays(ceil(horas / 24.0).toLong())
             if (entrega.dayOfWeek == DayOfWeek.SUNDAY) entrega = entrega.plusDays(1)
@@ -99,7 +100,9 @@ class NuevoPedidoViewModel(
 
     fun cambiarNota(nota: String) {
         if (!_estado.value.guardando && _estado.value.pedidoCreado == null) {
-            _estado.value = _estado.value.copy(nota = nota)
+            val errorNota = Validaciones.errorTexto(nota, "La nota")
+            if (errorNota != null) { _estado.value = _estado.value.copy(error = errorNota); return }
+            _estado.value = _estado.value.copy(nota = nota, error = null)
         }
     }
 
@@ -113,11 +116,15 @@ class NuevoPedidoViewModel(
         _estado.value = solicitud.copy(guardando = true, error = null)
         viewModelScope.launch {
             try {
+                require(Validaciones.errorTexto(solicitud.nota, "La nota") == null) { "La nota no es válida." }
+                Validaciones.validarLineas(solicitud.cantidades.map { (id, cantidad) -> LineaPedido(id, cantidad) })
                 require(preferencias.recibirPedidos.first()) { "La lavandería no está recibiendo pedidos" }
                 val id = repo.enTransaccion {
                     require(repo.contarActivos(estudiante.id) < 3) { "Ya tienes 3 pedidos activos" }
                     val serviciosActuales = solicitud.cantidades.keys.map { id ->
                         val servicio = requireNotNull(repo.obtenerServicio(id)) { "Un servicio ya no existe. Revisa tu pedido." }
+                        require(Validaciones.cantidadValida(servicio.unidad, solicitud.cantidades.getValue(id))) { "Cantidad inválida para ${servicio.nombre}." }
+                        require(Validaciones.precioValido(servicio.precio)) { "La tarifa del servicio no es válida." }
                         require(servicio.activo) { "Un servicio fue desactivado. Revisa tu pedido." }
                         require(servicio.precio == solicitud.servicios.firstOrNull { it.id == id }?.precio) { "Los precios cambiaron. Revisa el resumen y confirma nuevamente." }
                         servicio

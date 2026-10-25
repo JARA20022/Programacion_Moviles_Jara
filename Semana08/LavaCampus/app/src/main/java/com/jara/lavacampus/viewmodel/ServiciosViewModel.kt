@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.jara.lavacampus.data.local.entity.Servicio
 import com.jara.lavacampus.data.repository.LavaRepository
 import com.jara.lavacampus.model.Unidad
+import com.jara.lavacampus.model.Validaciones
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,6 +21,8 @@ data class FormularioServicio(
 class ServiciosViewModel(private val repo: LavaRepository, private val servicioId: Int = 0) : ViewModel() {
     private val _servicios = MutableStateFlow(emptyList<Servicio>())
     val servicios = _servicios.asStateFlow()
+    private val _erroresCampos = MutableStateFlow<Map<String, String>>(emptyMap())
+    val erroresCampos = _erroresCampos.asStateFlow()
     private val _formulario = MutableStateFlow(FormularioServicio())
     val formulario = _formulario.asStateFlow()
     private val _cargando = MutableStateFlow(true)
@@ -56,15 +59,35 @@ class ServiciosViewModel(private val repo: LavaRepository, private val servicioI
     }
 
     fun editar(formulario: FormularioServicio) {
-        if (!_guardando.value && !_guardado.value) _formulario.value = formulario
+        if (_guardando.value || _guardado.value) return
+        val anterior = _formulario.value
+        val invalido = when {
+            formulario.nombre != anterior.nombre && !Validaciones.nombreEditable(formulario.nombre) -> "nombre" to "Solo letras y separadores; máximo 60 caracteres."
+            formulario.precio != anterior.precio && !Validaciones.precioEditable(formulario.precio) -> "precio" to "Solo números, coma o punto decimal; máximo 4 enteros y 2 decimales."
+            formulario.descripcion != anterior.descripcion && !Validaciones.textoEditable(formulario.descripcion) -> "descripcion" to "Máximo 300 caracteres, sin controles invisibles."
+            else -> null
+        }
+        if (invalido != null) {
+            _erroresCampos.value = _erroresCampos.value + invalido
+            return
+        }
+        _formulario.value = formulario
+        _erroresCampos.value = emptyMap()
+        _error.value = null
     }
     fun guardarFormulario() {
         if (_cargando.value || !formularioCargado) return
         val f = _formulario.value
-        val precio = f.precio.trim().replace(',', '.').toDoubleOrNull()
-        if (precio == null || !precio.isFinite() || precio <= 0.0) { _error.value = "El precio debe ser un número mayor que cero."; return }
-        guardar(Servicio(servicioId, f.nombre, f.descripcion, f.unidad, precio, f.horasEntrega, f.activo, f.icono))
+        val errores = buildMap {
+            Validaciones.errorNombre(f.nombre)?.let { put("nombre", it) }
+            Validaciones.errorPrecio(f.precio)?.let { put("precio", it) }
+            Validaciones.errorTexto(f.descripcion, "La descripción")?.let { put("descripcion", it) }
+        }
+        _erroresCampos.value = errores
+        if (errores.isNotEmpty()) { _error.value = "Revisa los campos marcados."; return }
+        guardar(Servicio(servicioId, f.nombre, f.descripcion, f.unidad, requireNotNull(Validaciones.precio(f.precio)), f.horasEntrega, f.activo, f.icono))
     }
+
     private fun ejecutar(accion: suspend () -> Unit) {
         if (_guardando.value) return
         _guardando.value = true
@@ -81,15 +104,11 @@ class ServiciosViewModel(private val repo: LavaRepository, private val servicioI
     fun guardar(servicio: Servicio) {
         if (_guardado.value) return
         ejecutar {
-            require(servicio.nombre.isNotBlank()) { "Escribe el nombre del servicio." }
-            require(servicio.precio.isFinite() && servicio.precio > 0.0) { "El precio debe ser mayor que cero." }
-            require(servicio.unidad in Unidad.entries.map { it.name }) { "Selecciona una unidad válida." }
-            require(servicio.horasEntrega in listOf(24, 48, 72)) { "Selecciona 24, 48 o 72 horas." }
-            require(servicio.icono in listOf("wash", "iron", "shirt")) { "Selecciona un ícono." }
-            require(servicio.id >= 0) { "Servicio inválido." }
+            Validaciones.validarServicio(servicio)
+            require(_servicios.value.none { it.id != servicio.id && Validaciones.claveNombre(it.nombre) == Validaciones.claveNombre(servicio.nombre) }) { "Ya existe un servicio con ese nombre." }
             repo.enTransaccion {
                 if (servicio.id > 0) requireNotNull(repo.obtenerServicio(servicio.id)) { "El servicio ya no existe." }
-                repo.guardarServicio(servicio.copy(nombre = servicio.nombre.trim(), descripcion = servicio.descripcion.trim()))
+                repo.guardarServicio(servicio.copy(nombre = Validaciones.normalizarNombre(servicio.nombre), descripcion = servicio.descripcion.trim()))
             }
             _guardado.value = true
         }

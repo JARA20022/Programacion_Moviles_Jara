@@ -1,5 +1,6 @@
 package com.jara.lavacampus.viewmodel
 
+import com.jara.lavacampus.model.Validaciones
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jara.lavacampus.data.repository.LavaRepository
@@ -33,5 +34,7 @@ class ClientesViewModel(repo: LavaRepository) : ViewModel() {
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
     private fun normalizar(texto: String) = Normalizer.normalize(texto, Normalizer.Form.NFD)
         .replace(Regex("\\p{M}+"), "").lowercase(java.util.Locale.ROOT)
-    fun cambiarBusqueda(texto: String) { _busqueda.value = texto }
+    fun cambiarBusqueda(texto: String) {
+        if (Validaciones.textoEditable(texto, Validaciones.MAX_BUSQUEDA)) _busqueda.value = texto
+    }
 }

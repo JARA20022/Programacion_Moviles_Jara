@@ -12,6 +12,9 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ServicioDao {
     @Query("SELECT * FROM servicios ORDER BY nombre")
+    suspend fun obtenerTodos(): List<Servicio>
+
+    @Query("SELECT * FROM servicios ORDER BY nombre")
     fun observarTodos(): Flow<List<Servicio>>
 
     @Query("SELECT * FROM servicios WHERE activo = 1 ORDER BY nombre")
