@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.Flow
 class LavaRepositoryRoom(
     private val db: LavaDatabase
 ) : LavaRepository {
+    override fun observarIdsAtrasados(hoy: String): Flow<List<Int>> = db.pedidoDao().observarIdsAtrasados(hoy)
+
     override suspend fun obtenerUsuarioPorRol(rol: String): Usuario? = db.usuarioDao().obtenerPorRol(rol)
     override suspend fun obtenerServicio(id: Int): Servicio? = db.servicioDao().obtener(id)
 

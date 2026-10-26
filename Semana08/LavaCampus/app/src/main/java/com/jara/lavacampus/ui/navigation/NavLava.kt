@@ -218,6 +218,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                     onBandeja = { nav.navigate(Rutas.bandeja()) },
                     onVerListos = { nav.navigate(Rutas.bandeja("LISTO")) },
                     onServicios = { nav.navigate(Rutas.SERVICIOS) },
+                    onAtrasados = { nav.navigate(Rutas.bandeja("ATRASADOS")) },
                     onClientes = { nav.navigate(Rutas.CLIENTES) },
                     onAjustes = { nav.navigate(Rutas.AJUSTES) },
                     cerrandoSesion = cargando,

@@ -1,6 +1,8 @@
 package com.jara.lavacampus.viewmodel
 
 import androidx.compose.ui.graphics.Color
+import com.jara.lavacampus.model.RelojCampus
+import kotlinx.coroutines.flow.flatMapLatest
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jara.lavacampus.data.local.relation.PedidoConDetalle
@@ -23,6 +25,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class PanelViewModel(repo: LavaRepository) : ViewModel() {
     val hoy: String = LocalDate.now().toString()
     val inicioSemana: String = LocalDate.now()
@@ -30,7 +33,7 @@ class PanelViewModel(repo: LavaRepository) : ViewModel() {
 
     private val fuentes = MutableStateFlow(emptySet<String>())
     private val errores = MutableStateFlow(emptySet<String>())
-    val cargando: StateFlow<Boolean> = fuentes.map { it.size < 8 }
+    val cargando: StateFlow<Boolean> = fuentes.map { it.size < 9 }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
     val error: StateFlow<String?> = errores.map { nombres ->
         if (nombres.isEmpty()) null else "No se pudo cargar: ${nombres.joinToString()}. Vuelve a abrir el panel."
@@ -49,6 +52,7 @@ class PanelViewModel(repo: LavaRepository) : ViewModel() {
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), inicial)
 
+    val atrasados: StateFlow<Int> = seguir(RelojCampus.hoy().flatMapLatest { repo.observarIdsAtrasados(it) }.map { it.size }, "atrasados", 0)
     val pedidosHoy: StateFlow<Int> = seguir(repo.observarPedidosDeFecha(hoy), "pedidos de hoy", 0)
     val enProceso: StateFlow<Int> = seguir(repo.observarCantidadPorEstado(EstadoPedido.EN_PROCESO), "en proceso", 0)
     val porRecoger: StateFlow<Int> = seguir(repo.observarCantidadPorEstado(EstadoPedido.LISTO), "por recoger", 0)

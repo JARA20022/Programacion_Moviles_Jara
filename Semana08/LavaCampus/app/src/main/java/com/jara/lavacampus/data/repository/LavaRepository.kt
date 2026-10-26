@@ -10,6 +10,8 @@ import com.jara.lavacampus.model.LineaPedido
 import kotlinx.coroutines.flow.Flow
 
 interface LavaRepository {
+    fun observarIdsAtrasados(hoy: String): Flow<List<Int>>
+
     suspend fun obtenerUsuarioPorRol(rol: String): Usuario?
     suspend fun obtenerServicio(id: Int): Servicio?
 
