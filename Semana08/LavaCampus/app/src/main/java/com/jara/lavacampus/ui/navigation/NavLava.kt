@@ -73,7 +73,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                     vm = inicio,
                     onPerfil = { nav.navigate(Rutas.PERFIL) },
                     recibirPedidos = recibirPedidos,
-                    onNuevoPedido = { nav.navigate(Rutas.NUEVO_PEDIDO) },
+                    onNuevoPedido = { nav.navigate(Rutas.nuevoPedido()) },
                     onMisPedidos = { nav.navigate(Rutas.MIS_PEDIDOS) },
                     onTarifas = { nav.navigate(Rutas.TARIFAS) },
                     onDetalle = { id -> nav.navigate(Rutas.detallePedido(id)) },
@@ -85,11 +85,12 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 SplashSesion()
             }
         }
-        composable(Rutas.NUEVO_PEDIDO) {
+        composable(Rutas.NUEVO_PEDIDO,arguments=listOf(navArgument("origen"){type=NavType.IntType;defaultValue=0})) { entrada ->
+            val origen=entrada.arguments?.getInt("origen")?.takeIf{it>0}
             val actual = usuario
             if (actual != null && actual.rol == Rol.CLIENTE.name) {
-                val factory = remember(actual.id) { LavaViewModelFactory(app, actual) }
-                val nuevo: NuevoPedidoViewModel = viewModel(key = "nuevo-${actual.id}", factory = factory)
+                val factory = remember(actual.id,origen) { LavaViewModelFactory(app, actual, pedidoOrigenId=origen) }
+                val nuevo: NuevoPedidoViewModel = viewModel(key = "nuevo-${actual.id}-$origen", factory = factory)
                 NuevoPedidoScreen(
                     vm = nuevo,
                     onVolver = { nav.popBackStack() },
@@ -110,9 +111,10 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 MisPedidosScreen(
                     vm = pedidos,
                     onVolver = { nav.popBackStack() },
-                    onNuevoPedido = { nav.navigate(Rutas.NUEVO_PEDIDO) },
+                    onNuevoPedido = { nav.navigate(Rutas.nuevoPedido()) },
                     onDetalle = { id -> nav.navigate(Rutas.detallePedido(id)) },
-                    onTarifas = { nav.navigate(Rutas.TARIFAS) }
+                    onTarifas = { nav.navigate(Rutas.TARIFAS) },
+                    onRepetir = { id -> nav.navigate(Rutas.nuevoPedido(id)) }
                 )
             } else {
                 SplashSesion()

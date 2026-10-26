@@ -10,7 +10,8 @@ class LavaViewModelFactory(
     private val estudiante: Usuario? = null,
     private val pedidoId: Int? = null,
     private val filtroInicial: String = "TODOS",
-    private val servicioId: Int = 0
+    private val servicioId: Int = 0,
+    private val pedidoOrigenId: Int? = null
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -31,7 +32,8 @@ class LavaViewModelFactory(
             return NuevoPedidoViewModel(
                 requireNotNull(estudiante) { "Nuevo pedido requiere un estudiante autenticado." },
                 app.repository,
-                app.preferencias
+                app.preferencias,
+                pedidoOrigenId
             ) as T
         }
         if (modelClass.isAssignableFrom(DetallePedidoViewModel::class.java)) {
