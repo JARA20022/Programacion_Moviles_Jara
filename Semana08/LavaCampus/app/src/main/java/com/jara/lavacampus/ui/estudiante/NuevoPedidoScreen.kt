@@ -57,6 +57,8 @@ fun NuevoPedidoScreen(vm: NuevoPedidoViewModel, onVolver: () -> Unit, onCreado: 
                 Text("Elige el servicio y ajusta la cantidad. El resumen se actualiza al instante.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
+        estado.aviso?.let { item { Text(it,color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.SemiBold) } }
+        if(estado.cargandoRepeticion) item { CircularProgressIndicator() }
         if (!estado.recibirPedidos) {
             item { Text("La lavandería no está recibiendo pedidos", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold) }
         }
@@ -85,7 +87,7 @@ fun NuevoPedidoScreen(vm: NuevoPedidoViewModel, onVolver: () -> Unit, onCreado: 
                         minimo = 1.0,
                         maximo = if (esKg) 10.0 else 30.0,
                         onCambio = { delta -> vm.cambiarCantidad(servicio.id, delta) },
-                        habilitado = !estado.guardando && estado.pedidoCreado == null,
+                        habilitado = !estado.cargandoRepeticion && !estado.guardando && estado.pedidoCreado == null,
                         servicio = servicio.nombre
                     )
                     if (cantidad > 0.0) Text("Subtotal: ${importeSoles(Validaciones.subtotal(cantidad, servicio.precio))}", color = MaterialTheme.colorScheme.primary)
@@ -99,7 +101,7 @@ fun NuevoPedidoScreen(vm: NuevoPedidoViewModel, onVolver: () -> Unit, onCreado: 
                 label = { Text("Nota para la lavandería (opcional)") },
                 supportingText = { Text("${estado.nota.length}/300") },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = !estado.guardando && estado.pedidoCreado == null,
+                enabled = !estado.cargandoRepeticion && !estado.guardando && estado.pedidoCreado == null,
                 minLines = 2,
                 maxLines = 4,
                 shape = RoundedCornerShape(16.dp)

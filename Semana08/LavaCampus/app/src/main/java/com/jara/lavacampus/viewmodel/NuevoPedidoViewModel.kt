@@ -9,6 +9,7 @@ import com.jara.lavacampus.data.prefs.PreferenciasStore
 import com.jara.lavacampus.model.LineaPedido
 import com.jara.lavacampus.model.Validaciones
 import com.jara.lavacampus.model.PreciosCampus
+import com.jara.lavacampus.model.RepetirPedido
 import java.time.DayOfWeek
 import java.time.LocalDate
 import kotlin.math.ceil
@@ -29,23 +30,27 @@ data class NuevoPedidoEstado(
     val descuento: Double = 0.0,
     val fechaEntrega: String? = null,
     val cargando: Boolean = true,
+    val cargandoRepeticion: Boolean = false,
+    val aviso: String? = null,
     val guardando: Boolean = false,
     val recibirPedidos: Boolean = false,
     val error: String? = null,
     val pedidoCreado: Long? = null
 ) {
     val puedeConfirmar: Boolean
-        get() = recibirPedidos && !cargando && !guardando && pedidoCreado == null && cantidades.values.any { it > 0.0 }
+        get() = recibirPedidos && !cargando && !cargandoRepeticion && !guardando && pedidoCreado == null && cantidades.values.any { it > 0.0 }
 }
 
 class NuevoPedidoViewModel(
     private val estudiante: Usuario,
     private val repo: LavaRepository,
-    private val preferencias: PreferenciasStore
+    private val preferencias: PreferenciasStore,
+    private val pedidoOrigenId: Int? = null
 ) : ViewModel() {
-    private val _estado = MutableStateFlow(NuevoPedidoEstado())
+    private val _estado = MutableStateFlow(NuevoPedidoEstado(cargandoRepeticion = pedidoOrigenId != null))
     val estado = _estado.asStateFlow()
 
+    private var repeticionPendiente = pedidoOrigenId != null
     init {
         viewModelScope.launch {
             preferencias.recibirPedidos.catch { e ->
@@ -65,8 +70,23 @@ class NuevoPedidoViewModel(
                 }
                 .collect { servicios ->
                     _estado.value = recalcular(_estado.value.copy(servicios = servicios, cargando = false))
+                    if(repeticionPendiente){repeticionPendiente=false;cargarRepeticion(requireNotNull(pedidoOrigenId))}
                 }
         }
+    }
+
+    private suspend fun cargarRepeticion(id:Int) {
+        try {
+            require(id>0){"Pedido de origen inválido."}
+            val original=requireNotNull(repo.obtenerPedido(id)){"El pedido original ya no existe."}
+            val borrador=RepetirPedido.preparar(original,estudiante.id,_estado.value.servicios)
+            val aviso=if(borrador.cantidades.isEmpty()) "No quedan servicios disponibles para repetir este pedido. Elige otros."
+                else "Pedido #$id cargado con precios actuales. Revisa y confirma." + (if(borrador.omitidos>0) " Se omitieron ${borrador.omitidos} servicios no disponibles o con cantidades incompatibles." else "")
+            _estado.value=recalcular(_estado.value.copy(cantidades=borrador.cantidades,nota=borrador.nota,aviso=aviso))
+        } catch(e:CancellationException){throw e
+        } catch(e:IllegalArgumentException){_estado.value=_estado.value.copy(error=e.message)
+        } catch(e:Exception){_estado.value=_estado.value.copy(error="No se pudo recuperar el pedido. Vuelve a intentarlo.")
+        } finally {_estado.value=_estado.value.copy(cargandoRepeticion=false)}
     }
 
     private fun recalcular(actual: NuevoPedidoEstado): NuevoPedidoEstado {
@@ -84,7 +104,7 @@ class NuevoPedidoViewModel(
 
     fun cambiarCantidad(servicioId: Int, delta: Double) {
         val actual = _estado.value
-        if (actual.cargando || actual.guardando || actual.pedidoCreado != null) return
+        if (actual.cargando || actual.cargandoRepeticion || actual.guardando || actual.pedidoCreado != null) return
         val servicio = actual.servicios.firstOrNull { it.id == servicioId } ?: return
         val esKg = servicio.unidad == "KG"
         val paso = if (esKg) 0.5 else 1.0
@@ -102,7 +122,7 @@ class NuevoPedidoViewModel(
     }
 
     fun cambiarNota(nota: String) {
-        if (!_estado.value.guardando && _estado.value.pedidoCreado == null) {
+        if (!_estado.value.cargandoRepeticion && !_estado.value.guardando && _estado.value.pedidoCreado == null) {
             val errorNota = Validaciones.errorTexto(nota, "La nota")
             if (errorNota != null) { _estado.value = _estado.value.copy(error = errorNota); return }
             _estado.value = _estado.value.copy(nota = nota, error = null)

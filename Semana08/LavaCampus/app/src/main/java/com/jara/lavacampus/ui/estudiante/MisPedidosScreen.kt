@@ -41,7 +41,8 @@ fun MisPedidosScreen(
     onVolver: () -> Unit,
     onNuevoPedido: () -> Unit,
     onDetalle: (Int) -> Unit,
-    onTarifas: () -> Unit
+    onTarifas: () -> Unit,
+    onRepetir: (Int) -> Unit
 ) {
     val activos by vm.activos.collectAsStateWithLifecycle()
     val historial by vm.historial.collectAsStateWithLifecycle()
@@ -98,6 +99,9 @@ fun MisPedidosScreen(
             items(lista, key = { it.pedido.id }) { pedido ->
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     PedidoCard(pedido = pedido, onClick = { if (cancelandoId == null) onDetalle(pedido.pedido.id) })
+                    if(pedido.pedido.estado in listOf("ENTREGADO","CANCELADO")) {
+                        TextButton(onClick={onRepetir(pedido.pedido.id)},enabled=cancelandoId==null){Text("Pedir de nuevo →")}
+                    }
                     if (pedido.pedido.estado == EstadoPedido.RECIBIDO.name) {
                         TextButton(onClick = { confirmarId = pedido.pedido.id }, enabled = cancelandoId == null) {
                             Text(if (cancelandoId == pedido.pedido.id) "Cancelando…" else "Cancelar pedido")
