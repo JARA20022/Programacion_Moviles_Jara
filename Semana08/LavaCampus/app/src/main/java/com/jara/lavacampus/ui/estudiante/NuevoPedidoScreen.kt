@@ -119,6 +119,9 @@ fun NuevoPedidoScreen(vm: NuevoPedidoViewModel, onVolver: () -> Unit, onCreado: 
                         val numero = if (servicio.unidad == "KG") String.format(Locale.US, "%.1f kg", cantidad) else "${cantidad.toInt()} ${if (servicio.unidad == "PRENDA") "prendas" else "unidades"}"
                         Text("${servicio.nombre} · $numero\n${importeSoles(Validaciones.subtotal(cantidad, servicio.precio))}")
                     }
+                    Text("Subtotal: ${importeSoles(estado.subtotal)}")
+                    if(estado.descuento>0.0) Text("Ahorro por volumen: −${importeSoles(estado.descuento)}",color=Color(0xFFB8F397),fontWeight=FontWeight.Bold)
+                    Text("Más de 5 kg: 10 % de descuento solo en lavado por kilo.",style=MaterialTheme.typography.bodySmall)
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Total", style = MaterialTheme.typography.titleLarge)
                         Text(importeSoles(estado.total), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)

@@ -8,6 +8,7 @@ import com.jara.lavacampus.data.repository.LavaRepository
 import com.jara.lavacampus.data.prefs.PreferenciasStore
 import com.jara.lavacampus.model.LineaPedido
 import com.jara.lavacampus.model.Validaciones
+import com.jara.lavacampus.model.PreciosCampus
 import java.time.DayOfWeek
 import java.time.LocalDate
 import kotlin.math.ceil
@@ -24,6 +25,8 @@ data class NuevoPedidoEstado(
     val cantidades: Map<Int, Double> = emptyMap(),
     val nota: String = "",
     val total: Double = 0.0,
+    val subtotal: Double = 0.0,
+    val descuento: Double = 0.0,
     val fechaEntrega: String? = null,
     val cargando: Boolean = true,
     val guardando: Boolean = false,
@@ -70,13 +73,13 @@ class NuevoPedidoViewModel(
         val idsActivos = actual.servicios.map { it.id }.toSet()
         val cantidades = actual.cantidades.filter { (id, cantidad) -> id in idsActivos && cantidad > 0.0 }
         val elegidos = actual.servicios.filter { it.id in cantidades }
-        val total = Validaciones.total(elegidos.map { Validaciones.subtotal(cantidades.getValue(it.id), it.precio) })
+        val precio = PreciosCampus.calcular(elegidos, cantidades)
         val fecha = elegidos.maxOfOrNull { it.horasEntrega }?.let { horas ->
             var entrega = LocalDate.now().plusDays(ceil(horas / 24.0).toLong())
             if (entrega.dayOfWeek == DayOfWeek.SUNDAY) entrega = entrega.plusDays(1)
             entrega.toString()
         }
-        return actual.copy(cantidades = cantidades, total = total, fechaEntrega = fecha)
+        return actual.copy(cantidades = cantidades, subtotal = precio.subtotal, descuento = precio.descuento, total = precio.total, fechaEntrega = fecha)
     }
 
     fun cambiarCantidad(servicioId: Int, delta: Double) {

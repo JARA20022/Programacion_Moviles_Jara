@@ -89,6 +89,7 @@ fun GestionPedidoScreen(vm: GestionPedidoViewModel, onVolver: () -> Unit) {
                     actual.detalles.forEach { linea ->
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(linea.servicio.nombre, fontWeight = FontWeight.Bold)
+                            if(linea.detalle.descuento>0.0) Text("Descuento aplicado: ${importeSoles(linea.detalle.descuento)}")
                             Text("${linea.detalle.cantidad} ${linea.servicio.unidad.lowercase()} × ${importeSoles(linea.detalle.precioUnitario)} = ${importeSoles(linea.detalle.subtotal)}")
                         }
                     }
@@ -127,6 +128,7 @@ fun GestionPedidoScreen(vm: GestionPedidoViewModel, onVolver: () -> Unit) {
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
                 ) {
                     Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        if(pedido.descuento>0.0) Text("Subtotal: ${importeSoles(pedido.subtotal)} · Ahorro: ${importeSoles(pedido.descuento)}")
                         Text("Total: ${importeSoles(pedido.total)}", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Text("Cobrado", style = MaterialTheme.typography.titleMedium)
