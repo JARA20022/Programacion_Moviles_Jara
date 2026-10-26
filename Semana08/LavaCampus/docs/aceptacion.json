@@ -1,0 +1,79 @@
+{
+    "version":  1,
+    "commitCodigo":  "f8050439c111069d76bba2e5c8d97ffde280da29",
+    "tipo":  "Verificacion manual en emulador",
+    "pruebas":  [
+                    {
+                        "id":  1,
+                        "nombre":  "Clave incorrecta: rechaza el acceso",
+                        "resultado":  "APROBADA",
+                        "fecha":  "2026-10-24T08:56:24.5338736-05:00"
+                    },
+                    {
+                        "id":  2,
+                        "nombre":  "Pedido sin servicios: Confirmar deshabilitado",
+                        "resultado":  "APROBADA",
+                        "fecha":  "2026-10-24T08:56:24.7923074-05:00"
+                    },
+                    {
+                        "id":  3,
+                        "nombre":  "3.5 kg + 5 prendas: S/40.50 y fecha correcta",
+                        "resultado":  "APROBADA",
+                        "fecha":  "2026-10-24T08:56:25.1141064-05:00"
+                    },
+                    {
+                        "id":  4,
+                        "nombre":  "Cuarto pedido activo: rechazado",
+                        "resultado":  "APROBADA",
+                        "fecha":  "2026-10-24T08:56:25.3851276-05:00"
+                    },
+                    {
+                        "id":  5,
+                        "nombre":  "Estudiante no cancela EN_PROCESO",
+                        "resultado":  "APROBADA",
+                        "fecha":  "2026-10-24T08:56:25.6535621-05:00"
+                    },
+                    {
+                        "id":  6,
+                        "nombre":  "Listo sin casillero: rechazado",
+                        "resultado":  "APROBADA",
+                        "fecha":  "2026-10-24T08:56:25.9242960-05:00"
+                    },
+                    {
+                        "id":  7,
+                        "nombre":  "Casillero ocupado: gris y deshabilitado",
+                        "resultado":  "APROBADA",
+                        "fecha":  "2026-10-24T08:56:26.1671261-05:00"
+                    },
+                    {
+                        "id":  8,
+                        "nombre":  "Entregar exige cobro; cobrado permite entregar",
+                        "resultado":  "APROBADA",
+                        "fecha":  "2026-10-24T08:56:26.4631951-05:00"
+                    },
+                    {
+                        "id":  9,
+                        "nombre":  "Seguimiento actualiza sin cerrar la pantalla",
+                        "resultado":  "APROBADA",
+                        "fecha":  "2026-10-24T08:56:27.0610742-05:00"
+                    },
+                    {
+                        "id":  10,
+                        "nombre":  "Ingresos coinciden con pedidos pagados desde el lunes",
+                        "resultado":  "APROBADA",
+                        "fecha":  "2026-10-24T08:56:27.4075197-05:00"
+                    },
+                    {
+                        "id":  11,
+                        "nombre":  "Servicio usado no se elimina",
+                        "resultado":  "APROBADA",
+                        "fecha":  "2026-10-24T08:56:27.6770311-05:00"
+                    },
+                    {
+                        "id":  12,
+                        "nombre":  "Pedidos, perfil y modo oscuro persisten al reabrir",
+                        "resultado":  "APROBADA",
+                        "fecha":  "2026-10-24T08:56:28.4028906-05:00"
+                    }
+                ]
+}

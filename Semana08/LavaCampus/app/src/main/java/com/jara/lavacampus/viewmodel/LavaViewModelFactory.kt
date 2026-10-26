@@ -1,0 +1,67 @@
+package com.jara.lavacampus.viewmodel
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import com.jara.lavacampus.LavaApp
+import com.jara.lavacampus.data.local.entity.Usuario
+
+class LavaViewModelFactory(
+    private val app: LavaApp,
+    private val estudiante: Usuario? = null,
+    private val pedidoId: Int? = null,
+    private val filtroInicial: String = "TODOS",
+    private val servicioId: Int = 0
+) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(SesionViewModel::class.java)) {
+            return SesionViewModel(
+                app.repository,
+                app.preferencias,
+                app::esperarDatosIniciales
+            ) as T
+        }
+        if (modelClass.isAssignableFrom(InicioViewModel::class.java)) {
+            return InicioViewModel(
+                requireNotNull(estudiante) { "Inicio requiere un estudiante autenticado." },
+                app.repository
+            ) as T
+        }
+        if (modelClass.isAssignableFrom(NuevoPedidoViewModel::class.java)) {
+            return NuevoPedidoViewModel(
+                requireNotNull(estudiante) { "Nuevo pedido requiere un estudiante autenticado." },
+                app.repository,
+                app.preferencias
+            ) as T
+        }
+        if (modelClass.isAssignableFrom(DetallePedidoViewModel::class.java)) {
+            return DetallePedidoViewModel(
+                requireNotNull(pedidoId) { "Detalle requiere el identificador del pedido." },
+                requireNotNull(estudiante) { "Detalle requiere un estudiante autenticado." },
+                app.repository
+            ) as T
+        }
+        if (modelClass.isAssignableFrom(MisPedidosViewModel::class.java)) {
+            return MisPedidosViewModel(
+                requireNotNull(estudiante) { "Mis pedidos requiere un estudiante autenticado." },
+                app.repository
+            ) as T
+        }
+        if (modelClass.isAssignableFrom(PanelViewModel::class.java)) {
+            return PanelViewModel(app.repository) as T
+        }
+        if (modelClass.isAssignableFrom(BandejaViewModel::class.java)) {
+            return BandejaViewModel(app.repository, filtroInicial) as T
+        }
+        if (modelClass.isAssignableFrom(GestionPedidoViewModel::class.java)) {
+            return GestionPedidoViewModel(requireNotNull(pedidoId), app.repository) as T
+        }
+        if (modelClass.isAssignableFrom(ServiciosViewModel::class.java)) {
+            return ServiciosViewModel(app.repository, servicioId) as T
+        }
+        if (modelClass.isAssignableFrom(ClientesViewModel::class.java)) {
+            return ClientesViewModel(app.repository) as T
+        }
+        throw IllegalArgumentException("ViewModel no registrado: ${modelClass.name}")
+    }
+}

@@ -1,0 +1,38 @@
+package com.jara.lavacampus.data.local.dao
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.Query
+import com.jara.lavacampus.data.local.entity.DetallePedido
+import com.jara.lavacampus.model.IngresoServicio
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface DetalleDao {
+
+    @Insert
+    suspend fun insertarTodos(lista: List<DetallePedido>)
+
+    @Query(
+        "SELECT COUNT(*) FROM detalles_pedido WHERE servicioId = :servicioId"
+    )
+    suspend fun contarPorServicio(servicioId: Int): Int
+
+    @Query(
+        """
+        SELECT
+            s.nombre AS nombre,
+            SUM(d.subtotal) AS total
+        FROM detalles_pedido AS d
+        INNER JOIN servicios AS s ON d.servicioId = s.id
+        INNER JOIN pedidos AS p ON d.pedidoId = p.id
+        WHERE p.pagado = 1
+          AND p.fechaRegistro >= :fechaInicio
+        GROUP BY s.id, s.nombre
+        ORDER BY total DESC
+        """
+    )
+    fun observarIngresosPorServicio(
+        fechaInicio: String
+    ): Flow<List<IngresoServicio>>
+}
