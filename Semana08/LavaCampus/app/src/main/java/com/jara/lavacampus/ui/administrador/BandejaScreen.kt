@@ -37,6 +37,7 @@ import com.jara.lavacampus.viewmodel.FiltroBandeja
 
 @Composable
 fun BandejaScreen(vm: BandejaViewModel, onVolver: () -> Unit, onGestion: (Int) -> Unit) {
+    val atrasados by vm.atrasados.collectAsStateWithLifecycle()
     val pedidos by vm.pedidos.collectAsStateWithLifecycle()
     val filtro by vm.filtro.collectAsStateWithLifecycle()
     val busqueda by vm.busqueda.collectAsStateWithLifecycle()
@@ -78,13 +79,14 @@ fun BandejaScreen(vm: BandejaViewModel, onVolver: () -> Unit, onGestion: (Int) -
                 onClick = { if (ocupadoId == null) onGestion(pedido.id) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 8.dp, bottomEnd = 24.dp, bottomStart = 8.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                colors = CardDefaults.cardColors(containerColor = if (pedido.id in atrasados) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surface)
             ) {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("#${pedido.id.toString().padStart(3, '0')}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                         EstadoPedidoChip(estado)
                     }
+                    if (pedido.id in atrasados) Text("ATRASADO · requiere atención", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
                     Text(datos.usuario.nombre, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Text(datos.usuario.codigo, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     datos.detalles.forEach { linea ->

@@ -1,6 +1,9 @@
 package com.jara.lavacampus.viewmodel
 
 import com.jara.lavacampus.model.Validaciones
+import com.jara.lavacampus.model.RelojCampus
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jara.lavacampus.data.local.relation.PedidoConDetalle
@@ -19,10 +22,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 enum class FiltroBandeja(val titulo: String, val estado: EstadoPedido?) {
-    TODOS("Todos", null), RECIBIDO("Recibido", EstadoPedido.RECIBIDO),
+    TODOS("Todos", null), ATRASADOS("Atrasados", null), RECIBIDO("Recibido", EstadoPedido.RECIBIDO),
     EN_PROCESO("En proceso", EstadoPedido.EN_PROCESO), LISTO("Listo", EstadoPedido.LISTO)
 }
 
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class BandejaViewModel(private val repo: LavaRepository, filtroInicial: String = "TODOS") : ViewModel() {
     private val _filtro = MutableStateFlow(FiltroBandeja.entries.firstOrNull { it.name == filtroInicial } ?: FiltroBandeja.TODOS)
     val filtro = _filtro.asStateFlow()
@@ -37,6 +41,11 @@ class BandejaViewModel(private val repo: LavaRepository, filtroInicial: String =
     private val _ocupadoId = MutableStateFlow<Int?>(null)
     val ocupadoId = _ocupadoId.asStateFlow()
 
+    val atrasados: StateFlow<Set<Int>> = RelojCampus.hoy().flatMapLatest { repo.observarIdsAtrasados(it) }
+        .map { it.toSet() }.catch { e ->
+            if(e is CancellationException) throw e
+            _error.value = "No se pudieron consultar los atrasados."; emit(emptySet())
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
     private val todos = repo.observarPedidos()
         .catch { e ->
             if (e is CancellationException) throw e
@@ -45,11 +54,12 @@ class BandejaViewModel(private val repo: LavaRepository, filtroInicial: String =
         }
         .onEach { _cargando.value = false }
 
-    val pedidos: StateFlow<List<PedidoConDetalle>> = combine(todos, filtro, busqueda) { lista, elegido, texto ->
+    val pedidos: StateFlow<List<PedidoConDetalle>> = combine(todos, filtro, busqueda, atrasados) { lista, elegido, texto, vencidos ->
         val consulta = normalizar(texto.trim())
         val numero = consulta.removePrefix("#")
         lista.filter { datos ->
             (elegido.estado == null || datos.pedido.estado == elegido.estado.name) &&
+                (elegido != FiltroBandeja.ATRASADOS || datos.pedido.id in vencidos) &&
                 (consulta.isBlank() || normalizar(datos.usuario.nombre).contains(consulta) ||
                     (numero.isNotBlank() && (datos.pedido.id.toString().contains(numero) || datos.pedido.id.toString().padStart(3, '0').contains(numero))))
         }

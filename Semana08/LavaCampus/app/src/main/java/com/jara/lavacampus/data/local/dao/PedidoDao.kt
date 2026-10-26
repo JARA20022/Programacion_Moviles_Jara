@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PedidoDao {
+    @Query("SELECT id FROM pedidos WHERE fechaEntrega < :hoy AND estado NOT IN ('ENTREGADO', 'CANCELADO') ORDER BY fechaEntrega, id")
+    fun observarIdsAtrasados(hoy: String): Flow<List<Int>>
+
     @Transaction
     @Query("SELECT * FROM pedidos WHERE id = :id")
     suspend fun obtenerConDetalle(id: Int): PedidoConDetalle?

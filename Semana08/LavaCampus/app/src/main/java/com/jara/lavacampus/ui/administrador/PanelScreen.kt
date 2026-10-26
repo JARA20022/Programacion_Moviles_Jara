@@ -43,11 +43,13 @@ fun PanelScreen(
     onBandeja: () -> Unit,
     onVerListos: () -> Unit,
     onServicios: () -> Unit,
+    onAtrasados: () -> Unit,
     onClientes: () -> Unit,
     onAjustes: () -> Unit,
     cerrandoSesion: Boolean = false,
     errorSesion: String? = null
 ) {
+    val atrasados by vm.atrasados.collectAsStateWithLifecycle()
     val hoy by vm.pedidosHoy.collectAsStateWithLifecycle()
     val proceso by vm.enProceso.collectAsStateWithLifecycle()
     val recoger by vm.porRecoger.collectAsStateWithLifecycle()
@@ -88,6 +90,9 @@ fun PanelScreen(
                 }
             }
         }
+        item { Card(onClick=onAtrasados,modifier=Modifier.fillMaxWidth(),colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.errorContainer)) {
+            Column(Modifier.padding(20.dp)) { Text("$atrasados pedidos atrasados",fontWeight=FontWeight.Bold);Text("Ver entregas vencidas →") }
+        } }
         if (cargando) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
         error?.let { item { Text(it, color = MaterialTheme.colorScheme.error) } }
         errorSesion?.let { item { Text(it, color = MaterialTheme.colorScheme.error) } }
