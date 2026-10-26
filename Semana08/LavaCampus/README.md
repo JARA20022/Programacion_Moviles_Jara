@@ -1,5 +1,8 @@
 # LavaCampus
 
+> **mejora-ia:** atrasados, descuento por volumen, repetir pedido y diseño Estudio Textil. Ver [mejoras](docs/MEJORAS_IA.md), [pruebas](docs/PRUEBAS_IA.md) y [prompts](PROMPTS.md). Las capturas de abajo corresponden a main; genera las nuevas con el modo `-Capturas` del script.
+
+
 Aplicación Android de lavandería universitaria desarrollada en Kotlin, Jetpack Compose y Material 3, con arquitectura MVVM + Repository, persistencia Room y preferencias DataStore.
 
 **Autor / repositorio:** [JARA20022](https://github.com/JARA20022/Programacion_Moviles_Jara). Proyecto: `Semana08/LavaCampus`. Paquete: `com.jara.lavacampus`.
@@ -143,7 +146,7 @@ Las pantallas muestran estado y envían eventos; no ejecutan consultas. Los View
 
 El alta de un pedido y sus detalles es atómica. En la gestión administrativa, la lectura del estado, la comprobación del casillero y la escritura se realizan en una transacción. Las relaciones conectan usuarios, pedidos, detalles y servicios sin copiar sus listas dentro de una entidad.
 
-## Capturas
+## Capturas de la fase 1 (main)
 
 Las siguientes imágenes deben capturarse del emulador con la aplicación ejecutándose. No son imágenes de referencia del PDF.
 
