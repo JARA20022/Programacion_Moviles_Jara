@@ -1,5 +1,6 @@
 package com.jara.lavacampus.data.local.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -32,5 +33,7 @@ data class DetallePedido(
     val servicioId: Int,
     val cantidad: Double,
     val precioUnitario: Double,
-    val subtotal: Double
+    val subtotal: Double,
+    @ColumnInfo(defaultValue = "0")
+    val descuento: Double = 0.0
 )

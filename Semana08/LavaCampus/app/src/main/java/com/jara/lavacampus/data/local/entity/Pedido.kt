@@ -1,5 +1,6 @@
 package com.jara.lavacampus.data.local.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -30,5 +31,9 @@ data class Pedido(
     val casillero: String? = null,
     val pagado: Boolean = false,
     val nota: String = "",
-    val fechaCreacion: Long = System.currentTimeMillis()
+    val fechaCreacion: Long = System.currentTimeMillis(),
+    @ColumnInfo(defaultValue = "0")
+    val descuento: Double = 0.0,
+    @ColumnInfo(defaultValue = "0")
+    val subtotal: Double = total
 )

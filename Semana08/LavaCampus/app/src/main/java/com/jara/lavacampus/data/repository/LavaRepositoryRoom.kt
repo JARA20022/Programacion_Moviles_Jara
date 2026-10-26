@@ -12,6 +12,7 @@ import com.jara.lavacampus.model.EstadoPedido
 import com.jara.lavacampus.model.IngresoServicio
 import com.jara.lavacampus.model.LineaPedido
 import com.jara.lavacampus.model.Validaciones
+import com.jara.lavacampus.model.PreciosCampus
 import java.time.LocalDate
 import kotlinx.coroutines.flow.Flow
 
@@ -104,21 +105,11 @@ class LavaRepositoryRoom(
         val fechaEsperada = Validaciones.fechaEntrega(elegidos.maxOf { it.horasEntrega }).toString()
         require(fechaEntrega == fechaEsperada) { "La fecha de entrega no corresponde a los servicios elegidos." }
 
-        // Los precios se consultan en Room dentro de la transacción.
-        val detallesNuevos = lineas.map { linea ->
-            val servicio = servicios.obtener(linea.servicioId)
-                ?: error("No existe el servicio ${linea.servicioId}.")
-
-            require(servicio.activo) { "Un servicio está inactivo." }
-            require(Validaciones.precioValido(servicio.precio)) { "La tarifa no es válida." }
-            require(Validaciones.cantidadValida(servicio.unidad, linea.cantidad)) { "Cantidad inválida para ${servicio.nombre}." }
-            DetallePedido(
-                pedidoId = 0,
-                servicioId = servicio.id,
-                cantidad = linea.cantidad,
-                precioUnitario = servicio.precio,
-                subtotal = Validaciones.subtotal(linea.cantidad, servicio.precio)
-            )
+        // El total y el descuento se recalculan con tarifas vigentes dentro de Room.
+        val precio = PreciosCampus.calcular(elegidos, lineas.associate { it.servicioId to it.cantidad })
+        val detallesNuevos = precio.lineas.map { linea ->
+            DetallePedido(pedidoId=0,servicioId=linea.servicioId,cantidad=linea.cantidad,
+                precioUnitario=linea.precioUnitario,subtotal=linea.neto,descuento=linea.descuento)
         }
 
         val pedidoId = pedidos.insertar(
@@ -127,7 +118,7 @@ class LavaRepositoryRoom(
                 fechaRegistro = LocalDate.now().toString(),
                 fechaEntrega = fechaEntrega,
                 estado = EstadoPedido.RECIBIDO.name,
-                total = Validaciones.total(detallesNuevos.map { it.subtotal }),
+                total = precio.total, subtotal = precio.subtotal, descuento = precio.descuento,
                 casillero = null,
                 pagado = false,
                 nota = nota.trim()

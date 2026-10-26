@@ -123,10 +123,12 @@ fun DetallePedidoScreen(vm: DetallePedidoViewModel, onVolver: () -> Unit) {
                 Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(linea.servicio.nombre, fontWeight = FontWeight.Bold)
                     Text("$cantidad $unidad × ${importeSoles(d.precioUnitario)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if(d.descuento>0.0) Text("Descuento: −${importeSoles(d.descuento)}",color=MaterialTheme.colorScheme.primary)
                     // Usar los importes históricos, nunca el precio actual del servicio.
                     Text(importeSoles(d.subtotal), style = MaterialTheme.typography.titleMedium)
                 }
             }
+            if(pedido.descuento>0.0) item { Text("Subtotal: ${importeSoles(pedido.subtotal)} · Ahorro: ${importeSoles(pedido.descuento)}",color=MaterialTheme.colorScheme.primary) }
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Total", style = MaterialTheme.typography.headlineSmall)
