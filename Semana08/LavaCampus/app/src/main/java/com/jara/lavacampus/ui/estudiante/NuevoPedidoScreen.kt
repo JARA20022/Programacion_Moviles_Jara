@@ -73,7 +73,7 @@ fun NuevoPedidoScreen(vm: NuevoPedidoViewModel, onVolver: () -> Unit, onCreado: 
             val unidad = when (servicio.unidad) { "KG" -> "kg"; "PRENDA" -> "prenda"; else -> "unidad" }
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 8.dp, bottomEnd = 24.dp, bottomStart = 8.dp),
+                shape = androidx.compose.foundation.shape.CutCornerShape(topEnd=24.dp,bottomStart=10.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -104,7 +104,7 @@ fun NuevoPedidoScreen(vm: NuevoPedidoViewModel, onVolver: () -> Unit, onCreado: 
                 enabled = !estado.cargandoRepeticion && !estado.guardando && estado.pedidoCreado == null,
                 minLines = 2,
                 maxLines = 4,
-                shape = RoundedCornerShape(16.dp)
+                shape = androidx.compose.foundation.shape.CutCornerShape(topEnd=14.dp)
             )
         }
         item {
@@ -114,7 +114,7 @@ fun NuevoPedidoScreen(vm: NuevoPedidoViewModel, onVolver: () -> Unit, onCreado: 
                 colors = CardDefaults.cardColors(containerColor = TintaCampus, contentColor = Color.White)
             ) {
                 Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                    Text("TU RESUMEN", style = MaterialTheme.typography.labelLarge, color = Color(0xFFFFC5AD))
+                    Text("TU RESUMEN", style = MaterialTheme.typography.labelLarge, color = Color(0xFFD6F58A))
                     if (estado.cantidades.isEmpty()) Text("Agrega un servicio para empezar.")
                     estado.servicios.filter { (estado.cantidades[it.id] ?: 0.0) > 0.0 }.forEach { servicio ->
                         val cantidad = estado.cantidades.getValue(servicio.id)
@@ -129,7 +129,7 @@ fun NuevoPedidoScreen(vm: NuevoPedidoViewModel, onVolver: () -> Unit, onCreado: 
                         Text(importeSoles(estado.total), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     }
                     Text(estado.fechaEntrega?.let { "Entrega estimada: ${fechaPedido(it)}" } ?: "Entrega estimada: selecciona un servicio")
-                    Text("Los domingos no hay atención.", style = MaterialTheme.typography.bodySmall, color = Color(0xFFFFC5AD))
+                    Text("Los domingos no hay atención.", style = MaterialTheme.typography.bodySmall, color = Color(0xFFD6F58A))
                 }
             }
         }
@@ -142,7 +142,7 @@ fun NuevoPedidoScreen(vm: NuevoPedidoViewModel, onVolver: () -> Unit, onCreado: 
                 enabled = estado.puedeConfirmar,
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(18.dp),
-                shape = RoundedCornerShape(16.dp),
+                shape = androidx.compose.foundation.shape.CutCornerShape(topEnd=14.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) { Text(if (estado.guardando) "Guardando pedido…" else "Confirmar pedido") }
         }

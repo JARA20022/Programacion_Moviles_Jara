@@ -46,7 +46,7 @@ fun LavaTextField(
         label = { Text(etiqueta) },
         enabled = habilitado,
         singleLine = true,
-        shape = RoundedCornerShape(14.dp),
+        shape = androidx.compose.foundation.shape.CutCornerShape(topEnd=14.dp),
         visualTransformation = if (esClave && !visible) {
             PasswordVisualTransformation()
         } else {

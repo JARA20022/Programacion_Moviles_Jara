@@ -1,5 +1,12 @@
 package com.jara.lavacampus.ui.components
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
@@ -22,11 +29,15 @@ fun LavaButton(
     modifier: Modifier = Modifier,
     cargando: Boolean = false
 ) {
+    val interaction=remember { MutableInteractionSource() }
+    val pulsado by interaction.collectIsPressedAsState()
+    val escala by animateFloatAsState(if(pulsado) .97f else 1f,spring(),label="presion")
     Button(
+        interactionSource=interaction,
         onClick = onClick,
         enabled = !cargando,
-        modifier = modifier.fillMaxWidth().heightIn(min = 56.dp),
-        shape = RoundedCornerShape(16.dp),
+        modifier = modifier.fillMaxWidth().heightIn(min = 56.dp).graphicsLayer{scaleX=escala;scaleY=escala},
+        shape = androidx.compose.foundation.shape.CutCornerShape(topEnd=16.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = color,
             contentColor = Color.White

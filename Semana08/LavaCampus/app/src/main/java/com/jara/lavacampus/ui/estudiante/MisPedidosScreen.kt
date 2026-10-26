@@ -58,6 +58,7 @@ fun MisPedidosScreen(
     val lista = if (pestaña == 0) activos else historial
 
     Scaffold(
+        containerColor = androidx.compose.ui.graphics.Color.Transparent,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
             ExtendedFloatingActionButton(onClick = { if (cancelandoId == null) onNuevoPedido() }) {

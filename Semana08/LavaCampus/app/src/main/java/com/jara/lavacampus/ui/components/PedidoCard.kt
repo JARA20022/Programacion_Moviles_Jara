@@ -1,5 +1,7 @@
 package com.jara.lavacampus.ui.components
 
+import androidx.compose.foundation.shape.CutCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -41,7 +43,7 @@ fun PedidoCard(
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = CutCornerShape(topEnd=22.dp,bottomStart=10.dp),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
@@ -61,7 +63,9 @@ fun PedidoCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            HorizontalDivider(color=MaterialTheme.colorScheme.outlineVariant)
             EstadoPedidoChip(estado)
+            if(datos.descuento>0.0)Text("Ahorraste ${importeSoles(datos.descuento)}",color=MaterialTheme.colorScheme.primary,style=MaterialTheme.typography.labelLarge)
             if (estado == EstadoPedido.LISTO && datos.casillero != null) {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),

@@ -1,5 +1,10 @@
 package com.jara.lavacampus.ui.navigation
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -60,7 +65,10 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
     val cargando by vm.cargando.collectAsStateWithLifecycle()
     val error by vm.error.collectAsStateWithLifecycle()
 
-    NavHost(navController = nav, startDestination = Rutas.SPLASH, modifier = modifier) {
+    NavHost(navController = nav, startDestination = Rutas.SPLASH, modifier = modifier,
+        enterTransition={fadeIn(tween(260))+slideInHorizontally(tween(280)){it/12}},
+        exitTransition={fadeOut(tween(160))},popEnterTransition={fadeIn(tween(220))},
+        popExitTransition={fadeOut(tween(160))+slideOutHorizontally(tween(220)){it/12}}) {
         composable(Rutas.SPLASH) { SplashSesion() }
         composable(Rutas.LOGIN) { LoginScreen(vm) }
 

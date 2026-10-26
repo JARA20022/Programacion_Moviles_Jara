@@ -1,5 +1,6 @@
 package com.jara.lavacampus.ui.estudiante
 
+import com.jara.lavacampus.ui.components.HeroStudio
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -64,32 +65,9 @@ fun LoginScreen(vm: SesionViewModel) {
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
-            Modifier.fillMaxWidth()
-                .background(TintaCampus, RoundedCornerShape(bottomEnd = 64.dp))
-                .padding(horizontal = 28.dp, vertical = 30.dp)
-        ) {
-            Text(
-                "LC / LAVACAMPUS",
-                color = Color(0xFFFFC5AD),
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 2.sp,
-                fontSize = 12.sp
-            )
-            Spacer(Modifier.height(20.dp))
-            Text(
-                "Tu tiempo,\npara ti.",
-                color = Color.White,
-                fontSize = 38.sp,
-                lineHeight = 42.sp,
-                fontWeight = FontWeight.ExtraBold
-            )
-            Spacer(Modifier.height(12.dp))
-            Text(
-                "El cuidado de tu ropa empieza aquí.",
-                color = Color(0xFFD4DAD9),
-                style = MaterialTheme.typography.bodyMedium
-            )
+        HeroStudio("LAVACAMPUS / ESTUDIO DE CUIDADO","Ropa lista.\nTiempo libre.",
+            "Tu lavandería del campus, a tu ritmo.",Modifier.padding(start=22.dp,end=22.dp,top=22.dp)){
+            Text("CUIDA · ESTUDIA · REPITE",style=MaterialTheme.typography.labelMedium,color=Color(0xFFD6F58A))
         }
 
         Column(
@@ -97,7 +75,7 @@ fun LoginScreen(vm: SesionViewModel) {
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Text(
-                "Elige tu acceso",
+                "Bienvenido a tu espacio",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -108,7 +86,7 @@ fun LoginScreen(vm: SesionViewModel) {
                         onClick = { rol = opcion; vm.limpiarError() },
                         enabled = !cargando,
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(16.dp),
+                        shape = androidx.compose.foundation.shape.CutCornerShape(topEnd=18.dp),
                         color = if (seleccionado) colorDelRol(opcion)
                             else MaterialTheme.colorScheme.surface,
                         contentColor = if (seleccionado) Color.White
@@ -158,7 +136,7 @@ fun LoginScreen(vm: SesionViewModel) {
                 )
             }
             LavaButton(
-                texto = "Ingresar",
+                texto = "Entrar a mi espacio →",
                 onClick = ingresar,
                 color = colorDelRol(rol),
                 cargando = cargando

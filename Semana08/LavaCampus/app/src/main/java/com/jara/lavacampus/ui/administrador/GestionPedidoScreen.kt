@@ -68,11 +68,11 @@ fun GestionPedidoScreen(vm: GestionPedidoViewModel, onVolver: () -> Unit) {
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(topStart = 28.dp, topEnd = 8.dp, bottomEnd = 28.dp, bottomStart = 8.dp),
+                    shape = androidx.compose.foundation.shape.CutCornerShape(topEnd=30.dp,bottomStart=10.dp),
                     colors = CardDefaults.cardColors(containerColor = TintaCampus, contentColor = Color.White)
                 ) {
                     Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("GESTIÓN DEL PEDIDO", color = Color(0xFFFFC5AD), style = MaterialTheme.typography.labelLarge)
+                        Text("GESTIÓN DEL PEDIDO", color = Color(0xFFD6F58A), style = MaterialTheme.typography.labelLarge)
                         Text("#${pedido.id.toString().padStart(3, '0')}", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.ExtraBold)
                         EstadoPedidoChip(estado)
                         Text(actual.usuario.nombre, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)

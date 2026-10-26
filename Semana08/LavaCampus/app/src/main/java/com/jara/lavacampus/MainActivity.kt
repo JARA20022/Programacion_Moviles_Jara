@@ -1,6 +1,8 @@
 package com.jara.lavacampus
 
 import android.os.Bundle
+import com.jara.lavacampus.ui.components.StudioFondo
+import androidx.compose.ui.graphics.Color
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -29,11 +31,14 @@ class MainActivity : ComponentActivity() {
             val sesion: SesionViewModel = viewModel(factory = factory)
             val oscuro by sesion.modoOscuro.collectAsStateWithLifecycle()
             LavaCampusTheme(darkTheme = oscuro) {
+                StudioFondo {
                 Scaffold(
+                    containerColor = Color.Transparent,
                     modifier = Modifier.fillMaxSize(),
                     contentWindowInsets = WindowInsets.safeDrawing
                 ) { padding ->
                     NavLava(sesion, Modifier.padding(padding).consumeWindowInsets(padding))
+                }
                 }
             }
         }
