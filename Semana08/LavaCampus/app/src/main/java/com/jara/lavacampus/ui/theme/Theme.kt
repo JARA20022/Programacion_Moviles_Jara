@@ -1,31 +1,46 @@
 package com.jara.lavacampus.ui.theme
+
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.jara.lavacampus.model.Rol
-val TintaCampus=Color(0xFF102A2B)
-val TerracotaCampus=Color(0xFF005D50)
-val IndigoCampus=Color(0xFF244BB4)
-val LimaStudio=Color(0xFFD6F58A)
-fun colorDelRol(rol:Rol):Color=if(rol==Rol.CLIENTE)TerracotaCampus else IndigoCampus
-private val Claro=lightColorScheme(
- primary=TerracotaCampus,onPrimary=Color.White,primaryContainer=Color(0xFFD7F1E9),onPrimaryContainer=TintaCampus,
- secondary=IndigoCampus,onSecondary=Color.White,secondaryContainer=Color(0xFFE1E9FF),onSecondaryContainer=Color(0xFF16274E),
- tertiary=Color(0xFF4D6618),onTertiary=Color.White,
- background=Color(0xFFF0F3ED),onBackground=TintaCampus,surface=Color(0xFFFCFDF8),onSurface=TintaCampus,
- surfaceVariant=Color(0xFFE2E9DF),onSurfaceVariant=Color(0xFF465751),outline=Color(0xFF7A8B82),outlineVariant=Color(0xFFCDD8CE),
- error=Color(0xFFA22B32),onError=Color.White,errorContainer=Color(0xFFFFE3E2),onErrorContainer=Color(0xFF61171C))
-private val Oscuro=darkColorScheme(
- primary=Color(0xFF9DE4CB),onPrimary=Color(0xFF00382F),primaryContainer=Color(0xFF214C43),onPrimaryContainer=Color(0xFFC2F5DF),
- secondary=Color(0xFFB5C8FF),onSecondary=Color(0xFF152B5B),secondaryContainer=Color(0xFF293D63),onSecondaryContainer=Color(0xFFDCE5FF),
- tertiary=LimaStudio,onTertiary=Color(0xFF2A3C08),background=Color(0xFF0D1817),onBackground=Color(0xFFEDF2E8),
- surface=Color(0xFF172724),onSurface=Color(0xFFEDF2E8),surfaceVariant=Color(0xFF2C3D37),onSurfaceVariant=Color(0xFFB6C8BD),
- outline=Color(0xFF80978A),outlineVariant=Color(0xFF3A4E44),error=Color(0xFFFFB4B4),onError=Color(0xFF650A15),errorContainer=Color(0xFF51272C),onErrorContainer=Color(0xFFFFDADB))
-@Composable fun LavaCampusTheme(darkTheme:Boolean=isSystemInDarkTheme(),content:@Composable () -> Unit) {
- MaterialTheme(colorScheme=if(darkTheme)Oscuro else Claro,typography=Typography,
-  shapes=Shapes(extraSmall=RoundedCornerShape(6.dp),small=CutCornerShape(topEnd=12.dp),medium=RoundedCornerShape(20.dp),large=RoundedCornerShape(topStart=28.dp,topEnd=6.dp,bottomEnd=28.dp,bottomStart=6.dp),extraLarge=RoundedCornerShape(28.dp)),content=content)
+
+val TintaCampus = Color(0xFF171324)
+val TerracotaCampus = Color(0xFF7046D2)
+val IndigoCampus = Color(0xFF6452C6)
+val LimaStudio = Color(0xFFE0D5FF)
+val CoralCampus = Color(0xFFFFB49F)
+fun colorDelRol(rol: Rol): Color = if (rol == Rol.CLIENTE) TerracotaCampus else IndigoCampus
+private val Claro = lightColorScheme(
+    primary=Color(0xFF6841C6), onPrimary=Color.White,
+    primaryContainer=Color(0xFFE7DEFF), onPrimaryContainer=Color(0xFF2B1757),
+    secondary=Color(0xFF9C462E), onSecondary=Color.White,
+    secondaryContainer=Color(0xFFFFDAD0), onSecondaryContainer=Color(0xFF451B13),
+    tertiary=Color(0xFF006A60), onTertiary=Color.White,
+    background=Color(0xFFF4F1FA), onBackground=Color(0xFF211B30),
+    surface=Color(0xFFFFFBFF), onSurface=Color(0xFF211B30),
+    surfaceVariant=Color(0xFFEAE4F3), onSurfaceVariant=Color(0xFF625A70),
+    outline=Color(0xFF81768E), outlineVariant=Color(0xFFDBD2E9),
+    error=Color(0xFFAA2C3D), onError=Color.White,
+    errorContainer=Color(0xFFFFDADF), onErrorContainer=Color(0xFF5F1424))
+private val Oscuro = darkColorScheme(
+    primary=Color(0xFFC4AEFF), onPrimary=Color(0xFF27124F),
+    primaryContainer=Color(0xFF392B59), onPrimaryContainer=Color(0xFFEBE0FF),
+    secondary=CoralCampus, onSecondary=Color(0xFF4B2319),
+    secondaryContainer=Color(0xFF4F302A), onSecondaryContainer=Color(0xFFFFDFD5),
+    tertiary=Color(0xFF8FDCC8), onTertiary=Color(0xFF00382F),
+    background=Color(0xFF101018), onBackground=Color(0xFFF5F0FF),
+    surface=Color(0xFF20202E), onSurface=Color(0xFFF5F0FF),
+    surfaceVariant=Color(0xFF2A293C), onSurfaceVariant=Color(0xFFC0B9CE),
+    outline=Color(0xFF91869F), outlineVariant=Color(0xFF40394F),
+    error=Color(0xFFFFA8B8), onError=Color(0xFF5C1427),
+    errorContainer=Color(0xFF482631), onErrorContainer=Color(0xFFFFDDE5))
+@Composable
+fun LavaCampusTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
+    MaterialTheme(colorScheme=if(darkTheme) Oscuro else Claro, typography=Typography,
+        shapes=Shapes(extraSmall=RoundedCornerShape(10.dp),small=RoundedCornerShape(16.dp),
+            medium=RoundedCornerShape(24.dp),large=RoundedCornerShape(30.dp),extraLarge=RoundedCornerShape(36.dp)),content=content)
 }

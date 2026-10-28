@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -35,6 +37,10 @@ fun LavaTextField(
     var visible by remember { mutableStateOf(false) }
     var excedido by remember { mutableStateOf(false) }
     OutlinedTextField(
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor=MaterialTheme.colorScheme.surfaceVariant.copy(alpha=.35f),
+            unfocusedContainerColor=MaterialTheme.colorScheme.surfaceVariant.copy(alpha=.35f),
+            unfocusedBorderColor=MaterialTheme.colorScheme.outlineVariant),
         value = valor,
         onValueChange = { nuevo ->
             excedido = nuevo.length > maxLongitud
@@ -46,7 +52,7 @@ fun LavaTextField(
         label = { Text(etiqueta) },
         enabled = habilitado,
         singleLine = true,
-        shape = androidx.compose.foundation.shape.CutCornerShape(topEnd=14.dp),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
         visualTransformation = if (esClave && !visible) {
             PasswordVisualTransformation()
         } else {

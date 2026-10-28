@@ -68,7 +68,7 @@ fun GestionPedidoScreen(vm: GestionPedidoViewModel, onVolver: () -> Unit) {
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = androidx.compose.foundation.shape.CutCornerShape(topEnd=30.dp,bottomStart=10.dp),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(containerColor = TintaCampus, contentColor = Color.White)
                 ) {
                     Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {

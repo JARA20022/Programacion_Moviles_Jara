@@ -56,7 +56,7 @@ fun TarifasScreen(vm: MisPedidosViewModel, onVolver: () -> Unit) {
         items(servicios, key = { it.id }) { servicio ->
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = androidx.compose.foundation.shape.CutCornerShape(topEnd=24.dp,bottomStart=10.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {

@@ -15,9 +15,9 @@ Base: main `63806c2`. Se conservan las validaciones y las funciones de ambos per
 | 5.5 kg a S/8 | S/44.00 | S/4.40 | S/39.60 |
 | 6 kg a S/8 + 5 prendas a S/2.50 | S/60.50 | S/4.80 | S/55.70 |
 
-## Diseño Estudio Textil
+## Diseño Aurora
 
-Trama de puntos en Canvas, verde petróleo con acentos lima, títulos serif y etiquetas monoespaciadas. Acceso, inicio y panel tienen composiciones nuevas. Tarjetas con esquinas recortadas, transición breve entre pantallas, motivo decorativo que se dibuja una vez y respuesta al pulsar el botón de acceso. Las APIs estándar de Compose respetan la escala de animación del sistema. Se mantiene modo oscuro y desplazamiento para acceder a los formularios con teclado.
+Esta edición sustituye la propuesta Estudio Textil después de la observación del usuario de que se parecía demasiado a main. Usa violeta y coral, tipografía sans serif de mayor tamaño, superficies redondeadas, fondo de grano sutil y motivos orbitales en Canvas. El panel organiza accesos en cuadrícula; el inicio tiene una composición propia y el login ya no usa la cabecera de tarjeta anterior. Hay navegación inferior por rol y confirmación fija en Nuevo pedido. En la primera apertura de Aurora se activa el modo oscuro; después se respeta el selector de apariencia existente. Las funciones, reglas, validaciones, base Room y migración no cambian. Véase [REDISENO_AURORA.md](REDISENO_AURORA.md).
 
 ## Persistencia y validación
 

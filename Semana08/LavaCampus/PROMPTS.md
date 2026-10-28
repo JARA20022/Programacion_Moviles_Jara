@@ -21,3 +21,12 @@
 - Los casos límite y evidencias reales deben comprobarse antes de dar por finalizada una mejora.
 
 Consultar docs/MEJORAS_IA.md y docs/PRUEBAS_IA.md. No se atribuyen al estudiante comprobaciones manuales o aprendizajes que aún no haya confirmado.
+
+
+## Revisión visual solicitada
+
+**Extracto del mensaje real del usuario:** «no le veo diferentecia al de main tedije algo moderno».
+
+**Respuesta implementada:** reemplazar la propuesta visual anterior por Aurora: login, inicio, panel, formulario de pedido y componentes comunes; añadir navegación inferior según rol, filtros redondeados, superficies violeta/coral, textura discreta en Canvas y entradas breves. Mantener las operaciones, consultas, validaciones y migración existentes.
+
+**Revisión técnica:** comprobar rutas y acciones de ambos roles, compilar APK principal y APK de pruebas y ejecutar la suite unitaria existente. Los resultados de interacción y las capturas de esta edición deben registrarse después de probarla en un dispositivo real o emulador; no se asumen aprobados por compilar.

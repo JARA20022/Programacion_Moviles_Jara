@@ -1,6 +1,6 @@
 # LavaCampus
 
-> **mejora-ia:** atrasados, descuento por volumen, repetir pedido y diseño Estudio Textil. Ver [mejoras](docs/MEJORAS_IA.md), [pruebas](docs/PRUEBAS_IA.md) y [prompts](PROMPTS.md). Las capturas de abajo corresponden a main; genera las nuevas con el modo `-Capturas` del script.
+> **mejora-ia:** atrasados, descuento por volumen, repetir pedido y diseño Aurora. Ver [rediseño Aurora](docs/REDISENO_AURORA.md), [mejoras](docs/MEJORAS_IA.md), [pruebas](docs/PRUEBAS_IA.md) y [prompts](PROMPTS.md). Las capturas de abajo corresponden a main; genera las nuevas con el modo `-Capturas` del script.
 
 
 Aplicación Android de lavandería universitaria desarrollada en Kotlin, Jetpack Compose y Material 3, con arquitectura MVVM + Repository, persistencia Room y preferencias DataStore.
@@ -196,4 +196,4 @@ Crear un pedido es una operación puntual: se declara `suspend`, devuelve el ide
 - `main`: implementación base, pasos 0 al 14 del laboratorio, con commits por etapa.
 - `mejora-ia`: fase siguiente, con un mínimo de tres mejoras y `PROMPTS.md`. No queda completada por terminar este README.
 
-El diseño de esta implementación utiliza crema, terracota y carbón, con tarjetas y distribución propios; mantiene la funcionalidad y la estructura solicitadas.
+Las capturas de la fase 1 muestran crema, terracota y carbón. En mejora-ia la edición Aurora utiliza violeta y coral, navegación inferior y una composición nueva; conserva la funcionalidad y estructura del laboratorio.

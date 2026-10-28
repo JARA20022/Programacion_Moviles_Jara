@@ -59,7 +59,7 @@ fun BandejaScreen(vm: BandejaViewModel, onVolver: () -> Unit, onGestion: (Int) -
                 OutlinedTextField(
                     value = busqueda, onValueChange = vm::cambiarBusqueda,
                     label = { Text("Buscar estudiante o número") },
-                    singleLine = true, modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.CutCornerShape(topEnd=14.dp)
+                    singleLine = true, modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp)
                 )
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FiltroBandeja.entries.forEach { opcion ->
@@ -78,7 +78,7 @@ fun BandejaScreen(vm: BandejaViewModel, onVolver: () -> Unit, onGestion: (Int) -
             Card(
                 onClick = { if (ocupadoId == null) onGestion(pedido.id) },
                 modifier = Modifier.fillMaxWidth(),
-                shape = androidx.compose.foundation.shape.CutCornerShape(topEnd=24.dp,bottomStart=10.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = if (pedido.id in atrasados) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surface)
             ) {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {

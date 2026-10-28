@@ -5,6 +5,13 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.jara.lavacampus.ui.components.IconoStudio
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -65,7 +72,38 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
     val cargando by vm.cargando.collectAsStateWithLifecycle()
     val error by vm.error.collectAsStateWithLifecycle()
 
-    NavHost(navController = nav, startDestination = Rutas.SPLASH, modifier = modifier,
+    val entradaActual by nav.currentBackStackEntryAsState()
+    val rutaActual = entradaActual?.destination?.route
+    val esAdmin = usuario?.rol == Rol.ADMIN.name
+    val raiz = if(esAdmin) Rutas.PANEL else Rutas.INICIO
+    val destinos = if(esAdmin) listOf(
+        Triple(Rutas.PANEL,"Panel","panel"), Triple(Rutas.BANDEJA,"Pedidos","pedidos"),
+        Triple(Rutas.SERVICIOS,"Servicios","servicios"), Triple(Rutas.AJUSTES,"Ajustes","ajustes")
+    ) else listOf(
+        Triple(Rutas.INICIO,"Inicio","inicio"), Triple(Rutas.MIS_PEDIDOS,"Pedidos","pedidos"),
+        Triple(Rutas.TARIFAS,"Servicios","servicios"), Triple(Rutas.PERFIL,"Perfil","persona")
+    )
+    val mostrarBarra = usuario != null && destinos.any { it.first == rutaActual }
+    Scaffold(modifier=modifier,containerColor=Color.Transparent,contentWindowInsets=WindowInsets(0,0,0,0),bottomBar={
+        if(mostrarBarra) NavigationBar(
+            modifier=Modifier.padding(horizontal=12.dp,vertical=8.dp).clip(RoundedCornerShape(26.dp)),
+            containerColor=MaterialTheme.colorScheme.surface,tonalElevation=0.dp,windowInsets=WindowInsets(0,0,0,0)
+        ) {
+            destinos.forEach { (ruta,titulo,icono) ->
+                NavigationBarItem(selected=rutaActual==ruta,onClick={
+                    val destino=if(ruta==Rutas.BANDEJA)Rutas.bandeja() else ruta
+                    nav.navigate(destino) {
+                        popUpTo(raiz) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = ruta != Rutas.BANDEJA
+                    }
+                },icon={IconoStudio(icono)},label={Text(titulo)},
+                colors=NavigationBarItemDefaults.colors(indicatorColor=MaterialTheme.colorScheme.primaryContainer,
+                    selectedIconColor=MaterialTheme.colorScheme.onPrimaryContainer,selectedTextColor=MaterialTheme.colorScheme.primary))
+            }
+        }
+    }) { margen ->
+    NavHost(navController = nav, startDestination = Rutas.SPLASH, modifier = Modifier.padding(margen).consumeWindowInsets(margen),
         enterTransition={fadeIn(tween(260))+slideInHorizontally(tween(280)){it/12}},
         exitTransition={fadeOut(tween(160))},popEnterTransition={fadeIn(tween(220))},
         popExitTransition={fadeOut(tween(160))+slideOutHorizontally(tween(220)){it/12}}) {
@@ -238,6 +276,8 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 SplashSesion()
             }
         }
+    }
+
     }
 
     LaunchedEffect(restaurando, usuario?.id, usuario?.rol) {

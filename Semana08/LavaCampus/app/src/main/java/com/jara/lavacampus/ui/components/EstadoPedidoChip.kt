@@ -32,14 +32,14 @@ fun colorEstado(estado: EstadoPedido): Color = when (estado) {
 fun EstadoPedidoChip(estado: EstadoPedido, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(50),
         color = colorEstado(estado),
         contentColor = Color.White
     ) {
         Text(
             text = nombreEstado(estado),
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-            fontSize = 11.sp,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
+            fontSize = 12.sp,
             fontWeight = FontWeight.Bold
         )
     }

@@ -75,7 +75,7 @@ fun DetallePedidoScreen(vm: DetallePedidoViewModel, onVolver: () -> Unit) {
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = androidx.compose.foundation.shape.CutCornerShape(topEnd=30.dp,bottomStart=10.dp),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(containerColor = TintaCampus, contentColor = Color.White)
                 ) {
                     Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -139,7 +139,7 @@ fun DetallePedidoScreen(vm: DetallePedidoViewModel, onVolver: () -> Unit) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                    shape = androidx.compose.foundation.shape.CutCornerShape(topEnd=14.dp)
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp)
                 ) {
                     Text(
                         if (pedido.pagado) "Pagado" else "Pago pendiente, se paga al recoger",

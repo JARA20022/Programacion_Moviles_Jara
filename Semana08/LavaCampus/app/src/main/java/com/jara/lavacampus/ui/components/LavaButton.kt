@@ -37,14 +37,14 @@ fun LavaButton(
         onClick = onClick,
         enabled = !cargando,
         modifier = modifier.fillMaxWidth().heightIn(min = 56.dp).graphicsLayer{scaleX=escala;scaleY=escala},
-        shape = androidx.compose.foundation.shape.CutCornerShape(topEnd=16.dp),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = color,
             contentColor = Color.White
         )
     ) {
         if (cargando) {
-            CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
+            CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp, color = Color.White)
         } else {
             Text(texto, fontWeight = FontWeight.Bold)
         }
