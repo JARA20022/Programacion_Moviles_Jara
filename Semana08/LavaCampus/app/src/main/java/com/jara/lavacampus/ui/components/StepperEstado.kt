@@ -145,8 +145,8 @@ fun StepperEstado(
                     text = if (paso == EstadoPedido.EN_PROCESO) "En\nproceso" else nombreEstado(paso),
                     color = if (alcanzado) texto else tenue,
                     fontWeight = if (indice == actual) FontWeight.Bold else FontWeight.Normal,
-                    fontSize = 10.sp,
-                    lineHeight = 12.sp,
+                    fontSize = 12.sp,
+                    lineHeight = 15.sp,
                     textAlign = TextAlign.Center
                 )
             }

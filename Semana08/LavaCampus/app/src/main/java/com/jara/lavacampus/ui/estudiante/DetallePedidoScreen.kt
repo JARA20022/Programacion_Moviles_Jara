@@ -75,11 +75,11 @@ fun DetallePedidoScreen(vm: DetallePedidoViewModel, onVolver: () -> Unit) {
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(topStart = 28.dp, topEnd = 8.dp, bottomEnd = 28.dp, bottomStart = 8.dp),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(containerColor = TintaCampus, contentColor = Color.White)
                 ) {
                     Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("EL RECORRIDO DE TU PEDIDO", style = MaterialTheme.typography.labelLarge, color = Color(0xFFFFC5AD))
+                        Text("EL RECORRIDO DE TU PEDIDO", style = MaterialTheme.typography.labelLarge, color = Color(0xFFD6F58A))
                         Text("#${pedido.id.toString().padStart(3, '0')}", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.ExtraBold)
                         EstadoPedidoChip(estado)
                         Text("Registrado: ${fechaPedido(pedido.fechaRegistro)}")
@@ -139,7 +139,7 @@ fun DetallePedidoScreen(vm: DetallePedidoViewModel, onVolver: () -> Unit) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp)
                 ) {
                     Text(
                         if (pedido.pagado) "Pagado" else "Pago pendiente, se paga al recoger",

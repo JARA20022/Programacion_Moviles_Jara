@@ -19,6 +19,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Surface
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -58,6 +61,7 @@ fun MisPedidosScreen(
     val lista = if (pestaña == 0) activos else historial
 
     Scaffold(
+        containerColor = androidx.compose.ui.graphics.Color.Transparent,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
             ExtendedFloatingActionButton(onClick = { if (cancelandoId == null) onNuevoPedido() }) {
@@ -71,9 +75,9 @@ fun MisPedidosScreen(
                     TextButton(onClick = onTarifas, enabled = cancelandoId == null) { Text("Ver tarifas") }
                 }
                 Text("Tus pedidos", Modifier.padding(horizontal = 22.dp, vertical = 12.dp), style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.ExtraBold)
-                TabRow(selectedTabIndex = pestaña) {
-                    Tab(selected = pestaña == 0, onClick = { pestaña = 0 }, text = { Text("Activos (${activos.size})") })
-                    Tab(selected = pestaña == 1, onClick = { pestaña = 1 }, text = { Text("Historial (${historial.size})") })
+                Row(Modifier.fillMaxWidth().padding(horizontal=22.dp),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+                    FilterChip(selected=pestaña==0,onClick={pestaña=0},label={Text("Activos (${activos.size})")},modifier=Modifier.weight(1f))
+                    FilterChip(selected=pestaña==1,onClick={pestaña=1},label={Text("Historial (${historial.size})")},modifier=Modifier.weight(1f))
                 }
             }
         }

@@ -56,7 +56,7 @@ fun TarifasScreen(vm: MisPedidosViewModel, onVolver: () -> Unit) {
         items(servicios, key = { it.id }) { servicio ->
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 8.dp, bottomEnd = 24.dp, bottomStart = 8.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -77,12 +77,12 @@ fun TarifasScreen(vm: MisPedidosViewModel, onVolver: () -> Unit) {
                 shape = RoundedCornerShape(24.dp)
             ) {
                 Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("PLANIFICA TU VISITA", style = MaterialTheme.typography.labelLarge, color = Color(0xFFFFC5AD))
+                    Text("PLANIFICA TU VISITA", style = MaterialTheme.typography.labelLarge, color = Color(0xFFD6F58A))
                     Text("Horario de atención", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     Text("Lunes a sábado · 8:00 a 18:00")
                     Text("Recojo en casilleros del pabellón A.")
                     Text("Mínimo 1 kg por servicio de lavado.\nMáximo 3 pedidos activos por estudiante.")
-                    Text("Si la entrega cae domingo, pasa al lunes.", color = Color(0xFFFFC5AD))
+                    Text("Si la entrega cae domingo, pasa al lunes.", color = Color(0xFFD6F58A))
                 }
             }
         }
