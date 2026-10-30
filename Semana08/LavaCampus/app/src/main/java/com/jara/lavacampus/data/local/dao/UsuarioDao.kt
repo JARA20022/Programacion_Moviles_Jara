@@ -20,6 +20,18 @@ interface UsuarioDao {
     suspend fun login(correo: String, clave: String): Usuario?
 
     @Insert
+    suspend fun insertar(usuario: Usuario): Long
+
+    @Query("SELECT * FROM usuarios WHERE rol = 'SOPORTE' ORDER BY nombre")
+    fun observarSoportes(): Flow<List<Usuario>>
+
+    @Query("SELECT COUNT(*) FROM usuarios WHERE correo = :correo")
+    suspend fun contarPorCorreo(correo: String): Int
+
+    @Query("SELECT COUNT(*) FROM usuarios WHERE codigo = :codigo")
+    suspend fun contarPorCodigo(codigo: String): Int
+
+    @Insert
     suspend fun insertarTodos(lista: List<Usuario>)
 
     @Query("SELECT COUNT(*) FROM usuarios")

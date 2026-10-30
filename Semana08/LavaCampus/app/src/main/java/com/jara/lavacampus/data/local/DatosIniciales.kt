@@ -65,6 +65,18 @@ object DatosIniciales {
                 )
             )
 
+            guardarServicio(
+                Servicio(
+                    nombre = "OTROS SERVICIOS",
+                    descripcion = "Servicio pendiente de configuración",
+                    unidad = "UNIDAD",
+                    precio = 0.0,
+                    horasEntrega = 24,
+                    activo = false,
+                    icono = "wash"
+                )
+            )
+
             val ana = Usuario(
                 id = 1,
                 nombre = "Ana Torres",

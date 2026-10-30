@@ -7,6 +7,7 @@ import com.jara.lavacampus.model.ClienteResumen
 import com.jara.lavacampus.model.EstadoPedido
 import com.jara.lavacampus.model.IngresoServicio
 import com.jara.lavacampus.model.LineaPedido
+import com.jara.lavacampus.model.SolicitudSoporteResumen
 import kotlinx.coroutines.flow.Flow
 
 interface LavaRepository {
@@ -26,6 +27,11 @@ interface LavaRepository {
     // Usuarios
     suspend fun login(correo: String, clave: String): Usuario?
     fun observarClientes(): Flow<List<ClienteResumen>>
+    fun observarSoportes(): Flow<List<Usuario>>
+    suspend fun registrarSoporte(codigo: String, nombre: String, apellido: String, correo: String, clave: String, actorId: Int)
+
+    fun observarSolicitudesSoporte(): Flow<List<SolicitudSoporteResumen>>
+    suspend fun responderSolicitud(detalleId: Int, estadoAtencion: String, respuesta: String, soporteId: Int, fecha: String)
 
     // Servicios
     fun observarServicios(): Flow<List<Servicio>>

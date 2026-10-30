@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import com.jara.lavacampus.data.local.entity.DetallePedido
 import com.jara.lavacampus.model.IngresoServicio
+import com.jara.lavacampus.model.SolicitudSoporteResumen
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -12,6 +13,34 @@ interface DetalleDao {
 
     @Insert
     suspend fun insertarTodos(lista: List<DetallePedido>)
+
+    @Query(
+        """
+        SELECT 
+            d.id AS detalleId,
+            p.id AS pedidoId,
+            u.nombre AS nombreEstudiante,
+            d.descripcionOtros,
+            p.fechaRegistro,
+            p.estado AS estadoPedido,
+            d.estadoAtencion
+        FROM detalles_pedido d
+        INNER JOIN pedidos p ON d.pedidoId = p.id
+        INNER JOIN usuarios u ON p.usuarioId = u.id
+        WHERE d.descripcionOtros IS NOT NULL
+        ORDER BY p.id DESC
+        """
+    )
+    fun observarSolicitudesSoporte(): Flow<List<SolicitudSoporteResumen>>
+
+    @Query(
+        """
+        UPDATE detalles_pedido 
+        SET estadoAtencion = :estadoAtencion, respuestaSoporte = :respuesta, soporteId = :soporteId, fechaRespuesta = :fecha
+        WHERE id = :detalleId
+        """
+    )
+    suspend fun responderSolicitud(detalleId: Int, estadoAtencion: String, respuesta: String, soporteId: Int, fecha: String)
 
     @Query(
         "SELECT COUNT(*) FROM detalles_pedido WHERE servicioId = :servicioId"

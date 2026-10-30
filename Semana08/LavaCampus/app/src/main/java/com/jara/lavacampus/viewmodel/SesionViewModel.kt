@@ -115,6 +115,10 @@ class SesionViewModel(
         _error.value = null
     }
 
+    fun setError(mensaje: String) {
+        _error.value = mensaje
+    }
+
     fun login(correo: String, clave: String, rolSeleccionado: Rol) {
         if (_cargando.value || _restaurando.value) return
         val errorEntrada = Validaciones.errorLogin(correo, clave)

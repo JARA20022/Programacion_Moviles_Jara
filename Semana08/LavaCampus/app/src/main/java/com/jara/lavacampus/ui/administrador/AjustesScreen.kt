@@ -15,7 +15,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jara.lavacampus.viewmodel.SesionViewModel
 
 @Composable
-fun AjustesScreen(vm: SesionViewModel, onVolver: () -> Unit) {
+fun AjustesScreen(vm: SesionViewModel, onVolver: () -> Unit, onSoportes: () -> Unit = {}) {
     val usuario by vm.usuarioActual.collectAsStateWithLifecycle()
     val oscuro by vm.modoOscuro.collectAsStateWithLifecycle()
     val avisos by vm.notificaciones.collectAsStateWithLifecycle()
@@ -49,6 +49,7 @@ fun AjustesScreen(vm: SesionViewModel, onVolver: () -> Unit) {
         error?.let { item { Text(it, color = MaterialTheme.colorScheme.error) } }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Button(onClick = onSoportes, enabled = habilitado, modifier = Modifier.fillMaxWidth()) { Text("Usuarios de soporte") }
                 Button(onClick = vm::cambiarPerfil, enabled = habilitado, modifier = Modifier.fillMaxWidth()) { Text("Cambiar de perfil") }
                 OutlinedButton(onClick = vm::cerrarSesion, enabled = habilitado, modifier = Modifier.fillMaxWidth()) { Text("Cerrar sesión") }
             }

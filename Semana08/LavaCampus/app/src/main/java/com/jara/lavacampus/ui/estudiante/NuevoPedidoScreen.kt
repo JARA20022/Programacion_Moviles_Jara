@@ -57,6 +57,19 @@ fun NuevoPedidoScreen(vm:NuevoPedidoViewModel,onVolver:()->Unit,onCreado:()->Uni
       SelectorCantidad(cantidad=cantidad,paso=if(esKg)0.5 else 1.0,minimo=1.0,maximo=if(esKg)10.0 else 30.0,
         onCambio={delta->vm.cambiarCantidad(servicio.id,delta)},habilitado=!estado.cargandoRepeticion && !estado.guardando && estado.pedidoCreado==null,servicio=servicio.nombre)
       if(cantidad>0)Text("Importe: ${importeSoles(Validaciones.subtotal(cantidad,servicio.precio))}",fontWeight=FontWeight.Bold)
+      if (cantidad > 0 && servicio.nombre == "OTROS SERVICIOS") {
+          val descripcionOtros = estado.descripcionesOtros[servicio.id] ?: ""
+          OutlinedTextField(
+              value = descripcionOtros,
+              onValueChange = { vm.cambiarDescripcionOtros(servicio.id, it) },
+              label = { Text("¿Qué servicio necesitas?") },
+              placeholder = { Text("Ej. Lavado de zapatillas") },
+              supportingText = { Text("Describe el servicio solicitado, entre 5 y 200 caracteres") },
+              modifier = Modifier.fillMaxWidth(),
+              enabled = !estado.cargandoRepeticion && !estado.guardando && estado.pedidoCreado == null,
+              shape = RoundedCornerShape(12.dp)
+          )
+      }
      }
     }
    }

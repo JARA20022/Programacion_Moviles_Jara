@@ -58,8 +58,8 @@ class PreferenciasStore(context: Context) {
     }
 
     suspend fun guardarSesion(rol: String, usuarioId: Int, estudianteAnteriorId: Int? = null) {
-        require(rol == "CLIENTE" || rol == "ADMIN") {
-            "El rol debe ser CLIENTE o ADMIN."
+        require(rol == "CLIENTE" || rol == "ADMIN" || rol == "SOPORTE") {
+            "El rol debe ser CLIENTE, ADMIN o SOPORTE."
         }
         require(usuarioId > 0) {
             "El identificador del usuario debe ser mayor que cero."

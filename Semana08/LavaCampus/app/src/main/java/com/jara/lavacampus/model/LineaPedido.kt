@@ -2,5 +2,6 @@ package com.jara.lavacampus.model
 
 data class LineaPedido(
     val servicioId: Int,
-    val cantidad: Double
+    val cantidad: Double,
+    val descripcionOtros: String? = null
 )

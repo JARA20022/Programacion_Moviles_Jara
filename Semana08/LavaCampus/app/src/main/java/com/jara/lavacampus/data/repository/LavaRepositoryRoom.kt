@@ -11,6 +11,7 @@ import com.jara.lavacampus.model.ClienteResumen
 import com.jara.lavacampus.model.EstadoPedido
 import com.jara.lavacampus.model.IngresoServicio
 import com.jara.lavacampus.model.LineaPedido
+import com.jara.lavacampus.model.SolicitudSoporteResumen
 import com.jara.lavacampus.model.Validaciones
 import com.jara.lavacampus.model.PreciosCampus
 import java.time.LocalDate
@@ -47,6 +48,70 @@ class LavaRepositoryRoom(
 
     override fun observarClientes(): Flow<List<ClienteResumen>> =
         usuarios.observarClientes()
+
+    override fun observarSoportes(): Flow<List<Usuario>> =
+        usuarios.observarSoportes()
+
+    override suspend fun registrarSoporte(
+        codigo: String,
+        nombre: String,
+        apellido: String,
+        correo: String,
+        clave: String,
+        actorId: Int
+    ) {
+        db.withTransaction {
+            val actor = usuarios.obtener(actorId)
+            require(actor?.rol == "ADMIN") { "Solo el administrador puede registrar usuarios de soporte." }
+            
+            require(Validaciones.errorCodigoSoporte(codigo) == null) { Validaciones.errorCodigoSoporte(codigo).orEmpty() }
+            require(Validaciones.errorNombre(nombre) == null) { Validaciones.errorNombre(nombre).orEmpty() }
+            require(Validaciones.errorNombre(apellido) == null) { Validaciones.errorNombre(apellido).orEmpty() }
+            require(Validaciones.correoValido(correo)) { "Correo inválido." }
+            require(Validaciones.errorClaveSoporte(clave) == null) { Validaciones.errorClaveSoporte(clave).orEmpty() }
+
+            val nCorreo = Validaciones.normalizarCorreo(correo)
+            require(usuarios.contarPorCorreo(nCorreo) == 0) { "El correo ya está en uso." }
+            require(usuarios.contarPorCodigo(codigo) == 0) { "El código ya está en uso." }
+
+            val nNombre = Validaciones.normalizarNombre(nombre)
+            val nApellido = Validaciones.normalizarNombre(apellido)
+
+            usuarios.insertar(
+                Usuario(
+                    nombre = nNombre,
+                    apellido = nApellido,
+                    codigo = codigo,
+                    correo = nCorreo,
+                    clave = clave,
+                    rol = "SOPORTE"
+                )
+            )
+        }
+    }
+
+    override fun observarSolicitudesSoporte(): Flow<List<SolicitudSoporteResumen>> =
+        detalles.observarSolicitudesSoporte()
+
+    override suspend fun responderSolicitud(
+        detalleId: Int,
+        estadoAtencion: String,
+        respuesta: String,
+        soporteId: Int,
+        fecha: String
+    ) = db.withTransaction {
+        val actor = usuarios.obtener(soporteId)
+        require(actor?.rol == "SOPORTE") { "Solo el soporte puede responder estas solicitudes." }
+        require(estadoAtencion in listOf("PENDIENTE", "EN_ATENCION", "ATENDIDA")) { "Estado inválido." }
+        if (estadoAtencion == "ATENDIDA") {
+            require(Validaciones.errorRespuestaSoporte(respuesta) == null) { "Respuesta inválida para marcar como ATENDIDA." }
+        }
+        val limpia = respuesta.trim()
+        if (limpia.isNotEmpty()) {
+            require(Validaciones.errorRespuestaSoporte(limpia) == null) { Validaciones.errorRespuestaSoporte(limpia).orEmpty() }
+        }
+        detalles.responderSolicitud(detalleId, estadoAtencion, limpia.takeIf { it.isNotEmpty() } ?: "", soporteId, fecha)
+    }
 
     // Servicios
     override fun observarServicios(): Flow<List<Servicio>> =

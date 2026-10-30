@@ -69,4 +69,30 @@ class ValidacionesTest {
         assertEquals(LocalDate.of(2026,10,26),Validaciones.fechaEntrega(24,LocalDate.of(2026,10,24)))
         rechaza { Validaciones.fechaEntrega(-1) }
     }
+
+    @Test fun validacionesCodigoSoporte() {
+        assertNull(Validaciones.errorCodigoSoporte("0123"))
+        assertNull(Validaciones.errorCodigoSoporte("000000000000"))
+        
+        assertNotNull(Validaciones.errorCodigoSoporte("123"))
+        assertNotNull(Validaciones.errorCodigoSoporte("1234567890123"))
+        assertNotNull(Validaciones.errorCodigoSoporte("12 34"))
+        assertNotNull(Validaciones.errorCodigoSoporte("123A"))
+        assertNotNull(Validaciones.errorCodigoSoporte("12.34"))
+        
+        assertTrue(Validaciones.codigoEditable("1234"))
+        assertFalse(Validaciones.codigoEditable("1234A"))
+        assertFalse(Validaciones.codigoEditable("1234567890123"))
+    }
+
+    @Test fun validacionesClaveSoporte() {
+        assertNull(Validaciones.errorClaveSoporte("a1#b23c4!"))
+        assertNull(Validaciones.errorClaveSoporte("A1234567"))
+        
+        assertNotNull(Validaciones.errorClaveSoporte("1234567"))
+        assertNotNull(Validaciones.errorClaveSoporte("abcdefgh"))
+        assertNotNull(Validaciones.errorClaveSoporte("12345678"))
+        assertNotNull(Validaciones.errorClaveSoporte("A123 4567"))
+        assertNotNull(Validaciones.errorClaveSoporte("A123\n4567"))
+    }
 }

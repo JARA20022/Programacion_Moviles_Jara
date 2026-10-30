@@ -22,10 +22,50 @@ object Validaciones {
     private val precioCompleto = Regex("[0-9]{1,4}([.,][0-9]{1,2})?")
     private val usuarioCorreo = Regex("[A-Za-z0-9._%+\\-]+")
     private val segmentoDominio = Regex("[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?")
+    private val codigoSoporteRegex = Regex("^[0-9]{4,12}$")
+    private val claveSoporteLetraRegex = Regex(".*[a-zA-Z].*")
+    private val claveSoporteNumeroRegex = Regex(".*[0-9].*")
+    private val espacioRegex = Regex(".*\\s.*")
+
+    fun codigoEditable(codigo: String): Boolean = codigo.all { it.isDigit() } && codigo.length <= 12
+    fun errorCodigoSoporte(codigo: String): String? {
+        if (!codigoSoporteRegex.matches(codigo)) return "Ingresa de 4 a 12 números, sin espacios ni letras."
+        return null
+    }
+
+    fun claveSoporteValida(clave: String): Boolean {
+        return clave.length in 8..64 &&
+            claveSoporteLetraRegex.matches(clave) &&
+            claveSoporteNumeroRegex.matches(clave) &&
+            !espacioRegex.matches(clave)
+    }
+
+    fun errorClaveSoporte(clave: String): String? {
+        if (!claveSoporteValida(clave)) {
+            return "Usa entre 8 y 64 caracteres, con al menos una letra y un número. Puedes incluir símbolos como @, #, $ o !. No se permiten espacios ni saltos de línea."
+        }
+        return null
+    }
 
     fun normalizarNombre(nombre: String): String = Normalizer.normalize(nombre.trim(), Normalizer.Form.NFC)
         .replace(Regex(" +"), " ")
     fun claveNombre(nombre: String): String = normalizarNombre(nombre).lowercase(Locale.ROOT)
+    
+    fun descripcionOtrosValida(texto: String): Boolean = texto.trim().length in 5..200
+    fun errorDescripcionOtros(texto: String): String? {
+        if (!descripcionOtrosValida(texto)) {
+            return "Describe el servicio solicitado, entre 5 y 200 caracteres"
+        }
+        return null
+    }
+
+    fun respuestaSoporteValida(texto: String): Boolean = texto.trim().length in 5..500
+    fun errorRespuestaSoporte(texto: String): String? {
+        if (!respuestaSoporteValida(texto)) {
+            return "La respuesta debe tener entre 5 y 500 caracteres"
+        }
+        return null
+    }
     fun normalizarCorreo(correo: String): String = correo.trim().lowercase(Locale.ROOT)
     fun nombreEditable(nombre: String): Boolean = nombre.length <= MAX_NOMBRE && nombrePermitido.matches(nombre)
     fun errorNombre(nombre: String): String? {
@@ -66,7 +106,11 @@ object Validaciones {
     fun validarServicio(s: Servicio) {
         require(s.id >= 0) { "Identificador de servicio inválido." }
         require(errorNombre(s.nombre) == null) { errorNombre(s.nombre).orEmpty() }
-        require(precioValido(s.precio)) { "El precio debe estar entre S/ 0.01 y S/ 9999.99 y tener hasta 2 decimales." }
+        if (s.activo) {
+            require(precioValido(s.precio)) { "El precio de un servicio activo debe estar entre S/ 0.01 y S/ 9999.99 y tener hasta 2 decimales." }
+        } else {
+            require(s.precio == 0.0 || precioValido(s.precio)) { "El precio debe estar entre S/ 0.01 y S/ 9999.99 o ser 0 si es borrador inactivo." }
+        }
         require(errorTexto(s.descripcion, "La descripción") == null) { errorTexto(s.descripcion, "La descripción").orEmpty() }
         require(s.unidad in Unidad.entries.map { it.name }) { "Unidad inválida." }
         require(s.horasEntrega in listOf(24, 48, 72)) { "La entrega debe ser de 24, 48 o 72 horas." }

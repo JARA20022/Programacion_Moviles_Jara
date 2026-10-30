@@ -89,6 +89,13 @@ fun GestionPedidoScreen(vm: GestionPedidoViewModel, onVolver: () -> Unit) {
                     actual.detalles.forEach { linea ->
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(linea.servicio.nombre, fontWeight = FontWeight.Bold)
+                            linea.detalle.descripcionOtros?.let { desc ->
+                                Text("Detalle: $desc", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("Atención: ${linea.detalle.estadoAtencion}", color = MaterialTheme.colorScheme.tertiary)
+                                linea.detalle.respuestaSoporte?.let { respuesta ->
+                                    Text("Respuesta de soporte: $respuesta", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                                }
+                            }
                             if(linea.detalle.descuento>0.0) Text("Descuento aplicado: ${importeSoles(linea.detalle.descuento)}")
                             Text("${linea.detalle.cantidad} ${linea.servicio.unidad.lowercase()} × ${importeSoles(linea.detalle.precioUnitario)} = ${importeSoles(linea.detalle.subtotal)}")
                         }

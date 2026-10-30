@@ -35,5 +35,11 @@ data class DetallePedido(
     val precioUnitario: Double,
     val subtotal: Double,
     @ColumnInfo(defaultValue = "0")
-    val descuento: Double = 0.0
+    val descuento: Double = 0.0,
+    val descripcionOtros: String? = null,
+    @ColumnInfo(defaultValue = "PENDIENTE")
+    val estadoAtencion: String = "PENDIENTE",
+    val respuestaSoporte: String? = null,
+    val soporteId: Int? = null,
+    val fechaRespuesta: String? = null
 )

@@ -5,7 +5,7 @@ import org.junit.Assert.*
 import org.junit.Test
 class RepetirPedidoTest {
  private val s=Servicio(1,"Lavado","","KG",8.0,24,true,"wash")
- private val u=Usuario(1,"Ana","U001","ana@correo.test","1234","CLIENTE")
+ private val u=Usuario(id=1,nombre="Ana",apellido="",codigo="U001",correo="ana@correo.test",clave="1234",rol="CLIENTE")
  private fun p(estado:String="ENTREGADO")=PedidoConDetalle(Pedido(1,1,"2026-10-20","2026-10-22",estado,28.0,nota="Sin perfume"),u,listOf(DetalleConServicio(DetallePedido(1,1,1,3.5,8.0,28.0),s)))
  @Test fun precioVigente(){val actual=s.copy(precio=10.0);val b=RepetirPedido.preparar(p(),1,listOf(actual));assertEquals(3.5,b.cantidades[1]!!,0.0);assertEquals(35.0,PreciosCampus.calcular(listOf(actual),b.cantidades).total,0.0);assertEquals("Sin perfume",b.nota)}
  @Test fun omiteInactivo(){val b=RepetirPedido.preparar(p(),1,listOf(s.copy(activo=false)));assertTrue(b.cantidades.isEmpty());assertEquals(1,b.omitidos)}

@@ -38,6 +38,8 @@ import com.jara.lavacampus.ui.administrador.ServiciosScreen
 import com.jara.lavacampus.ui.administrador.FormularioServicioScreen
 import com.jara.lavacampus.ui.administrador.ClientesScreen
 import com.jara.lavacampus.ui.administrador.AjustesScreen
+import com.jara.lavacampus.ui.administrador.SoportesScreen
+import com.jara.lavacampus.viewmodel.SoportesViewModel
 import com.jara.lavacampus.ui.estudiante.PerfilScreen
 import com.jara.lavacampus.viewmodel.BandejaViewModel
 import com.jara.lavacampus.viewmodel.GestionPedidoViewModel
@@ -60,7 +62,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jara.lavacampus.model.Rol
 import com.jara.lavacampus.ui.estudiante.SplashScreen
+import com.jara.lavacampus.ui.estudiante.SoporteInicioScreen
+import com.jara.lavacampus.ui.administrador.SolicitudesSoporteScreen
+import com.jara.lavacampus.ui.administrador.RespuestaSolicitudScreen
+import com.jara.lavacampus.viewmodel.SolicitudesSoporteViewModel
 import com.jara.lavacampus.ui.estudiante.LoginScreen
+import com.jara.lavacampus.ui.administrador.SoportePerfilScreen
 import com.jara.lavacampus.viewmodel.SesionViewModel
 
 @Composable
@@ -76,14 +83,34 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
     val entradaActual by nav.currentBackStackEntryAsState()
     val rutaActual = entradaActual?.destination?.route
     val esAdmin = usuario?.rol == Rol.ADMIN.name
-    val raiz = if(esAdmin) Rutas.PANEL else Rutas.INICIO
-    val destinos = if(esAdmin) listOf(
-        Triple(Rutas.PANEL,"Panel","panel"), Triple(Rutas.BANDEJA,"Pedidos","pedidos"),
-        Triple(Rutas.SERVICIOS,"Servicios","servicios"), Triple(Rutas.CLIENTES,"Clientes","persona"), Triple(Rutas.AJUSTES,"Ajustes","ajustes")
-    ) else listOf(
-        Triple(Rutas.INICIO,"Inicio","inicio"), Triple(Rutas.MIS_PEDIDOS,"Pedidos","pedidos"),
-        Triple(Rutas.TARIFAS,"Tarifas","servicios"), Triple(Rutas.PERFIL,"Perfil","persona")
-    )
+    val esSoporte = usuario?.rol == Rol.SOPORTE.name
+    
+    val raiz = when {
+        esAdmin -> Rutas.PANEL
+        esSoporte -> Rutas.INICIO_SOPORTE
+        else -> Rutas.INICIO
+    }
+    
+    val destinos = when {
+        esAdmin -> listOf(
+            Triple(Rutas.PANEL, "Panel", "panel"), 
+            Triple(Rutas.BANDEJA, "Pedidos", "pedidos"),
+            Triple(Rutas.SERVICIOS, "Servicios", "servicios"), 
+            Triple(Rutas.CLIENTES, "Clientes", "persona"), 
+            Triple(Rutas.AJUSTES, "Ajustes", "ajustes")
+        )
+        esSoporte -> listOf(
+            Triple(Rutas.INICIO_SOPORTE, "Inicio", "inicio"),
+            Triple(Rutas.SOLICITUDES, "Solicitudes", "pedidos"),
+            Triple(Rutas.SOPORTE_PERFIL, "Perfil", "persona")
+        )
+        else -> listOf(
+            Triple(Rutas.INICIO, "Inicio", "inicio"), 
+            Triple(Rutas.MIS_PEDIDOS, "Pedidos", "pedidos"),
+            Triple(Rutas.TARIFAS, "Tarifas", "servicios"), 
+            Triple(Rutas.PERFIL, "Perfil", "persona")
+        )
+    }
     val mostrarBarra = usuario != null && destinos.any { it.first == rutaActual }
     Scaffold(modifier=modifier,containerColor=Color.Transparent,contentColor=MaterialTheme.colorScheme.onBackground,contentWindowInsets=WindowInsets(0,0,0,0),bottomBar={
         if(mostrarBarra) NavigationBar(
@@ -109,6 +136,33 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
         exitTransition={fadeOut(tween(160))},popEnterTransition={fadeIn(tween(220))},
         popExitTransition={fadeOut(tween(160))+slideOutHorizontally(tween(220)){it/12}}) {
         composable(Rutas.SPLASH) { SplashScreen() }
+        composable(Rutas.INICIO_SOPORTE) {
+            val actual = usuario
+            if (actual != null && actual.rol == Rol.SOPORTE.name) {
+                val factory = remember(actual.id) { LavaViewModelFactory(app) }
+                val servicios: ServiciosViewModel = viewModel(key = "servicios-soporte-${actual.id}", factory = factory)
+                SoporteInicioScreen(vm = vm, serviciosVm = servicios)
+            } else {
+                SplashScreen()
+            }
+        }
+        composable(Rutas.SOLICITUDES) {
+            val actual = usuario
+            if (actual != null && actual.rol == Rol.SOPORTE.name) {
+                val factory = remember(actual.id) { LavaViewModelFactory(app, actual) }
+                val solicitudes: SolicitudesSoporteViewModel = viewModel(key = "solicitudes-${actual.id}", factory = factory)
+                SolicitudesSoporteScreen(vm = solicitudes, onVolver = { nav.popBackStack() }, onAtender = { id -> nav.navigate(Rutas.respuestaSolicitud(id)) })
+            } else { SplashScreen() }
+        }
+        composable(Rutas.RESPUESTA_SOLICITUD, arguments = listOf(navArgument("detalleId") { type = NavType.IntType })) { entrada ->
+            val actual = usuario
+            if (actual != null && actual.rol == Rol.SOPORTE.name) {
+                val detalleId = requireNotNull(entrada.arguments).getInt("detalleId")
+                val factory = remember(actual.id, detalleId) { LavaViewModelFactory(app, actual) }
+                val solicitudes: SolicitudesSoporteViewModel = viewModel(key = "respuesta-${actual.id}", factory = factory)
+                RespuestaSolicitudScreen(vm = solicitudes, detalleId = detalleId, onVolver = { nav.popBackStack() })
+            } else { SplashScreen() }
+        }
         composable(Rutas.LOGIN) { LoginScreen(vm) }
 
         composable(Rutas.INICIO) {
@@ -223,9 +277,23 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 PerfilScreen(sesion = vm, inicio = inicio, onVolver = { nav.popBackStack() })
             } else { SplashScreen() }
         }
+        composable(Rutas.SOPORTE_PERFIL) {
+            val actual = usuario
+            if (actual != null && actual.rol == Rol.SOPORTE.name) {
+                SoportePerfilScreen(vm = vm, onVolver = { nav.popBackStack() })
+            } else { SplashScreen() }
+        }
         composable(Rutas.AJUSTES) {
-            if (usuario?.rol == Rol.ADMIN.name) AjustesScreen(vm, onVolver = { nav.popBackStack() })
+            if (usuario?.rol == Rol.ADMIN.name) AjustesScreen(vm, onVolver = { nav.popBackStack() }, onSoportes = { nav.navigate(Rutas.SOPORTES) })
             else SplashScreen()
+        }
+        composable(Rutas.SOPORTES) {
+            val actual = usuario
+            if (actual != null && actual.rol == Rol.ADMIN.name) {
+                val factory = remember(actual.id) { LavaViewModelFactory(app, actual) }
+                val soportes: SoportesViewModel = viewModel(key = "soportes-${actual.id}", factory = factory)
+                SoportesScreen(vm = soportes, onVolver = { nav.popBackStack() })
+            } else { SplashScreen() }
         }
         composable(Rutas.SERVICIOS) {
             val actual = usuario
@@ -286,6 +354,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
             val destino = when (usuario?.rol) {
                 Rol.CLIENTE.name -> Rutas.INICIO
                 Rol.ADMIN.name -> Rutas.PANEL
+                Rol.SOPORTE.name -> Rutas.INICIO_SOPORTE
                 else -> Rutas.LOGIN
             }
             if (nav.currentDestination?.route != destino) {

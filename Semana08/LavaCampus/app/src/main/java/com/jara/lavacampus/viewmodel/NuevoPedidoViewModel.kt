@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 data class NuevoPedidoEstado(
     val servicios: List<Servicio> = emptyList(),
     val cantidades: Map<Int, Double> = emptyMap(),
+    val descripcionesOtros: Map<Int, String> = emptyMap(),
     val nota: String = "",
     val total: Double = 0.0,
     val subtotal: Double = 0.0,
@@ -82,7 +83,7 @@ class NuevoPedidoViewModel(
             val borrador=RepetirPedido.preparar(original,estudiante.id,_estado.value.servicios)
             val aviso=if(borrador.cantidades.isEmpty()) "No quedan servicios disponibles para repetir este pedido. Elige otros."
                 else "Pedido #$id cargado con precios actuales. Revisa y confirma." + (if(borrador.omitidos>0) " Se omitieron ${borrador.omitidos} servicios no disponibles o con cantidades incompatibles." else "")
-            _estado.value=recalcular(_estado.value.copy(cantidades=borrador.cantidades,nota=borrador.nota,aviso=aviso))
+            _estado.value=recalcular(_estado.value.copy(cantidades=borrador.cantidades,descripcionesOtros=borrador.descripcionesOtros,nota=borrador.nota,aviso=aviso))
         } catch(e:CancellationException){throw e
         } catch(e:IllegalArgumentException){_estado.value=_estado.value.copy(error=e.message)
         } catch(e:Exception){_estado.value=_estado.value.copy(error="No se pudo recuperar el pedido. Vuelve a intentarlo.")
@@ -117,8 +118,22 @@ class NuevoPedidoViewModel(
             else -> (anterior + delta).coerceIn(0.0, limite)
         }
         val cantidades = actual.cantidades.toMutableMap()
-        if (siguiente == 0.0) cantidades.remove(servicioId) else cantidades[servicioId] = siguiente
-        _estado.value = recalcular(actual.copy(cantidades = cantidades, error = null))
+        val descripcionesOtros = actual.descripcionesOtros.toMutableMap()
+        if (siguiente == 0.0) {
+            cantidades.remove(servicioId)
+            descripcionesOtros.remove(servicioId)
+        } else {
+            cantidades[servicioId] = siguiente
+        }
+        _estado.value = recalcular(actual.copy(cantidades = cantidades, descripcionesOtros = descripcionesOtros, error = null))
+    }
+
+    fun cambiarDescripcionOtros(servicioId: Int, descripcion: String) {
+        val actual = _estado.value
+        if (actual.cargandoRepeticion || actual.guardando || actual.pedidoCreado != null) return
+        val descripciones = actual.descripcionesOtros.toMutableMap()
+        descripciones[servicioId] = descripcion
+        _estado.value = actual.copy(descripcionesOtros = descripciones, error = null)
     }
 
     fun cambiarNota(nota: String) {
@@ -140,7 +155,14 @@ class NuevoPedidoViewModel(
         viewModelScope.launch {
             try {
                 require(Validaciones.errorTexto(solicitud.nota, "La nota") == null) { "La nota no es válida." }
-                Validaciones.validarLineas(solicitud.cantidades.map { (id, cantidad) -> LineaPedido(id, cantidad) })
+                Validaciones.validarLineas(solicitud.cantidades.map { (id, cantidad) -> LineaPedido(id, cantidad, solicitud.descripcionesOtros[id]) })
+                solicitud.cantidades.keys.forEach { id ->
+                    val servicio = solicitud.servicios.firstOrNull { it.id == id }
+                    if (servicio?.nombre == "OTROS SERVICIOS") {
+                        val descripcion = solicitud.descripcionesOtros[id]
+                        require(descripcion != null && Validaciones.errorDescripcionOtros(descripcion) == null) { "Describe el servicio solicitado en OTROS SERVICIOS." }
+                    }
+                }
                 require(preferencias.recibirPedidos.first()) { "La lavandería no está recibiendo pedidos" }
                 val id = repo.enTransaccion {
                     require(repo.contarActivos(estudiante.id) < 3) { "Ya tienes 3 pedidos activos" }
@@ -155,7 +177,9 @@ class NuevoPedidoViewModel(
                     val revisada = recalcular(solicitud.copy(servicios = serviciosActuales))
                     repo.crearPedido(
                         usuarioId = estudiante.id,
-                        lineas = revisada.cantidades.map { (id, cantidad) -> LineaPedido(id, cantidad) },
+                        lineas = revisada.cantidades.map { (id, cantidad) -> 
+                            LineaPedido(id, cantidad, revisada.descripcionesOtros[id]) 
+                        },
                         fechaEntrega = requireNotNull(revisada.fechaEntrega), nota = revisada.nota.trim()
                     )
                 }

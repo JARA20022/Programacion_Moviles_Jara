@@ -123,6 +123,13 @@ fun DetallePedidoScreen(vm: DetallePedidoViewModel, onVolver: () -> Unit) {
                 val cantidad = if (d.cantidad % 1.0 == 0.0) d.cantidad.toInt().toString() else String.format(Locale.US, "%.1f", d.cantidad)
                 Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(linea.servicio.nombre, fontWeight = FontWeight.Bold)
+                    d.descripcionOtros?.let { desc ->
+                        Text("Detalle: $desc", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Atención: ${d.estadoAtencion}", color = MaterialTheme.colorScheme.tertiary)
+                        d.respuestaSoporte?.let { respuesta ->
+                            Text("Respuesta de soporte: $respuesta", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
                     Text("$cantidad $unidad × ${importeSoles(d.precioUnitario)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if(d.descuento>0.0) Text("Descuento: −${importeSoles(d.descuento)}",color=MaterialTheme.colorScheme.primary)
                     // Usar los importes históricos, nunca el precio actual del servicio.
