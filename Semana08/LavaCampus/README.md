@@ -43,7 +43,7 @@ Los nombres y correos de estas cuentas son ficticios. `Cambiar de perfil` corres
 
 ## Árbol de paquetes
 
-Árbol generado desde los archivos Kotlin presentes en `app/src/main/java/com/jara/lavacampus`:
+Archivos Kotlin actuales bajo `app/src/main/java/com/jara/lavacampus`:
 
 - **com.jara.lavacampus/**
     - **data/**
@@ -63,6 +63,7 @@ Los nombres y correos de estas cuentas son ficticios. `Cambiar de perfil` corres
                 - `PedidoConDetalle.kt`
             - `DatosIniciales.kt`
             - `LavaDatabase.kt`
+            - `Migraciones.kt`
         - **prefs/**
             - `PreferenciasStore.kt`
         - **repository/**
@@ -74,8 +75,12 @@ Los nombres y correos de estas cuentas son ficticios. `Cambiar de perfil` corres
         - `EstadoPedido.kt`
         - `IngresoServicio.kt`
         - `LineaPedido.kt`
+        - `PrecioPedido.kt`
+        - `RelojCampus.kt`
+        - `RepetirPedido.kt`
         - `Rol.kt`
         - `Unidad.kt`
+        - `Validaciones.kt`
     - **ui/**
         - **administrador/**
             - `AjustesScreen.kt`
@@ -97,6 +102,7 @@ Los nombres y correos de estas cuentas son ficticios. `Cambiar de perfil` corres
             - `PedidoCard.kt`
             - `SelectorCantidad.kt`
             - `StepperEstado.kt`
+            - `Studio.kt`
         - **estudiante/**
             - `DetallePedidoScreen.kt`
             - `InicioScreen.kt`
@@ -197,3 +203,8 @@ Crear un pedido es una operación puntual: se declara `suspend`, devuelve el ide
 - `mejora-ia`: fase siguiente, con un mínimo de tres mejoras y `PROMPTS.md`. No queda completada por terminar este README.
 
 Las capturas de la fase 1 muestran crema, terracota y carbón. En mejora-ia la edición Aurora utiliza violeta y coral, navegación inferior y una composición nueva; conserva la funcionalidad y estructura del laboratorio.
+
+
+## Revisión contra la guía
+
+Ver [auditoría S08](docs/AUDITORIA_S08.md): requisitos, correcciones de navegación/contraste, alcance y verificaciones manuales pendientes.

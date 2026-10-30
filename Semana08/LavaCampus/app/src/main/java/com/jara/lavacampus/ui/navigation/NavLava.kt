@@ -59,6 +59,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jara.lavacampus.model.Rol
+import com.jara.lavacampus.ui.estudiante.SplashScreen
 import com.jara.lavacampus.ui.estudiante.LoginScreen
 import com.jara.lavacampus.viewmodel.SesionViewModel
 
@@ -78,13 +79,13 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
     val raiz = if(esAdmin) Rutas.PANEL else Rutas.INICIO
     val destinos = if(esAdmin) listOf(
         Triple(Rutas.PANEL,"Panel","panel"), Triple(Rutas.BANDEJA,"Pedidos","pedidos"),
-        Triple(Rutas.SERVICIOS,"Servicios","servicios"), Triple(Rutas.AJUSTES,"Ajustes","ajustes")
+        Triple(Rutas.SERVICIOS,"Servicios","servicios"), Triple(Rutas.CLIENTES,"Clientes","persona"), Triple(Rutas.AJUSTES,"Ajustes","ajustes")
     ) else listOf(
         Triple(Rutas.INICIO,"Inicio","inicio"), Triple(Rutas.MIS_PEDIDOS,"Pedidos","pedidos"),
-        Triple(Rutas.TARIFAS,"Servicios","servicios"), Triple(Rutas.PERFIL,"Perfil","persona")
+        Triple(Rutas.TARIFAS,"Tarifas","servicios"), Triple(Rutas.PERFIL,"Perfil","persona")
     )
     val mostrarBarra = usuario != null && destinos.any { it.first == rutaActual }
-    Scaffold(modifier=modifier,containerColor=Color.Transparent,contentWindowInsets=WindowInsets(0,0,0,0),bottomBar={
+    Scaffold(modifier=modifier,containerColor=Color.Transparent,contentColor=MaterialTheme.colorScheme.onBackground,contentWindowInsets=WindowInsets(0,0,0,0),bottomBar={
         if(mostrarBarra) NavigationBar(
             modifier=Modifier.padding(horizontal=12.dp,vertical=8.dp).clip(RoundedCornerShape(26.dp)),
             containerColor=MaterialTheme.colorScheme.surface,tonalElevation=0.dp,windowInsets=WindowInsets(0,0,0,0)
@@ -107,7 +108,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
         enterTransition={fadeIn(tween(260))+slideInHorizontally(tween(280)){it/12}},
         exitTransition={fadeOut(tween(160))},popEnterTransition={fadeIn(tween(220))},
         popExitTransition={fadeOut(tween(160))+slideOutHorizontally(tween(220)){it/12}}) {
-        composable(Rutas.SPLASH) { SplashSesion() }
+        composable(Rutas.SPLASH) { SplashScreen() }
         composable(Rutas.LOGIN) { LoginScreen(vm) }
 
         composable(Rutas.INICIO) {
@@ -128,7 +129,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                     errorSesion = error
                 )
             } else {
-                SplashSesion()
+                SplashScreen()
             }
         }
         composable(Rutas.NUEVO_PEDIDO,arguments=listOf(navArgument("origen"){type=NavType.IntType;defaultValue=0})) { entrada ->
@@ -163,7 +164,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                     onRepetir = { id -> nav.navigate(Rutas.nuevoPedido(id)) }
                 )
             } else {
-                SplashSesion()
+                SplashScreen()
             }
         }
         composable(Rutas.TARIFAS) {
@@ -173,7 +174,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 val tarifas: MisPedidosViewModel = viewModel(key = "tarifas-${actual.id}", factory = factory)
                 TarifasScreen(vm = tarifas, onVolver = { nav.popBackStack() })
             } else {
-                SplashSesion()
+                SplashScreen()
             }
         }
         composable(
@@ -187,7 +188,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 val detalle: DetallePedidoViewModel = viewModel(key = "detalle-${actual.id}-$id", factory = factory)
                 DetallePedidoScreen(vm = detalle, onVolver = { nav.popBackStack() })
             } else {
-                SplashSesion()
+                SplashScreen()
             }
         }
         composable(
@@ -200,7 +201,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 val factory = remember(actual.id, filtro) { LavaViewModelFactory(app, filtroInicial = filtro) }
                 val bandeja: BandejaViewModel = viewModel(key = "bandeja-${actual.id}-$filtro", factory = factory)
                 BandejaScreen(vm = bandeja, onVolver = { nav.popBackStack() }, onGestion = { id -> nav.navigate(Rutas.gestionPedido(id)) })
-            } else { SplashSesion() }
+            } else { SplashScreen() }
         }
         composable(
             Rutas.GESTION_PEDIDO,
@@ -212,7 +213,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 val factory = remember(actual.id, id) { LavaViewModelFactory(app, pedidoId = id) }
                 val gestion: GestionPedidoViewModel = viewModel(key = "gestion-${actual.id}-$id", factory = factory)
                 GestionPedidoScreen(vm = gestion, onVolver = { nav.popBackStack() })
-            } else { SplashSesion() }
+            } else { SplashScreen() }
         }
         composable(Rutas.PERFIL) {
             val actual = usuario
@@ -220,11 +221,11 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 val factory = remember(actual.id) { LavaViewModelFactory(app, actual) }
                 val inicio: InicioViewModel = viewModel(key = "perfil-${actual.id}", factory = factory)
                 PerfilScreen(sesion = vm, inicio = inicio, onVolver = { nav.popBackStack() })
-            } else { SplashSesion() }
+            } else { SplashScreen() }
         }
         composable(Rutas.AJUSTES) {
             if (usuario?.rol == Rol.ADMIN.name) AjustesScreen(vm, onVolver = { nav.popBackStack() })
-            else SplashSesion()
+            else SplashScreen()
         }
         composable(Rutas.SERVICIOS) {
             val actual = usuario
@@ -236,7 +237,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                     onNuevo = { nav.navigate(Rutas.formularioServicio()) },
                     onEditar = { id -> nav.navigate(Rutas.formularioServicio(id)) }
                 )
-            } else { SplashSesion() }
+            } else { SplashScreen() }
         }
         composable(Rutas.FORMULARIO_SERVICIO, arguments = listOf(navArgument("id") { type = NavType.IntType })) { entrada ->
             val actual = usuario
@@ -245,7 +246,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 val factory = remember(actual.id, id) { LavaViewModelFactory(app, servicioId = id) }
                 val servicio: ServiciosViewModel = viewModel(key = "formulario-${actual.id}-$id", factory = factory)
                 FormularioServicioScreen(vm = servicio, esEdicion = id != 0, onVolver = { nav.popBackStack() })
-            } else { SplashSesion() }
+            } else { SplashScreen() }
         }
         composable(Rutas.CLIENTES) {
             val actual = usuario
@@ -253,7 +254,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 val factory = remember(actual.id) { LavaViewModelFactory(app) }
                 val clientes: ClientesViewModel = viewModel(key = "clientes-${actual.id}", factory = factory)
                 ClientesScreen(vm = clientes, onVolver = { nav.popBackStack() })
-            } else { SplashSesion() }
+            } else { SplashScreen() }
         }
         composable(Rutas.PANEL) {
             val actual = usuario
@@ -273,7 +274,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                     errorSesion = error
                 )
             } else {
-                SplashSesion()
+                SplashScreen()
             }
         }
     }
@@ -294,18 +295,5 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun SplashSesion() {
-    Column(
-        Modifier.fillMaxSize().padding(28.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("LAVACAMPUS", style = MaterialTheme.typography.headlineMedium)
-        CircularProgressIndicator()
-        Text("Preparando tu espacio")
     }
 }
