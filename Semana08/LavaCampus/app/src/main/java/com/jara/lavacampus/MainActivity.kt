@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -30,6 +31,7 @@ class MainActivity : ComponentActivity() {
             val oscuro by sesion.modoOscuro.collectAsStateWithLifecycle()
             LavaCampusTheme(darkTheme = oscuro) {
                 Scaffold(
+                    contentColor = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.fillMaxSize(),
                     contentWindowInsets = WindowInsets.safeDrawing
                 ) { padding ->

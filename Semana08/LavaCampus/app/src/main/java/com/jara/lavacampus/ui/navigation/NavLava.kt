@@ -1,5 +1,15 @@
 package com.jara.lavacampus.ui.navigation
 
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.Canvas
+import androidx.compose.material3.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -47,6 +57,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jara.lavacampus.model.Rol
+import com.jara.lavacampus.ui.estudiante.SplashScreen
 import com.jara.lavacampus.ui.estudiante.LoginScreen
 import com.jara.lavacampus.viewmodel.SesionViewModel
 
@@ -60,8 +71,33 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
     val cargando by vm.cargando.collectAsStateWithLifecycle()
     val error by vm.error.collectAsStateWithLifecycle()
 
-    NavHost(navController = nav, startDestination = Rutas.SPLASH, modifier = modifier) {
-        composable(Rutas.SPLASH) { SplashSesion() }
+    val entradaActual by nav.currentBackStackEntryAsState()
+    val rutaActual=entradaActual?.destination?.route
+    val esAdmin=usuario?.rol==Rol.ADMIN.name
+    val raiz=if(esAdmin)Rutas.PANEL else Rutas.INICIO
+    val destinos=if(esAdmin)listOf(
+        Triple(Rutas.PANEL,"Panel","panel"),Triple(Rutas.BANDEJA,"Pedidos","pedidos"),
+        Triple(Rutas.SERVICIOS,"Servicios","servicios"),Triple(Rutas.CLIENTES,"Clientes","persona"),
+        Triple(Rutas.AJUSTES,"Ajustes","ajustes")
+    )else listOf(
+        Triple(Rutas.INICIO,"Inicio","inicio"),Triple(Rutas.MIS_PEDIDOS,"Pedidos","pedidos"),
+        Triple(Rutas.TARIFAS,"Tarifas","servicios"),Triple(Rutas.PERFIL,"Perfil","persona")
+    )
+    val mostrarBarra=usuario!=null && destinos.any{it.first==rutaActual}
+    Scaffold(modifier=modifier,containerColor=Color.Transparent,contentColor=MaterialTheme.colorScheme.onBackground,
+        contentWindowInsets=WindowInsets(0,0,0,0),bottomBar={
+            if(mostrarBarra) NavigationBar(windowInsets=WindowInsets(0,0,0,0)) {
+                destinos.forEach { (ruta,titulo,icono) ->
+                    NavigationBarItem(selected=rutaActual==ruta,onClick={
+                        nav.navigate(if(ruta==Rutas.BANDEJA)Rutas.bandeja() else ruta) {
+                            popUpTo(raiz){saveState=true};launchSingleTop=true;restoreState=ruta!=Rutas.BANDEJA
+                        }
+                    },icon={IconoBarra(icono)},label={Text(titulo)})
+                }
+            }
+        }) { margen ->
+    NavHost(navController = nav, startDestination = Rutas.SPLASH, modifier = Modifier.padding(margen).consumeWindowInsets(margen)) {
+        composable(Rutas.SPLASH) { SplashScreen() }
         composable(Rutas.LOGIN) { LoginScreen(vm) }
 
         composable(Rutas.INICIO) {
@@ -82,7 +118,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                     errorSesion = error
                 )
             } else {
-                SplashSesion()
+                SplashScreen()
             }
         }
         composable(Rutas.NUEVO_PEDIDO) {
@@ -115,7 +151,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                     onTarifas = { nav.navigate(Rutas.TARIFAS) }
                 )
             } else {
-                SplashSesion()
+                SplashScreen()
             }
         }
         composable(Rutas.TARIFAS) {
@@ -125,7 +161,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 val tarifas: MisPedidosViewModel = viewModel(key = "tarifas-${actual.id}", factory = factory)
                 TarifasScreen(vm = tarifas, onVolver = { nav.popBackStack() })
             } else {
-                SplashSesion()
+                SplashScreen()
             }
         }
         composable(
@@ -139,7 +175,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 val detalle: DetallePedidoViewModel = viewModel(key = "detalle-${actual.id}-$id", factory = factory)
                 DetallePedidoScreen(vm = detalle, onVolver = { nav.popBackStack() })
             } else {
-                SplashSesion()
+                SplashScreen()
             }
         }
         composable(
@@ -152,7 +188,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 val factory = remember(actual.id, filtro) { LavaViewModelFactory(app, filtroInicial = filtro) }
                 val bandeja: BandejaViewModel = viewModel(key = "bandeja-${actual.id}-$filtro", factory = factory)
                 BandejaScreen(vm = bandeja, onVolver = { nav.popBackStack() }, onGestion = { id -> nav.navigate(Rutas.gestionPedido(id)) })
-            } else { SplashSesion() }
+            } else { SplashScreen() }
         }
         composable(
             Rutas.GESTION_PEDIDO,
@@ -164,7 +200,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 val factory = remember(actual.id, id) { LavaViewModelFactory(app, pedidoId = id) }
                 val gestion: GestionPedidoViewModel = viewModel(key = "gestion-${actual.id}-$id", factory = factory)
                 GestionPedidoScreen(vm = gestion, onVolver = { nav.popBackStack() })
-            } else { SplashSesion() }
+            } else { SplashScreen() }
         }
         composable(Rutas.PERFIL) {
             val actual = usuario
@@ -172,11 +208,11 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 val factory = remember(actual.id) { LavaViewModelFactory(app, actual) }
                 val inicio: InicioViewModel = viewModel(key = "perfil-${actual.id}", factory = factory)
                 PerfilScreen(sesion = vm, inicio = inicio, onVolver = { nav.popBackStack() })
-            } else { SplashSesion() }
+            } else { SplashScreen() }
         }
         composable(Rutas.AJUSTES) {
             if (usuario?.rol == Rol.ADMIN.name) AjustesScreen(vm, onVolver = { nav.popBackStack() })
-            else SplashSesion()
+            else SplashScreen()
         }
         composable(Rutas.SERVICIOS) {
             val actual = usuario
@@ -188,7 +224,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                     onNuevo = { nav.navigate(Rutas.formularioServicio()) },
                     onEditar = { id -> nav.navigate(Rutas.formularioServicio(id)) }
                 )
-            } else { SplashSesion() }
+            } else { SplashScreen() }
         }
         composable(Rutas.FORMULARIO_SERVICIO, arguments = listOf(navArgument("id") { type = NavType.IntType })) { entrada ->
             val actual = usuario
@@ -197,7 +233,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 val factory = remember(actual.id, id) { LavaViewModelFactory(app, servicioId = id) }
                 val servicio: ServiciosViewModel = viewModel(key = "formulario-${actual.id}-$id", factory = factory)
                 FormularioServicioScreen(vm = servicio, esEdicion = id != 0, onVolver = { nav.popBackStack() })
-            } else { SplashSesion() }
+            } else { SplashScreen() }
         }
         composable(Rutas.CLIENTES) {
             val actual = usuario
@@ -205,7 +241,7 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                 val factory = remember(actual.id) { LavaViewModelFactory(app) }
                 val clientes: ClientesViewModel = viewModel(key = "clientes-${actual.id}", factory = factory)
                 ClientesScreen(vm = clientes, onVolver = { nav.popBackStack() })
-            } else { SplashSesion() }
+            } else { SplashScreen() }
         }
         composable(Rutas.PANEL) {
             val actual = usuario
@@ -224,9 +260,11 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
                     errorSesion = error
                 )
             } else {
-                SplashSesion()
+                SplashScreen()
             }
         }
+    }
+
     }
 
     LaunchedEffect(restaurando, usuario?.id, usuario?.rol) {
@@ -247,14 +285,21 @@ fun NavLava(vm: SesionViewModel, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun SplashSesion() {
-    Column(
-        Modifier.fillMaxSize().padding(28.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("LAVACAMPUS", style = MaterialTheme.typography.headlineMedium)
-        CircularProgressIndicator()
-        Text("Preparando tu espacio")
+private fun IconoBarra(tipo:String) {
+    val color=LocalContentColor.current
+    Canvas(Modifier.size(24.dp).clearAndSetSemantics{}) {
+        val u=size.minDimension/24f
+        fun linea(x:Float,y:Float,a:Float,c:Float)=drawLine(color,Offset(x*u,y*u),Offset(a*u,c*u),1.8f*u,StrokeCap.Round)
+        when(tipo) {
+            "inicio" -> {
+                val casa=Path().apply{moveTo(3*u,11*u);lineTo(12*u,3*u);lineTo(21*u,11*u);moveTo(5*u,10*u);lineTo(5*u,21*u);lineTo(19*u,21*u);lineTo(19*u,10*u)}
+                drawPath(casa,color,style=Stroke(1.8f*u,cap=StrokeCap.Round))
+            }
+            "persona" -> {drawCircle(color,3.5f*u,Offset(12*u,7*u),style=Stroke(1.8f*u));drawArc(color,180f,180f,false,Offset(4*u,13*u),androidx.compose.ui.geometry.Size(16*u,14*u),style=Stroke(1.8f*u))}
+            "ajustes" -> {for(y in listOf(6f,12f,18f))linea(3f,y,21f,y);drawCircle(color,2.2f*u,Offset(8*u,6*u));drawCircle(color,2.2f*u,Offset(16*u,12*u));drawCircle(color,2.2f*u,Offset(9*u,18*u))}
+            "servicios" -> {drawRect(color,Offset(4*u,2*u),androidx.compose.ui.geometry.Size(16*u,20*u),style=Stroke(1.8f*u));drawCircle(color,5*u,Offset(12*u,14*u),style=Stroke(1.8f*u));linea(7f,6f,10f,6f)}
+            "panel" -> {for(x in listOf(4f,14f))for(y in listOf(4f,14f))drawRect(color,Offset(x*u,y*u),androidx.compose.ui.geometry.Size(6*u,6*u),style=Stroke(1.8f*u))}
+            else -> {drawRect(color,Offset(5*u,3*u),androidx.compose.ui.geometry.Size(14*u,18*u),style=Stroke(1.8f*u));for(y in listOf(8f,12f,16f))linea(8f,y,16f,y)}
+        }
     }
 }

@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jara.lavacampus.model.EstadoPedido
+import com.jara.lavacampus.ui.components.AppTopBar
 import com.jara.lavacampus.ui.components.EstadoPedidoChip
 import com.jara.lavacampus.ui.components.StepperEstado
 import com.jara.lavacampus.ui.components.fechaPedido
@@ -58,7 +59,7 @@ fun DetallePedidoScreen(vm: DetallePedidoViewModel, onVolver: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         item {
-            TextButton(onClick = onVolver, enabled = !cancelando) { Text("← Volver") }
+            AppTopBar("Detalle del pedido",onVolver,habilitado=!cancelando)
         }
         if (cargando) {
             item { CircularProgressIndicator() }

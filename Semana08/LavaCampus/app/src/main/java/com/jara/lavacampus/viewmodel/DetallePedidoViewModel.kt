@@ -66,25 +66,19 @@ class DetallePedidoViewModel(
         _mensaje.value = null
         viewModelScope.launch {
             try {
-                // Volver a consultar Room después de la confirmación del diálogo.
-                val actual = repo.observarPedido(pedidoId).first()
-                if (actual == null || actual.pedido.usuarioId != estudiante.id) {
-                    _pedido.value = null
-                    _error.value = "El pedido no está disponible para tu cuenta."
-                    return@launch
+                val actualizado=repo.enTransaccion {
+                    val actual=requireNotNull(repo.obtenerPedido(pedidoId)) { "El pedido no está disponible para tu cuenta." }
+                    require(actual.pedido.usuarioId==estudiante.id) { "El pedido no está disponible para tu cuenta." }
+                    require(actual.pedido.estado==EstadoPedido.RECIBIDO.name) { "Solo se cancela antes de empezar el lavado" }
+                    repo.cambiarEstado(pedidoId,EstadoPedido.CANCELADO,null)
+                    requireNotNull(repo.obtenerPedido(pedidoId)) { "El pedido no está disponible para tu cuenta." }
                 }
-                if (actual.pedido.estado != EstadoPedido.RECIBIDO.name) {
-                    _pedido.value = actual
-                    _error.value = "Solo se cancela antes de empezar el lavado"
-                    return@launch
-                }
-                repo.cambiarEstado(pedidoId, EstadoPedido.CANCELADO, null)
-                // Reflejar el valor persistido; el observador sigue atendiendo futuros cambios.
-                _pedido.value = repo.observarPedido(pedidoId).first()
-                    ?.takeIf { it.pedido.usuarioId == estudiante.id }
+                _pedido.value=actualizado
                 _mensaje.value = "Pedido cancelado correctamente."
             } catch (e: CancellationException) {
                 throw e
+            } catch (e: IllegalArgumentException) {
+                _error.value=e.message
             } catch (e: Exception) {
                 _error.value = "No se pudo cancelar el pedido. Intenta nuevamente."
             } finally {

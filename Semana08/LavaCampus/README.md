@@ -40,7 +40,7 @@ Los nombres y correos de estas cuentas son ficticios. `Cambiar de perfil` corres
 
 ## Árbol de paquetes
 
-Árbol generado desde los archivos Kotlin presentes en `app/src/main/java/com/jara/lavacampus`:
+Archivos Kotlin actuales bajo `app/src/main/java/com/jara/lavacampus`:
 
 - **com.jara.lavacampus/**
     - **data/**
@@ -73,6 +73,7 @@ Los nombres y correos de estas cuentas son ficticios. `Cambiar de perfil` corres
         - `LineaPedido.kt`
         - `Rol.kt`
         - `Unidad.kt`
+        - `Validaciones.kt`
     - **ui/**
         - **administrador/**
             - `AjustesScreen.kt`
@@ -194,3 +195,8 @@ Crear un pedido es una operación puntual: se declara `suspend`, devuelve el ide
 - `mejora-ia`: fase siguiente, con un mínimo de tres mejoras y `PROMPTS.md`. No queda completada por terminar este README.
 
 El diseño de esta implementación utiliza crema, terracota y carbón, con tarjetas y distribución propios; mantiene la funcionalidad y la estructura solicitadas.
+
+
+## Revisión contra la guía
+
+Ver [auditoría S08](docs/AUDITORIA_S08.md): requisitos, correcciones de navegación/contraste, alcance y verificaciones manuales pendientes.

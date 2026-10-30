@@ -84,19 +84,18 @@ class MisPedidosViewModel(
         _mensaje.value = null
         viewModelScope.launch {
             try {
-                val actual = repo.observarPedido(pedido.pedido.id).first()
-                when {
-                    actual == null || actual.pedido.usuarioId != estudiante.id ->
-                        _error.value = "El pedido no está disponible para tu cuenta."
-                    actual.pedido.estado != EstadoPedido.RECIBIDO.name ->
-                        _error.value = "Solo se cancela antes de empezar el lavado"
-                    else -> {
-                        repo.cambiarEstado(actual.pedido.id, EstadoPedido.CANCELADO, null)
-                        _mensaje.value = "Pedido #${actual.pedido.id} cancelado. Puedes verlo en Historial."
-                    }
+                repo.enTransaccion {
+                    val actual=requireNotNull(repo.obtenerPedido(pedido.pedido.id)) { "El pedido no está disponible para tu cuenta." }
+                    require(actual.pedido.usuarioId==estudiante.id) { "El pedido no está disponible para tu cuenta." }
+                    require(actual.pedido.estado==EstadoPedido.RECIBIDO.name) { "Solo se cancela antes de empezar el lavado" }
+                    repo.cambiarEstado(actual.pedido.id,EstadoPedido.CANCELADO,null)
                 }
+                _mensaje.value="Pedido #${pedido.pedido.id} cancelado. Puedes verlo en Historial."
+
             } catch (e: CancellationException) {
                 throw e
+            } catch (e: IllegalArgumentException) {
+                _error.value=e.message
             } catch (e: Exception) {
                 _error.value = "No se pudo cancelar el pedido. Intenta nuevamente."
             } finally {
