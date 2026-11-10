@@ -6,6 +6,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.tecsup.productos.data.remote.RetrofitClient
 import com.tecsup.productos.data.repository.ItemRepository
 import com.tecsup.productos.data.repository.ItemRepositoryImpl
+import com.tecsup.productos.ui.detalle.DetalleViewModel
 import com.tecsup.productos.ui.lista.ListaViewModel
 
 class AppContainer {
@@ -14,6 +15,12 @@ class AppContainer {
     val listaFactory: ViewModelProvider.Factory = viewModelFactory {
         initializer {
             ListaViewModel(repositorio)
+        }
+    }
+
+    fun detalleFactory(id: Int): ViewModelProvider.Factory = viewModelFactory {
+        initializer {
+            DetalleViewModel(id, repositorio)
         }
     }
 }

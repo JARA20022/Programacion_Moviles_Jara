@@ -8,9 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.ViewModelProvider
-import com.tecsup.productos.ui.lista.ListaScreen
-import com.tecsup.productos.ui.lista.ListaViewModel
+import com.tecsup.productos.ui.navigation.AppNav
 import com.tecsup.productos.ui.theme.ProductosTheme
 
 class MainActivity : ComponentActivity() {
@@ -18,13 +16,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val container = AppContainer()
-        val listaViewModel = ViewModelProvider(this, container.listaFactory)[ListaViewModel::class.java]
 
         setContent {
             ProductosTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    ListaScreen(
-                        viewModel = listaViewModel,
+                    AppNav(
+                        contenedor = container,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }

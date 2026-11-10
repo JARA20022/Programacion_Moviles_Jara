@@ -6,4 +6,6 @@ data class Item(
     val subtitulo: String,
     val imagenUrl: String?,
     val esFavorito: Boolean = false,
+    val descripcion: String? = null,
+    val precio: Double? = null,
 )

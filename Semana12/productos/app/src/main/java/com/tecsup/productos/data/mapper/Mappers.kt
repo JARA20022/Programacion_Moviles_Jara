@@ -8,5 +8,7 @@ internal fun ItemDto.aItem(esFavorito: Boolean = false): Item = Item(
     titulo = title,
     subtitulo = brand?.takeIf { it.isNotBlank() } ?: "Smartphone",
     imagenUrl = thumbnail,
-    esFavorito = esFavorito
+    esFavorito = esFavorito,
+    descripcion = description,
+    precio = price
 )
