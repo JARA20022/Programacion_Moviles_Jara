@@ -1,16 +1,19 @@
 package com.tecsup.productos
 
+import android.content.Context
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.tecsup.productos.data.local.AppDatabase
 import com.tecsup.productos.data.remote.RetrofitClient
 import com.tecsup.productos.data.repository.ItemRepository
 import com.tecsup.productos.data.repository.ItemRepositoryImpl
 import com.tecsup.productos.ui.detalle.DetalleViewModel
 import com.tecsup.productos.ui.lista.ListaViewModel
 
-class AppContainer {
-    private val repositorio: ItemRepository = ItemRepositoryImpl(RetrofitClient.api)
+class AppContainer(contexto: Context) {
+    private val baseDatos = AppDatabase.obtener(contexto)
+    private val repositorio: ItemRepository = ItemRepositoryImpl(RetrofitClient.api, baseDatos)
 
     val listaFactory: ViewModelProvider.Factory = viewModelFactory {
         initializer {
