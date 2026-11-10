@@ -28,7 +28,7 @@ fun ListaScreen(viewModel: ListaViewModel, modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text("Catálogo de productos", style = MaterialTheme.typography.headlineSmall)
-        Text("Smartphones · Datos de prueba", style = MaterialTheme.typography.bodyMedium)
+        Text("Smartphones", style = MaterialTheme.typography.bodyMedium)
 
         when (val actual = estado) {
             UiState.Cargando -> Cargando()
