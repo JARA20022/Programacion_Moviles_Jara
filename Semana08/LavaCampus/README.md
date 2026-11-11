@@ -385,6 +385,7 @@ La fase 2 parte de `main`. Su historial de entrega contiene las mejoras A, B y C
 
 Esta actualización modifica únicamente `README.md` y `PROMPTS.md` de `mejora-ia`. La documentación de `main` se trabaja por separado.
 
+Las tres primeras respuestas desarrollan preguntas explícitas de la guía; las dos últimas explican decisiones técnicas de la implementación.
 
 ## Referencias técnicas
 

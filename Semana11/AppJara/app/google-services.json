@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "995920606291",
+    "project_id": "appjara-518e9",
+    "storage_bucket": "appjara-518e9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:995920606291:android:9c2f5777ffbf9360afc2a6",
+        "android_client_info": {
+          "package_name": "com.tecsup.jara"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQLJil654zjjWv7AxnY2kw2sZ_H22FWOs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
