@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tecsup.productos.data.repository.ItemRepository
 import com.tecsup.productos.domain.model.Item
+import com.tecsup.productos.notification.Notificador
 import com.tecsup.productos.ui.UiState
 import java.io.IOException
 import kotlinx.coroutines.CancellationException
@@ -15,7 +16,8 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class ListaViewModel(
-    private val repositorio: ItemRepository
+    private val repositorio: ItemRepository,
+    private val notificador: Notificador
 ) : ViewModel() {
     private val _estado = MutableStateFlow<UiState<List<Item>>>(UiState.Cargando)
     val estado: StateFlow<UiState<List<Item>>> = _estado.asStateFlow()
@@ -51,7 +53,11 @@ class ListaViewModel(
             _aviso.value = null
 
             try {
-                val error = repositorio.refrescar().exceptionOrNull()
+                val resultado = repositorio.refrescar()
+                resultado.onSuccess { cantidad ->
+                    notificador.mostrar("Datos actualizados", "Se guardaron $cantidad elementos")
+                }
+                val error = resultado.exceptionOrNull()
                 repositorio.items.collect { lista ->
                     if (error != null && lista.isEmpty()) {
                         _estado.value = UiState.Error(
