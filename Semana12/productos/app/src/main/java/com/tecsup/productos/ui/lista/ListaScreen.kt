@@ -29,6 +29,7 @@ fun ListaScreen(
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val aviso by viewModel.aviso.collectAsStateWithLifecycle()
+    val avisoFavorito by viewModel.avisoFavorito.collectAsStateWithLifecycle()
 
     Column(
         modifier = modifier.fillMaxSize().padding(20.dp),
@@ -40,6 +41,12 @@ fun ListaScreen(
             Text("Ver favoritos")
         }
         aviso?.let { mensaje ->
+            Text(mensaje, color = MaterialTheme.colorScheme.error)
+            TextButton(onClick = viewModel::cargar) {
+                Text("Reintentar")
+            }
+        }
+        avisoFavorito?.let { mensaje ->
             Text(mensaje, color = MaterialTheme.colorScheme.error)
         }
 
