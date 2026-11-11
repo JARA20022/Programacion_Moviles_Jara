@@ -12,7 +12,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.tecsup.productos.AppContainer
+import com.tecsup.productos.domain.model.Rol
 import com.tecsup.productos.ui.UiState
+import com.tecsup.productos.ui.admin.AdminScreen
+import com.tecsup.productos.ui.admin.AdminViewModel
 import com.tecsup.productos.ui.login.LoginScreen
 import com.tecsup.productos.ui.login.LoginViewModel
 import com.tecsup.productos.ui.detalle.DetalleScreen
@@ -25,6 +28,7 @@ import com.tecsup.productos.ui.lista.ListaViewModel
 private const val CATALOGO = "catalogo"
 private const val DETALLE = "detalle"
 private const val FAVORITOS = "favoritos"
+private const val ADMIN = "admin"
 private const val ID = "id"
 
 @Composable
@@ -41,7 +45,8 @@ fun AppNav(contenedor: AppContainer, modifier: Modifier = Modifier) {
         return
     }
 
-    key(sesion.uid) {
+    val esAdmin = sesion.rol == Rol.ADMIN
+    key(sesion.uid, sesion.rol) {
         val navController = rememberNavController()
     
         NavHost(
@@ -55,8 +60,24 @@ fun AppNav(contenedor: AppContainer, modifier: Modifier = Modifier) {
                     viewModel = listaViewModel,
                     onAbrirDetalle = { id -> navController.navigate("$DETALLE/$id") },
                     onAbrirFavoritos = { navController.navigate(FAVORITOS) { launchSingleTop = true } },
-                    onCerrarSesion = loginViewModel::cerrarSesion
+                    onCerrarSesion = loginViewModel::cerrarSesion,
+                    onAbrirAdmin = if (esAdmin) {
+                        { navController.navigate(ADMIN) { launchSingleTop = true } }
+                    } else {
+                        null
+                    }
                 )
+            }
+            if (esAdmin) {
+                composable(ADMIN) {
+                    val adminViewModel: AdminViewModel = viewModel(
+                        factory = contenedor.adminFactory(sesion)
+                    )
+                    AdminScreen(
+                        viewModel = adminViewModel,
+                        onVolver = { navController.popBackStack() }
+                    )
+                }
             }
             composable(FAVORITOS) {
                 val favoritosViewModel: FavoritosViewModel = viewModel(

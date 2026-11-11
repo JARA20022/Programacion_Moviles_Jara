@@ -10,6 +10,9 @@ import com.tecsup.productos.data.local.AppDatabase
 import com.tecsup.productos.data.remote.RetrofitClient
 import com.tecsup.productos.data.repository.ItemRepository
 import com.tecsup.productos.data.repository.ItemRepositoryImpl
+import com.tecsup.productos.domain.model.Rol
+import com.tecsup.productos.domain.model.Sesion
+import com.tecsup.productos.ui.admin.AdminViewModel
 import com.tecsup.productos.ui.detalle.DetalleViewModel
 import com.tecsup.productos.ui.favoritos.FavoritosViewModel
 import com.tecsup.productos.ui.lista.ListaViewModel
@@ -36,6 +39,15 @@ class AppContainer(contexto: Context) {
     val favoritosFactory: ViewModelProvider.Factory = viewModelFactory {
         initializer {
             FavoritosViewModel(repositorio)
+        }
+    }
+
+    fun adminFactory(sesion: Sesion): ViewModelProvider.Factory {
+        require(sesion.rol == Rol.ADMIN) { "Se requiere el rol de administrador." }
+        return viewModelFactory {
+            initializer {
+                AdminViewModel(repositorio)
+            }
         }
     }
 

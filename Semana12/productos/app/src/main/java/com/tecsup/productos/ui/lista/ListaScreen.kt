@@ -26,6 +26,7 @@ fun ListaScreen(
     onAbrirDetalle: (Int) -> Unit,
     onAbrirFavoritos: () -> Unit,
     onCerrarSesion: () -> Unit,
+    onAbrirAdmin: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
@@ -43,6 +44,11 @@ fun ListaScreen(
         }
         TextButton(onClick = onAbrirFavoritos) {
             Text("Ver favoritos")
+        }
+        onAbrirAdmin?.let { abrir ->
+            TextButton(onClick = abrir) {
+                Text("Panel Admin")
+            }
         }
         aviso?.let { mensaje ->
             Text(mensaje, color = MaterialTheme.colorScheme.error)
