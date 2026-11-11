@@ -9,6 +9,7 @@ import com.tecsup.productos.data.remote.RetrofitClient
 import com.tecsup.productos.data.repository.ItemRepository
 import com.tecsup.productos.data.repository.ItemRepositoryImpl
 import com.tecsup.productos.ui.detalle.DetalleViewModel
+import com.tecsup.productos.ui.favoritos.FavoritosViewModel
 import com.tecsup.productos.ui.lista.ListaViewModel
 
 class AppContainer(contexto: Context) {
@@ -18,6 +19,12 @@ class AppContainer(contexto: Context) {
     val listaFactory: ViewModelProvider.Factory = viewModelFactory {
         initializer {
             ListaViewModel(repositorio)
+        }
+    }
+
+    val favoritosFactory: ViewModelProvider.Factory = viewModelFactory {
+        initializer {
+            FavoritosViewModel(repositorio)
         }
     }
 

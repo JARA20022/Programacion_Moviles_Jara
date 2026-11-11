@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.tecsup.productos.data.repository.ItemRepository
 import com.tecsup.productos.domain.model.Item
 import com.tecsup.productos.ui.UiState
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,10 +18,25 @@ class ListaViewModel(
 ) : ViewModel() {
     private val _estado = MutableStateFlow<UiState<List<Item>>>(UiState.Cargando)
     val estado: StateFlow<UiState<List<Item>>> = _estado.asStateFlow()
+    private val _aviso = MutableStateFlow<String?>(null)
+    val aviso: StateFlow<String?> = _aviso.asStateFlow()
     private var carga: Job? = null
 
     init {
         cargar()
+    }
+
+    fun alternarFavorito(id: Int) {
+        viewModelScope.launch {
+            _aviso.value = null
+            try {
+                repositorio.alternarFavorito(id)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                _aviso.value = "No se pudo actualizar el favorito. Inténtalo otra vez."
+            }
+        }
     }
 
     fun cargar() {

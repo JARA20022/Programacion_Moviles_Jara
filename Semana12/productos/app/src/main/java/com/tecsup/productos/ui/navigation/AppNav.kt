@@ -11,11 +11,14 @@ import androidx.navigation.navArgument
 import com.tecsup.productos.AppContainer
 import com.tecsup.productos.ui.detalle.DetalleScreen
 import com.tecsup.productos.ui.detalle.DetalleViewModel
+import com.tecsup.productos.ui.favoritos.FavoritosScreen
+import com.tecsup.productos.ui.favoritos.FavoritosViewModel
 import com.tecsup.productos.ui.lista.ListaScreen
 import com.tecsup.productos.ui.lista.ListaViewModel
 
 private const val CATALOGO = "catalogo"
 private const val DETALLE = "detalle"
+private const val FAVORITOS = "favoritos"
 private const val ID = "id"
 
 @Composable
@@ -31,6 +34,17 @@ fun AppNav(contenedor: AppContainer, modifier: Modifier = Modifier) {
             val listaViewModel: ListaViewModel = viewModel(factory = contenedor.listaFactory)
             ListaScreen(
                 viewModel = listaViewModel,
+                onAbrirDetalle = { id -> navController.navigate("$DETALLE/$id") },
+                onAbrirFavoritos = { navController.navigate(FAVORITOS) { launchSingleTop = true } }
+            )
+        }
+        composable(FAVORITOS) {
+            val favoritosViewModel: FavoritosViewModel = viewModel(
+                factory = contenedor.favoritosFactory
+            )
+            FavoritosScreen(
+                viewModel = favoritosViewModel,
+                onVolver = { navController.popBackStack() },
                 onAbrirDetalle = { id -> navController.navigate("$DETALLE/$id") }
             )
         }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -23,9 +24,11 @@ import com.tecsup.productos.ui.components.ErrorView
 fun ListaScreen(
     viewModel: ListaViewModel,
     onAbrirDetalle: (Int) -> Unit,
+    onAbrirFavoritos: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
+    val aviso by viewModel.aviso.collectAsStateWithLifecycle()
 
     Column(
         modifier = modifier.fillMaxSize().padding(20.dp),
@@ -33,6 +36,12 @@ fun ListaScreen(
     ) {
         Text("Catálogo de productos", style = MaterialTheme.typography.headlineSmall)
         Text("Smartphones", style = MaterialTheme.typography.bodyMedium)
+        TextButton(onClick = onAbrirFavoritos) {
+            Text("Ver favoritos")
+        }
+        aviso?.let { mensaje ->
+            Text(mensaje, color = MaterialTheme.colorScheme.error)
+        }
 
         when (val actual = estado) {
             UiState.Cargando -> Cargando()
@@ -50,6 +59,11 @@ fun ListaScreen(
                                 Column(modifier = Modifier.padding(16.dp)) {
                                     Text(producto.titulo, style = MaterialTheme.typography.titleMedium)
                                     Text(producto.subtitulo, style = MaterialTheme.typography.bodyMedium)
+                                    TextButton(onClick = { viewModel.alternarFavorito(producto.id) }) {
+                                        Text(
+                                            if (producto.esFavorito) "Quitar favorito" else "Marcar favorito"
+                                        )
+                                    }
                                 }
                             }
                         }
