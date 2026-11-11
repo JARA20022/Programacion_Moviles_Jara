@@ -39,6 +39,9 @@ android {
 }
 
 dependencies {
+    implementation("androidx.compose.animation:animation")
+    implementation("io.coil-kt:coil-compose:2.7.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")

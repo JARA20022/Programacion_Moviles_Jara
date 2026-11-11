@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.tecsup.productos.data.repository.ItemRepository
 import com.tecsup.productos.domain.model.Item
 import com.tecsup.productos.ui.UiState
+import java.io.IOException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,12 +30,23 @@ class DetalleViewModel(
 
         carga = viewModelScope.launch {
             _estado.value = UiState.Cargando
-            _estado.value = repositorio.obtenerDetalle(id).fold(
-                onSuccess = { UiState.Exito(it) },
-                onFailure = {
-                    UiState.Error(it.message ?: "No se pudo cargar el detalle.")
-                }
-            )
+            _estado.value = try {
+                repositorio.obtenerDetalle(id).fold(
+                    onSuccess = { UiState.Exito(it) },
+                    onFailure = { error ->
+                        if (error is CancellationException) throw error
+                        if (error is IOException || error.cause is IOException) {
+                            UiState.Error("Revisa tu conexión y vuelve a abrir el detalle.")
+                        } else {
+                            UiState.Error("No se pudo obtener el detalle de este producto.")
+                        }
+                    }
+                )
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                UiState.Error("No se pudo abrir el detalle. Vuelve a intentarlo.")
+            }
         }
     }
 }
