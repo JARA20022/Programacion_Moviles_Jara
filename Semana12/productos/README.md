@@ -25,6 +25,16 @@ Aplicación Android del Laboratorio 11–12 de Programación en Móviles. Permit
 
 Ambos roles pueden ingresar, ver el catálogo y el detalle, administrar favoritos y cerrar sesión. El rol `admin` tiene acceso adicional al Panel Admin.
 
+## Mejoras de la fase 2
+
+- Tema oscuro en el inicio de sesión, el catálogo, el detalle, los favoritos y el panel Admin.
+- Fotos de productos de DummyJSON cargadas con Coil 2.7.0. Si una foto no está disponible, se muestra una ilustración.
+- Búsqueda por modelo o marca, con un mensaje cuando no hay coincidencias.
+- Transiciones entre pantallas y animaciones al marcar favoritos o al cambiar los totales del panel Admin.
+- Opción **Reintentar** cuando falla una carga. Si falla la conexión y hay datos en Room, el catálogo muestra los productos guardados.
+
+El requisito R12 se comprueba con las pruebas unitarias. El registro de consultas a IA para el requisito R13 corresponde a `PROMPTS.md`.
+
 ## Requisitos técnicos
 
 | Componente | Configuración |
@@ -84,6 +94,22 @@ service cloud.firestore {
 - `ui` organiza las pantallas, los ViewModel, los estados y la navegación.
 - `notification` contiene la interfaz `Notificador` y la implementación con el canal de Android.
 
+## Pruebas unitarias
+
+`ListaViewModelTest` usa un repositorio falso para comprobar tres casos:
+
+1. La carga exitosa muestra el catálogo y solicita la notificación de sincronización.
+2. Si falla la conexión y hay datos en caché, se muestran los productos guardados y un aviso.
+3. Si falla la conexión y la caché está vacía, se muestra un error. Al recuperar la conexión y reintentar, se carga el catálogo.
+
+Desde `Semana12/productos`, ejecuta en PowerShell:
+
+```powershell
+.\gradlew.bat :app:testDebugUnitTest
+```
+
+El reporte HTML se genera en `app/build/reports/tests/testDebugUnitTest/index.html`.
+
 ## Pruebas manuales
 
 | Caso | Cómo probarlo | Resultado esperado |
@@ -100,7 +126,6 @@ service cloud.firestore {
 
 Las capturas de login, catálogo, detalle, favoritos, panel Admin y notificación se presentan en el informe del laboratorio.
 
-## Reparto del trabajo
+## Autor
 
-- **Iván Jara Ayala, rama `main`.** Fase 1 del proyecto. Estructura MVVM, catálogo y detalle con Retrofit, Room, favoritos, modo sin conexión, Firebase, roles, panel Admin, notificaciones y documentación.
-- **Compañero de equipo, rama `mejora-ia`.** Fase 2 del proyecto. Mejoras de la app, pruebas del ViewModel y registro de las consultas a IA en `PROMPTS.md`.
+**Iván Jara Ayala.** Desarrolló la aplicación base en `main` y la segunda fase en `mejora-ia`, que incluye el rediseño, el manejo de errores y las pruebas del ViewModel.
