@@ -25,6 +25,7 @@ fun ListaScreen(
     viewModel: ListaViewModel,
     onAbrirDetalle: (Int) -> Unit,
     onAbrirFavoritos: () -> Unit,
+    onCerrarSesion: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
@@ -37,6 +38,9 @@ fun ListaScreen(
     ) {
         Text("Catálogo de productos", style = MaterialTheme.typography.headlineSmall)
         Text("Smartphones", style = MaterialTheme.typography.bodyMedium)
+        TextButton(onClick = onCerrarSesion) {
+            Text("Cerrar sesión")
+        }
         TextButton(onClick = onAbrirFavoritos) {
             Text("Ver favoritos")
         }
