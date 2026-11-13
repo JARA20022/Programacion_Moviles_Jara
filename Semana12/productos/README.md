@@ -128,4 +128,5 @@ Las capturas de login, catálogo, detalle, favoritos, panel Admin y notificació
 
 ## Autor
 
-**Iván Jara Ayala.** Desarrolló la aplicación base en `main` y la segunda fase en `mejora-ia`, que incluye el rediseño, el manejo de errores y las pruebas del ViewModel.
+**Iván Jara Ayala.** Desarrolló la aplicación base en `main`, el manejo de errores y las pruebas del ViewModel.
+**Noe Escobal Huayana** Desarrollo la segunda fase en `mejora-ia` y el manejo de errores y las pruebas del ViewModel.
