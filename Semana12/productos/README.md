@@ -103,4 +103,4 @@ Las capturas de login, catálogo, detalle, favoritos, panel Admin y notificació
 ## Reparto del trabajo
 
 - **Iván Jara Ayala, rama `main`.** Fase 1 del proyecto. Estructura MVVM, catálogo y detalle con Retrofit, Room, favoritos, modo sin conexión, Firebase, roles, panel Admin, notificaciones y documentación.
-- **Compañero de equipo, rama `mejora-ia`.** Fase 2 del proyecto. Mejoras de la app, pruebas del ViewModel y registro de las consultas a IA en `PROMPTS.md`.
+- **Noe Escobal Huayana, rama `mejora-ia`.** Fase 2 del proyecto. Mejoras de la app, pruebas del ViewModel y registro de las consultas a IA en `PROMPTS.md`.
