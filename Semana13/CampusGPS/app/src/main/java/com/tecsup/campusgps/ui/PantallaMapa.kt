@@ -7,10 +7,13 @@ import android.provider.Settings
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import java.util.Locale
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -20,7 +23,6 @@ import com.tecsup.campusgps.model.UbicacionUi
 import com.tecsup.campusgps.util.formatearDistancia
 import com.tecsup.campusgps.viewmodel.MapaViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaMapa(vm: MapaViewModel) {
     val estado by vm.estado.collectAsState()
@@ -56,54 +58,56 @@ fun PantallaMapa(vm: MapaViewModel) {
         if (tienePermiso) vm.buscar() else lanzador.launch(permisos)
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("CampusGPS") }) }) { margen ->
-        Column(
-            Modifier.fillMaxSize().padding(margen).padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Button(onClick = { alPulsar() }, enabled = !sinServicios && estado != UbicacionUi.Buscando) {
-                Text("Obtener mi ubicación")
-            }
-            Text("Latitud: ${posicion?.latitud ?: "—"}")
-            Text("Longitud: ${posicion?.longitud ?: "—"}")
-            when (val actual = estado) {
-                UbicacionUi.Buscando -> Text("Buscando ubicación…")
-                is UbicacionUi.Error -> MensajeError(
-                    error = actual,
-                    abrirAjustes = {
-                        val uri = Uri.fromParts("package", contexto.packageName, null)
-                        contexto.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, uri))
-                    },
-                    reintentar = { alPulsar() }
-                )
-                else -> Unit
-            }
-            OutlinedButton(
-                enabled = cercano != null,
-                onClick = { cercano?.let { enfocarLugar(it.id) } }
-            ) {
-                Text("Ir al más cercano")
-            }
-            if (cercano != null && metrosCercano != null) {
-                Text("Más cercano: ${cercano.nombre} (${formatearDistancia(metrosCercano)})")
-            }
+    val categoria by vm.categoria.collectAsState()
+    val coordenadas = posicion?.let {
+        String.format(Locale.US, "%.5f°, %.5f°", it.latitud, it.longitud)
+    } ?: "Ubicación pendiente"
+
+    val mapa: @Composable (Modifier) -> Unit = { marco ->
+        Box(marco.clip(RoundedCornerShape(topEnd = 28.dp, bottomStart = 28.dp)).background(Papel)) {
             if (!sinServicios) {
-                MapaUbicacion(
-                    estado = estado,
-                    lugares = lugares,
-                    seleccionado = seleccionado,
-                    masCercanoId = cercano?.id,
-                    solicitudDeCamara = solicitudDeCamara,
-                    modifier = Modifier.fillMaxWidth().weight(1f)
-                )
+                MapaUbicacion(estado, lugares, seleccionado, cercano?.id, solicitudDeCamara, Modifier.fillMaxSize())
             }
-            ListaLugares(
-                lugares = lugares,
-                seleccionado = seleccionado,
-                onClick = { id -> enfocarLugar(id) },
-                modifier = Modifier.fillMaxWidth().height(220.dp)
-            )
+        }
+    }
+    val indice: @Composable (Modifier) -> Unit = { panel ->
+        Column(panel) {
+            FiltrosAtlas(vm.categorias, categoria, vm::filtrarPor)
+            ListaLugares(lugares, seleccionado, { id -> enfocarLugar(id) }, Modifier.fillMaxSize()) {
+                val actual = estado
+                if (actual is UbicacionUi.Error) {
+                    MensajeError(
+                        error = actual,
+                        abrirAjustes = {
+                            val uri = Uri.fromParts("package", contexto.packageName, null)
+                            contexto.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, uri))
+                        },
+                        reintentar = { alPulsar() }
+                    )
+                }
+                DestinoAtlas(cercano?.nombre, metrosCercano?.let(::formatearDistancia)) {
+                    cercano?.let { enfocarLugar(it.id) }
+                }
+            }
+        }
+    }
+
+    Column(
+        Modifier.fillMaxSize().background(Tinta).safeDrawingPadding()
+    ) {
+        CabeceraAtlas(coordenadas, estado == UbicacionUi.Buscando, !sinServicios) { alPulsar() }
+        BoxWithConstraints(Modifier.fillMaxSize().background(Papel)) {
+            if (maxWidth > maxHeight && maxWidth >= 560.dp) {
+                Row(Modifier.fillMaxSize().padding(8.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    if (!sinServicios) mapa(Modifier.fillMaxHeight().weight(1f))
+                    indice(Modifier.fillMaxHeight().weight(1f))
+                }
+            } else {
+                Column(Modifier.fillMaxSize()) {
+                    if (!sinServicios) mapa(Modifier.fillMaxWidth().weight(0.42f))
+                    indice(Modifier.fillMaxWidth().weight(0.58f))
+                }
+            }
         }
     }
 }

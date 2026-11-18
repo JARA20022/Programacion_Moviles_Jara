@@ -15,6 +15,7 @@ import com.tecsup.campusgps.util.distanciaMetros
 import com.tecsup.campusgps.util.formatearDistancia
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.StateFlow
@@ -34,7 +35,18 @@ class MapaViewModel(
     val estado: StateFlow<UbicacionUi> = _estado.asStateFlow()
 
     private val _lugares = MutableStateFlow(lugaresRepo.obtenerLugares().map { LugarConDistancia(it, null) })
-    val lugares = _lugares.asStateFlow()
+    private val _categoria = MutableStateFlow<String?>(null)
+    val categoria = _categoria.asStateFlow()
+    val categorias = _lugares.value.map { it.lugar.categoria }.distinct()
+    val lugares = combine(_lugares, categoria) { lista, filtro ->
+        if (filtro == null) lista else lista.filter { it.lugar.categoria == filtro }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _lugares.value)
+
+    fun filtrarPor(categoria: String?) {
+        _categoria.value = categoria
+        val elegido = _lugares.value.firstOrNull { it.lugar.id == _seleccionado.value }
+        if (categoria != null && elegido?.lugar?.categoria != categoria) seleccionar(null)
+    }
 
     private val _seleccionado = MutableStateFlow<Int?>(null)
     val seleccionado = _seleccionado.asStateFlow()
