@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.tecsup.campusgps.model.UbicacionUi
+import com.tecsup.campusgps.util.formatearDistancia
 import com.tecsup.campusgps.viewmodel.MapaViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -22,6 +23,16 @@ fun PantallaMapa(vm: MapaViewModel) {
     val posicion = (estado as? UbicacionUi.Lista)?.posicion
     val lugares by vm.lugares.collectAsState()
     val seleccionado by vm.seleccionado.collectAsState()
+    val masCercano by vm.masCercano.collectAsState()
+    val cercano = masCercano
+    val metrosCercano = lugares.firstOrNull { it.lugar.id == cercano?.id }?.metros
+    var solicitudDeCamara by remember { mutableIntStateOf(0) }
+
+    fun enfocarLugar(id: Int) {
+        vm.seleccionar(id)
+        solicitudDeCamara++
+    }
+
     val contexto = LocalContext.current
     val permisos = remember {
         arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -56,16 +67,27 @@ fun PantallaMapa(vm: MapaViewModel) {
                 is UbicacionUi.Error -> Text(actual.mensaje, color = MaterialTheme.colorScheme.error)
                 else -> Unit
             }
+            OutlinedButton(
+                enabled = cercano != null,
+                onClick = { cercano?.let { enfocarLugar(it.id) } }
+            ) {
+                Text("Ir al más cercano")
+            }
+            if (cercano != null && metrosCercano != null) {
+                Text("Más cercano: ${cercano.nombre} (${formatearDistancia(metrosCercano)})")
+            }
             MapaUbicacion(
                 estado = estado,
                 lugares = lugares,
                 seleccionado = seleccionado,
+                masCercanoId = cercano?.id,
+                solicitudDeCamara = solicitudDeCamara,
                 modifier = Modifier.fillMaxWidth().weight(1f)
             )
             ListaLugares(
                 lugares = lugares,
                 seleccionado = seleccionado,
-                onClick = { id -> vm.seleccionar(id) },
+                onClick = { id -> enfocarLugar(id) },
                 modifier = Modifier.fillMaxWidth().height(220.dp)
             )
         }

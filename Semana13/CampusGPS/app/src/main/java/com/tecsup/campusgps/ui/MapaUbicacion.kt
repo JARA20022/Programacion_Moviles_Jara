@@ -18,6 +18,8 @@ fun MapaUbicacion(
     estado: UbicacionUi,
     lugares: List<LugarConDistancia>,
     seleccionado: Int?,
+    masCercanoId: Int?,
+    solicitudDeCamara: Int,
     modifier: Modifier = Modifier
 ) {
     val camara = rememberCameraPositionState {
@@ -28,7 +30,7 @@ fun MapaUbicacion(
     val punto = posicion?.let { LatLng(it.latitud, it.longitud) }
 
     if (mapaListo) {
-        LaunchedEffect(seleccionado) {
+        LaunchedEffect(seleccionado, solicitudDeCamara) {
             val lugar = lugares.firstOrNull { it.lugar.id == seleccionado }?.lugar
             if (lugar != null) {
                 val destino = LatLng(lugar.latitud, lugar.longitud)
@@ -51,14 +53,19 @@ fun MapaUbicacion(
         lugares.forEach { item ->
             val lugar = item.lugar
             key(lugar.id) {
+                val color = if (lugar.id == masCercanoId) {
+                    BitmapDescriptorFactory.HUE_GREEN
+                } else {
+                    BitmapDescriptorFactory.HUE_AZURE
+                }
                 val marcador = rememberUpdatedMarkerState(position = LatLng(lugar.latitud, lugar.longitud))
                 Marker(
                     state = marcador,
                     title = lugar.nombre,
                     snippet = lugar.categoria,
-                    icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
+                    icon = BitmapDescriptorFactory.defaultMarker(color)
                 )
-                LaunchedEffect(seleccionado, mapaListo) {
+                LaunchedEffect(seleccionado, solicitudDeCamara, mapaListo) {
                     if (mapaListo && lugar.id == seleccionado) marcador.showInfoWindow()
                 }
             }
