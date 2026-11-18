@@ -1,6 +1,13 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+}
+
+val localProps = Properties().apply {
+    val archivo = rootProject.file("local.properties")
+    if (archivo.isFile) archivo.inputStream().use { load(it) }
 }
 
 android {
@@ -8,6 +15,7 @@ android {
     compileSdk = 37
 
     defaultConfig {
+        manifestPlaceholders["MAPS_API_KEY"] = localProps.getProperty("MAPS_API_KEY", "")
         applicationId = "com.tecsup.campusgps"
         minSdk = 24
         targetSdk = 36
