@@ -1,11 +1,15 @@
 package com.tecsup.campusgps.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tecsup.campusgps.data.LugaresRepository
 import com.tecsup.campusgps.data.UbicacionRepository
 import com.tecsup.campusgps.model.LugarConDistancia
+import com.tecsup.campusgps.model.Posicion
 import com.tecsup.campusgps.model.UbicacionUi
+import com.tecsup.campusgps.util.distanciaMetros
+import com.tecsup.campusgps.util.formatearDistancia
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,9 +34,20 @@ class MapaViewModel(
         viewModelScope.launch {
             ubicacionRepo.obtenerPosicion().onSuccess {
                 _estado.value = UbicacionUi.Lista(it)
-                // TODO Paso 5: actualizarDistancias(it)
+                actualizarDistancias(it)
             }.onFailure { _estado.value = UbicacionUi.Error(mensajeDe(it)) }
         }
+    }
+
+    private fun actualizarDistancias(pos: Posicion) {
+        val ordenados = lugaresRepo.obtenerLugares().map { lugar ->
+            LugarConDistancia(lugar, distanciaMetros(pos, lugar))
+        }.sortedBy { it.metros }
+        _lugares.value = ordenados
+        Log.d("CampusGPS", ordenados.joinToString(" | ") { item ->
+            val distancia = item.metros?.let(::formatearDistancia) ?: "Sin calcular"
+            "${item.lugar.nombre}: $distancia"
+        })
     }
 
     fun permisoDenegado() {
