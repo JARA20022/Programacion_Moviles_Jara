@@ -20,6 +20,8 @@ import com.tecsup.campusgps.viewmodel.MapaViewModel
 fun PantallaMapa(vm: MapaViewModel) {
     val estado by vm.estado.collectAsState()
     val posicion = (estado as? UbicacionUi.Lista)?.posicion
+    val lugares by vm.lugares.collectAsState()
+    val seleccionado by vm.seleccionado.collectAsState()
     val contexto = LocalContext.current
     val permisos = remember {
         arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -54,6 +56,12 @@ fun PantallaMapa(vm: MapaViewModel) {
                 is UbicacionUi.Error -> Text(actual.mensaje, color = MaterialTheme.colorScheme.error)
                 else -> Unit
             }
+            MapaUbicacion(
+                estado = estado,
+                lugares = lugares,
+                seleccionado = seleccionado,
+                modifier = Modifier.fillMaxWidth().weight(1f)
+            )
         }
     }
 }
