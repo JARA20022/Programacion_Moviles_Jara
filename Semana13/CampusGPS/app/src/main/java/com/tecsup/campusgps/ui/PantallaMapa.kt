@@ -62,6 +62,12 @@ fun PantallaMapa(vm: MapaViewModel) {
                 seleccionado = seleccionado,
                 modifier = Modifier.fillMaxWidth().weight(1f)
             )
+            ListaLugares(
+                lugares = lugares,
+                seleccionado = seleccionado,
+                onClick = { id -> vm.seleccionar(id) },
+                modifier = Modifier.fillMaxWidth().height(220.dp)
+            )
         }
     }
 }

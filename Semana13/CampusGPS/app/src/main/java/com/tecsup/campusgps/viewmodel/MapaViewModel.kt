@@ -59,6 +59,9 @@ class MapaViewModel(
         else -> e.message ?: "No se pudo obtener la ubicación"
     }
 
-    // TODO Paso 6: seleccionar(id)
+    fun seleccionar(id: Int?) {
+        _seleccionado.value = id
+    }
+
     // TODO Paso 7: masCercano
 }
