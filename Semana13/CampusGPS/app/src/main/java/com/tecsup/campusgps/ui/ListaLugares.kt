@@ -23,6 +23,7 @@ import com.tecsup.campusgps.util.formatearDistancia
 fun ListaLugares(
     lugares: List<LugarConDistancia>,
     seleccionado: Int?,
+    dentroDelRadio: Set<Int>,
     onClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
     cabecera: @Composable () -> Unit
@@ -48,8 +49,14 @@ fun ListaLugares(
                         Text(lugar.categoria, fontSize = 11.sp, color = if (activo) Melon else Arcilla)
                         Text(lugar.nombre, color = texto, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                     }
-                    Text(item.metros?.let(::formatearDistancia) ?: "Sin calcular",
-                        color = texto, fontFamily = FontFamily.Monospace, fontSize = 12.sp)
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(item.metros?.let(::formatearDistancia) ?: "Sin calcular",
+                            color = texto, fontFamily = FontFamily.Monospace, fontSize = 12.sp)
+                        if (lugar.id in dentroDelRadio) {
+                            Text("Dentro del radio", color = if (activo) Melon else Arcilla,
+                                fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
                 HorizontalDivider(color = if (activo) Color.Transparent else Linea)
             }

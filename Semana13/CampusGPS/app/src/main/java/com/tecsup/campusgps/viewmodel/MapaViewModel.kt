@@ -42,6 +42,23 @@ class MapaViewModel(
         if (filtro == null) lista else lista.filter { it.lugar.categoria == filtro }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _lugares.value)
 
+    val radiosDisponibles = listOf(100, 200, 500)
+    private val _radioMetros = MutableStateFlow(200)
+    val radioMetros = _radioMetros.asStateFlow()
+
+    val idsDentroDelRadio: StateFlow<Set<Int>> = combine(lugares, radioMetros, estado) { visibles, radio, ubicacion ->
+        if (ubicacion is UbicacionUi.Lista) {
+            visibles.mapNotNull { item ->
+                val distancia = item.metros
+                if (distancia != null && distancia <= radio.toFloat()) item.lugar.id else null
+            }.toSet()
+        } else emptySet()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
+    fun cambiarRadio(metros: Int) {
+        if (metros in radiosDisponibles) _radioMetros.value = metros
+    }
+
     fun filtrarPor(categoria: String?) {
         _categoria.value = categoria
         val elegido = _lugares.value.firstOrNull { it.lugar.id == _seleccionado.value }

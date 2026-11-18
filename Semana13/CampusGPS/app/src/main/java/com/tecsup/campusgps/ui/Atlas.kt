@@ -99,3 +99,27 @@ internal fun DestinoAtlas(nombre: String?, distancia: String?, ir: () -> Unit) {
         Text("↗", color = Arcilla, fontSize = 22.sp)
     }
 }
+
+@Composable
+internal fun SelectorRadio(opciones: List<Int>, radio: Int, elegir: (Int) -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Text("Radio", color = Tinta, fontWeight = FontWeight.Bold)
+        opciones.forEach { metros ->
+            val marcado = metros == radio
+            val fondo by animateColorAsState(if (marcado) Arcilla else Color(0xFFEDE6D9), label = "Radio")
+            Box(
+                Modifier.heightIn(min = 48.dp).selectable(
+                    selected = marcado, role = Role.RadioButton, onClick = { elegir(metros) }
+                ).padding(vertical = 7.dp).clip(CircleShape).background(fondo)
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("$metros m", color = if (marcado) Color.White else Tinta, fontSize = 13.sp)
+            }
+        }
+    }
+}

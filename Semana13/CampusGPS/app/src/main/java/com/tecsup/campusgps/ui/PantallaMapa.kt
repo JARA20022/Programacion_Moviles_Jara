@@ -59,6 +59,8 @@ fun PantallaMapa(vm: MapaViewModel) {
     }
 
     val categoria by vm.categoria.collectAsState()
+    val radio by vm.radioMetros.collectAsState()
+    val dentro by vm.idsDentroDelRadio.collectAsState()
     val coordenadas = posicion?.let {
         String.format(Locale.US, "%.5f°, %.5f°", it.latitud, it.longitud)
     } ?: "Ubicación pendiente"
@@ -66,14 +68,21 @@ fun PantallaMapa(vm: MapaViewModel) {
     val mapa: @Composable (Modifier) -> Unit = { marco ->
         Box(marco.clip(RoundedCornerShape(topEnd = 28.dp, bottomStart = 28.dp)).background(Papel)) {
             if (!sinServicios) {
-                MapaUbicacion(estado, lugares, seleccionado, cercano?.id, solicitudDeCamara, Modifier.fillMaxSize())
+                MapaUbicacion(
+                    estado = estado, lugares = lugares, seleccionado = seleccionado,
+                    masCercanoId = cercano?.id, solicitudDeCamara = solicitudDeCamara,
+                    radioMetros = radio, modifier = Modifier.fillMaxSize()
+                )
             }
         }
     }
     val indice: @Composable (Modifier) -> Unit = { panel ->
         Column(panel) {
             FiltrosAtlas(vm.categorias, categoria, vm::filtrarPor)
-            ListaLugares(lugares, seleccionado, { id -> enfocarLugar(id) }, Modifier.fillMaxSize()) {
+            ListaLugares(
+                lugares = lugares, seleccionado = seleccionado, dentroDelRadio = dentro,
+                onClick = { id -> enfocarLugar(id) }, modifier = Modifier.fillMaxSize()
+            ) {
                 val actual = estado
                 if (actual is UbicacionUi.Error) {
                     MensajeError(
@@ -85,6 +94,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                         reintentar = { alPulsar() }
                     )
                 }
+                SelectorRadio(vm.radiosDisponibles, radio, vm::cambiarRadio)
                 DestinoAtlas(cercano?.nombre, metrosCercano?.let(::formatearDistancia)) {
                     cercano?.let { enfocarLugar(it.id) }
                 }

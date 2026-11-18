@@ -6,6 +6,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.Circle
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.rememberCameraPositionState
@@ -20,6 +21,7 @@ fun MapaUbicacion(
     seleccionado: Int?,
     masCercanoId: Int?,
     solicitudDeCamara: Int,
+    radioMetros: Int,
     modifier: Modifier = Modifier
 ) {
     val camara = rememberCameraPositionState {
@@ -48,6 +50,13 @@ fun MapaUbicacion(
         onMapLoaded = { mapaListo = true }
     ) {
         if (punto != null) {
+            Circle(
+                center = punto,
+                radius = radioMetros.toDouble(),
+                strokeColor = Arcilla,
+                fillColor = Melon.copy(alpha = 0.22f),
+                strokeWidth = 3f
+            )
             Marker(state = rememberUpdatedMarkerState(position = punto), title = "Estás aquí")
         }
         lugares.forEach { item ->
