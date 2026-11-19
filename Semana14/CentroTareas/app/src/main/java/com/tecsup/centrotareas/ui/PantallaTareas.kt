@@ -21,6 +21,7 @@ private val Azul = Color(0xFF15589A)
 @Composable
 fun PantallaTareas(vm: TareasViewModel) {
     val mensaje by vm.mensaje.collectAsState()
+    val progreso by vm.progreso.collectAsState()
     var toques by rememberSaveable { mutableIntStateOf(0) }
     Scaffold(topBar = {
         TopAppBar(
@@ -37,9 +38,14 @@ fun PantallaTareas(vm: TareasViewModel) {
                     Text("Tócame: $toques")
                 }
                 Button(onClick = vm::tareaLarga, enabled = mensaje != "Trabajando...") {
-                    Text("Tarea larga")
+                    Text("Iniciar")
                 }
                 Text(mensaje)
+                LinearProgressIndicator(
+                    progress = { progreso },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Text("${(progreso * 100).toInt()} %")
             }
             TarjetaTarea("Contar números primos") {
                 // TODO Paso 5: incorporar la entrada, los botones y el estado de primos.
