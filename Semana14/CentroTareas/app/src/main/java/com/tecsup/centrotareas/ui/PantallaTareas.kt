@@ -1,6 +1,10 @@
 package com.tecsup.centrotareas.ui
 
-import androidx.compose.animation.Crossfade
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -55,7 +59,7 @@ fun PantallaTareas(vm: TareasViewModel) {
     val simular by vm.simularError.collectAsState()
 
     MaterialTheme(colorScheme = ColoresCentro) {
-        Surface(color = Papel, modifier = Modifier.fillMaxSize()) {
+        Surface(color = Noche, modifier = Modifier.fillMaxSize()) {
             BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding().imePadding(),
                 contentAlignment = Alignment.TopCenter) {
                 val margen = if (maxWidth < 360.dp) 12.dp else 20.dp
@@ -64,17 +68,29 @@ fun PantallaTareas(vm: TareasViewModel) {
                     verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Marca(entrada.value)
-                        Text("CentroTareas", color = Tinta, fontFamily = FontFamily.Serif,
+                        Box(Modifier.graphicsLayer {
+                            rotationZ = (1f - entrada.value) * -32f
+                            scaleX = .75f + entrada.value * .25f
+                            scaleY = scaleX
+                        }) { Marca(entrada.value) }
+                        Text("CentroTareas", color = Hielo, fontFamily = FontFamily.SansSerif,
                             style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold,
                             modifier = Modifier.graphicsLayer {
                                 alpha = entrada.value
                                 translationX = (1f - entrada.value) * 18.dp.toPx()
                             })
                     }
-                    PanelProgreso(progreso, mensaje, entrada.value, toques) { toques++ }
+                    if (seccion == 1) {
+                        PanelPrimos(primos, toques) { toques++ }
+                    } else {
+                        PanelProgreso(progreso, mensaje, entrada.value, toques) { toques++ }
+                    }
                     Selector(seccion) { seccion = it }
-                    Crossfade(targetState = seccion, animationSpec = tween(160), label = "Sección") { destino ->
+                    AnimatedContent(targetState = seccion, transitionSpec = {
+                        val direccion = if (targetState > initialState) 1 else -1
+                        (fadeIn(tween(190)) + slideInHorizontally(tween(190)) { direccion * it / 9 })
+                            .togetherWith(fadeOut(tween(100)))
+                    }, label = "Sección") { destino ->
                         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             when (destino) {
                                 0 -> {
@@ -100,16 +116,16 @@ fun PantallaTareas(vm: TareasViewModel) {
 @Composable
 private fun PanelProgreso(progreso: Float, mensaje: String, entrada: Float, toques: Int, tocar: () -> Unit) {
     BoxWithConstraints(Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp))
-        .background(Brush.linearGradient(listOf(Tinta, Color(0xFF51294D)))).padding(20.dp)) {
+        .background(Brush.linearGradient(listOf(Color(0xFF0C4046), Pizarra))).padding(20.dp)) {
         val apilado = maxWidth < 250.dp || LocalDensity.current.fontScale > 1.3f
         val diametro = if (maxWidth >= 340.dp) 146.dp else 112.dp
         val detalle: @Composable () -> Unit = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Progreso", color = Color(0xFFDACAD8), fontFamily = FontFamily.Monospace)
+                Text("Progreso de tarea", color = Niebla, fontFamily = FontFamily.Monospace)
                 Text(mensaje, color = Color.White, fontFamily = FontFamily.Serif,
                     style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                Button(onClick = tocar, colors = ButtonDefaults.buttonColors(containerColor = Lima,
-                    contentColor = Tinta)) { Text("Tócame · $toques") }
+                Button(onClick = tocar, colors = ButtonDefaults.buttonColors(containerColor = Menta,
+                    contentColor = Noche)) { Text("Tócame · $toques") }
             }
         }
         if (apilado) {
@@ -134,11 +150,11 @@ private fun Selector(actual: Int, elegir: (Int) -> Unit) {
         listOf("Tarea", "Primos", "Cargas").forEachIndexed { indice, nombre ->
             val activo = actual == indice
             Box(Modifier.clip(RoundedCornerShape(14.dp))
-                .background(if (activo) Tinta else Color(0xFFECE1DB))
+                .background(if (activo) Menta else Pizarra)
                 .selectable(selected = activo, role = Role.Tab, onClick = { elegir(indice) })
                 .heightIn(min = 48.dp).padding(horizontal = 18.dp, vertical = 8.dp),
                 contentAlignment = Alignment.Center) {
-                Text(nombre, color = if (activo) Papel else Tinta, fontSize = 15.sp,
+                Text(nombre, color = if (activo) Noche else Hielo, fontSize = 15.sp,
                     fontWeight = if (activo) FontWeight.Bold else FontWeight.Normal)
             }
         }
@@ -149,7 +165,7 @@ private fun Selector(actual: Int, elegir: (Int) -> Unit) {
 private fun SeccionPrimos(estado: PrimosUi, texto: String, editar: (String) -> Unit,
                           contar: (Int) -> Unit, cancelar: () -> Unit) {
     val limite = texto.toIntOrNull()
-    val calculando = estado == PrimosUi.Calculando
+    val calculando = estado is PrimosUi.Calculando
     TituloSeccion("Números primos")
     OutlinedTextField(value = texto, onValueChange = { if (it.all { c -> c in '0'..'9' }) editar(it) },
         modifier = Modifier.fillMaxWidth(), label = { Text("Hasta N") },
@@ -163,11 +179,7 @@ private fun SeccionPrimos(estado: PrimosUi, texto: String, editar: (String) -> U
     }
     when (estado) {
         PrimosUi.Inicial -> Unit
-        PrimosUi.Calculando -> {
-            LinearProgressIndicator(Modifier.fillMaxWidth())
-            Text("Calculando…")
-        }
-        PrimosUi.Cancelado -> Text("Cancelado")
+        is PrimosUi.Calculando, is PrimosUi.Cancelado -> Unit // El panel superior muestra estos estados.
         is PrimosUi.Listo -> Resultado("${estado.cantidad} primos\nTiempo: ${estado.milisegundos} ms")
     }
 }

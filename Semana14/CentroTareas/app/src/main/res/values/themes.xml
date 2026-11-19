@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <style name="Theme.CentroTareas" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="CentroTareasBase" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#091822</item>
+    </style>
+    <style name="Theme.CentroTareas" parent="@style/CentroTareasBase" />
 </resources>

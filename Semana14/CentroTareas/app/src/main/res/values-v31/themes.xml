@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.CentroTareas" parent="@style/CentroTareasBase">
+        <item name="android:windowSplashScreenBackground">#091822</item>
+    </style>
+</resources>
