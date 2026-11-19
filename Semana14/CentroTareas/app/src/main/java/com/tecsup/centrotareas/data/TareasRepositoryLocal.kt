@@ -1,5 +1,9 @@
 package com.tecsup.centrotareas.data
 
+import android.util.Log
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -7,6 +11,15 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 
 class TareasRepositoryLocal : TareasRepository {
+    override fun progresoTarea(): Flow<Int> = flow {
+        Log.d("HILO", "Dentro: ${Thread.currentThread().name}")
+        emit(0)
+        for (porcentaje in 1..100) {
+            delay(40)
+            emit(porcentaje)
+        }
+    }.flowOn(Dispatchers.Default)
+
     override suspend fun cargarPerfil(): String {
         delay(2000)
         return "Ana Torres (ficticia)"

@@ -1,112 +1,161 @@
 package com.tecsup.centrotareas.ui
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.tecsup.centrotareas.model.CargaUi
 import com.tecsup.centrotareas.model.PrimosUi
 import com.tecsup.centrotareas.viewmodel.TareasViewModel
 
 private const val LIMITE_INICIAL = 500000
 
-private val Azul = Color(0xFF15589A)
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaTareas(vm: TareasViewModel) {
-    val carga by vm.carga.collectAsState()
-    val simularError by vm.simularError.collectAsState()
-    val primos by vm.primos.collectAsState()
-    val mensaje by vm.mensaje.collectAsState()
-    val progreso by vm.progreso.collectAsState()
-    val corriendo by vm.corriendo.collectAsState()
+    var abierto by rememberSaveable { mutableStateOf(false) }
+    val entrada = remember { Animatable(if (abierto) 1f else 0f) }
+    LaunchedEffect(Unit) {
+        if (!abierto) {
+            abierto = true
+            entrada.animateTo(1f, tween(720))
+        }
+    }
+    var seccion by rememberSaveable { mutableIntStateOf(0) }
     var toques by rememberSaveable { mutableIntStateOf(0) }
-    Scaffold(topBar = {
-        TopAppBar(
-            title = { Text("CentroTareas") },
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = Azul, titleContentColor = Color.White)
-        )
-    }) { margen ->
-        Column(
-            Modifier.fillMaxSize().padding(margen).verticalScroll(rememberScrollState()).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            TarjetaTarea("Tarea con progreso") {
-                Button(onClick = { toques++ }) {
-                    Text("Tócame: $toques")
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = vm::tareaLarga, enabled = !corriendo) {
-                        Text("Iniciar")
+    var limite by rememberSaveable { mutableStateOf(LIMITE_INICIAL.toString()) }
+    val progreso by vm.progreso.collectAsState()
+    val mensaje by vm.mensaje.collectAsState()
+    val corriendo by vm.corriendo.collectAsState()
+    val primos by vm.primos.collectAsState()
+    val carga by vm.carga.collectAsState()
+    val simular by vm.simularError.collectAsState()
+
+    MaterialTheme(colorScheme = ColoresCentro) {
+        Surface(color = Papel, modifier = Modifier.fillMaxSize()) {
+            BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding().imePadding(),
+                contentAlignment = Alignment.TopCenter) {
+                val margen = if (maxWidth < 360.dp) 12.dp else 20.dp
+                Column(Modifier.widthIn(max = 700.dp).fillMaxWidth()
+                    .verticalScroll(rememberScrollState()).padding(horizontal = margen, vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Marca(entrada.value)
+                        Text("CentroTareas", color = Tinta, fontFamily = FontFamily.Serif,
+                            style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold,
+                            modifier = Modifier.graphicsLayer {
+                                alpha = entrada.value
+                                translationX = (1f - entrada.value) * 18.dp.toPx()
+                            })
                     }
-                    OutlinedButton(onClick = vm::cancelar, enabled = corriendo) {
-                        Text("Cancelar")
+                    PanelProgreso(progreso, mensaje, entrada.value, toques) { toques++ }
+                    Selector(seccion) { seccion = it }
+                    Crossfade(targetState = seccion, animationSpec = tween(160), label = "Sección") { destino ->
+                        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            when (destino) {
+                                0 -> {
+                                    TituloSeccion("Tarea con progreso")
+                                    Acciones {
+                                        Button(onClick = vm::tareaLarga, enabled = !corriendo) { Text("Iniciar") }
+                                        OutlinedButton(onClick = vm::cancelar, enabled = corriendo) { Text("Cancelar") }
+                                    }
+                                }
+                                1 -> SeccionPrimos(primos, limite, { limite = it }, vm::contar, vm::cancelarPrimos)
+                                2 -> SeccionCargas(carga, simular, vm::cambiarSimularError,
+                                    vm::cargarUnaPorUna, vm::cargarALaVez)
+                            }
+                        }
                     }
+                    Spacer(Modifier.height(12.dp))
                 }
-                Text(mensaje)
-                LinearProgressIndicator(
-                    progress = { progreso },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Text("${(progreso * 100).toInt()} %")
-            }
-            TarjetaTarea("Contar números primos") {
-                ControlesPrimos(primos, vm::contar, vm::cancelarPrimos)
-            }
-            TarjetaTarea("Dos cargas") {
-                ControlesCarga(
-                    estado = carga,
-                    simularError = simularError,
-                    cambiarSimularError = vm::cambiarSimularError,
-                    unaPorUna = vm::cargarUnaPorUna,
-                    aLaVez = vm::cargarALaVez
-                )
             }
         }
     }
 }
 
 @Composable
-private fun TarjetaTarea(titulo: String, contenido: @Composable () -> Unit) {
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(titulo, color = Azul, style = MaterialTheme.typography.titleMedium)
-            contenido()
+private fun PanelProgreso(progreso: Float, mensaje: String, entrada: Float, toques: Int, tocar: () -> Unit) {
+    BoxWithConstraints(Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp))
+        .background(Brush.linearGradient(listOf(Tinta, Color(0xFF51294D)))).padding(20.dp)) {
+        val apilado = maxWidth < 250.dp || LocalDensity.current.fontScale > 1.3f
+        val diametro = if (maxWidth >= 340.dp) 146.dp else 112.dp
+        val detalle: @Composable () -> Unit = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Progreso", color = Color(0xFFDACAD8), fontFamily = FontFamily.Monospace)
+                Text(mensaje, color = Color.White, fontFamily = FontFamily.Serif,
+                    style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                Button(onClick = tocar, colors = ButtonDefaults.buttonColors(containerColor = Lima,
+                    contentColor = Tinta)) { Text("Tócame · $toques") }
+            }
+        }
+        if (apilado) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Dial(progreso, entrada, Modifier.size(132.dp))
+                detalle()
+            }
+        } else {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(Modifier.weight(1f)) { detalle() }
+                Dial(progreso, entrada, Modifier.size(diametro))
+            }
         }
     }
 }
 
 @Composable
-private fun ControlesPrimos(estado: PrimosUi, contar: (Int) -> Unit, cancelar: () -> Unit) {
-    var texto by rememberSaveable { mutableStateOf(LIMITE_INICIAL.toString()) }
+private fun Selector(actual: Int, elegir: (Int) -> Unit) {
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).selectableGroup(),
+        horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        listOf("Tarea", "Primos", "Cargas").forEachIndexed { indice, nombre ->
+            val activo = actual == indice
+            Box(Modifier.clip(RoundedCornerShape(14.dp))
+                .background(if (activo) Tinta else Color(0xFFECE1DB))
+                .selectable(selected = activo, role = Role.Tab, onClick = { elegir(indice) })
+                .heightIn(min = 48.dp).padding(horizontal = 18.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center) {
+                Text(nombre, color = if (activo) Papel else Tinta, fontSize = 15.sp,
+                    fontWeight = if (activo) FontWeight.Bold else FontWeight.Normal)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SeccionPrimos(estado: PrimosUi, texto: String, editar: (String) -> Unit,
+                          contar: (Int) -> Unit, cancelar: () -> Unit) {
     val limite = texto.toIntOrNull()
     val calculando = estado == PrimosUi.Calculando
-
-    OutlinedTextField(
-        value = texto,
-        onValueChange = { nuevo ->
-            if (nuevo.all { it in '0'..'9' }) texto = nuevo
-        },
-        label = { Text("Hasta N") },
+    TituloSeccion("Números primos")
+    OutlinedTextField(value = texto, onValueChange = { if (it.all { c -> c in '0'..'9' }) editar(it) },
+        modifier = Modifier.fillMaxWidth(), label = { Text("Hasta N") },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        singleLine = true,
-        enabled = !calculando,
-        modifier = Modifier.fillMaxWidth()
-    )
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        singleLine = true, enabled = !calculando)
+    Acciones {
         Button(onClick = { limite?.let(contar) }, enabled = !calculando && limite != null && limite >= 2) {
             Text("Contar")
         }
@@ -114,66 +163,37 @@ private fun ControlesPrimos(estado: PrimosUi, contar: (Int) -> Unit, cancelar: (
     }
     when (estado) {
         PrimosUi.Inicial -> Unit
-        PrimosUi.Calculando -> Text("Calculando...")
-        PrimosUi.Cancelado -> Text("Cancelado")
-        is PrimosUi.Listo -> Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.medium,
-            color = Color(0xFFE0F3E4),
-            contentColor = Color(0xFF174628)
-        ) {
-            Text("Primos: ${estado.cantidad} · Tiempo: ${estado.milisegundos} ms",
-                modifier = Modifier.padding(12.dp))
+        PrimosUi.Calculando -> {
+            LinearProgressIndicator(Modifier.fillMaxWidth())
+            Text("Calculando…")
         }
+        PrimosUi.Cancelado -> Text("Cancelado")
+        is PrimosUi.Listo -> Resultado("${estado.cantidad} primos\nTiempo: ${estado.milisegundos} ms")
     }
 }
 
 @Composable
-private fun ControlesCarga(
-    estado: CargaUi,
-    simularError: Boolean,
-    cambiarSimularError: (Boolean) -> Unit,
-    unaPorUna: () -> Unit,
-    aLaVez: () -> Unit
-) {
+private fun SeccionCargas(estado: CargaUi, simular: Boolean, cambiar: (Boolean) -> Unit,
+                          secuencial: () -> Unit, paralelo: () -> Unit) {
     val disponible = estado != CargaUi.Cargando
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-    ) {
+    TituloSeccion("Dos cargas")
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text("Simular error", Modifier.weight(1f))
-        Switch(checked = simularError, onCheckedChange = cambiarSimularError, enabled = disponible)
+        Switch(checked = simular, onCheckedChange = cambiar, enabled = disponible)
     }
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedButton(onClick = unaPorUna, enabled = disponible) { Text("Una por una") }
-        Button(onClick = aLaVez, enabled = disponible) { Text("A la vez") }
+    Acciones {
+        OutlinedButton(onClick = secuencial, enabled = disponible) { Text("Una por una") }
+        Button(onClick = paralelo, enabled = disponible) { Text("A la vez") }
     }
     when (estado) {
         CargaUi.Inicial -> Unit
-        CargaUi.Cargando -> CircularProgressIndicator()
-        is CargaUi.Exito -> Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.medium,
-            color = Color(0xFFE0F3E4),
-            contentColor = Color(0xFF174628)
-        ) {
-            Column(Modifier.padding(12.dp)) {
-                Text(estado.modo, style = MaterialTheme.typography.titleMedium)
-                Text("Perfil: ${estado.perfil}")
-                Text("Pedidos: ${estado.pedidos}")
-                Text("Tiempo: ${estado.milisegundos} ms")
-            }
+        CargaUi.Cargando -> {
+            LinearProgressIndicator(Modifier.fillMaxWidth())
+            Text("Cargando perfil y pedidos…")
         }
-        is CargaUi.Error -> Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.errorContainer,
-            contentColor = MaterialTheme.colorScheme.onErrorContainer
-        ) {
-            Column(Modifier.padding(12.dp)) {
-                Text(estado.mensaje)
-                TextButton(onClick = aLaVez) { Text("Reintentar") }
-            }
+        is CargaUi.Exito -> Resultado("${estado.modo} · ${estado.milisegundos} ms\n${estado.perfil}\nPedidos: ${estado.pedidos}")
+        is CargaUi.Error -> Resultado(estado.mensaje, error = true) {
+            TextButton(onClick = paralelo) { Text("Reintentar") }
         }
     }
 }
