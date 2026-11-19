@@ -22,6 +22,7 @@ private val Azul = Color(0xFF15589A)
 fun PantallaTareas(vm: TareasViewModel) {
     val mensaje by vm.mensaje.collectAsState()
     val progreso by vm.progreso.collectAsState()
+    val corriendo by vm.corriendo.collectAsState()
     var toques by rememberSaveable { mutableIntStateOf(0) }
     Scaffold(topBar = {
         TopAppBar(
@@ -37,8 +38,13 @@ fun PantallaTareas(vm: TareasViewModel) {
                 Button(onClick = { toques++ }) {
                     Text("Tócame: $toques")
                 }
-                Button(onClick = vm::tareaLarga, enabled = mensaje != "Trabajando...") {
-                    Text("Iniciar")
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onClick = vm::tareaLarga, enabled = !corriendo) {
+                        Text("Iniciar")
+                    }
+                    OutlinedButton(onClick = vm::cancelar, enabled = corriendo) {
+                        Text("Cancelar")
+                    }
                 }
                 Text(mensaje)
                 LinearProgressIndicator(
