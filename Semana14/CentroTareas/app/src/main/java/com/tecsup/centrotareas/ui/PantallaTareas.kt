@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tecsup.centrotareas.model.CargaUi
 import com.tecsup.centrotareas.model.PrimosUi
+import com.tecsup.centrotareas.model.TiemposCarga
 import com.tecsup.centrotareas.viewmodel.TareasViewModel
 
 private const val LIMITE_INICIAL = 500000
@@ -56,6 +57,7 @@ fun PantallaTareas(vm: TareasViewModel) {
     val corriendo by vm.corriendo.collectAsState()
     val primos by vm.primos.collectAsState()
     val carga by vm.carga.collectAsState()
+    val tiempos by vm.tiempos.collectAsState()
     val simular by vm.simularError.collectAsState()
 
     MaterialTheme(colorScheme = ColoresCentro) {
@@ -101,7 +103,7 @@ fun PantallaTareas(vm: TareasViewModel) {
                                     }
                                 }
                                 1 -> SeccionPrimos(primos, limite, { limite = it }, vm::contar, vm::cancelarPrimos)
-                                2 -> SeccionCargas(carga, simular, vm::cambiarSimularError,
+                                2 -> SeccionCargas(carga, tiempos, simular, vm::cambiarSimularError,
                                     vm::cargarUnaPorUna, vm::cargarALaVez)
                             }
                         }
@@ -185,7 +187,7 @@ private fun SeccionPrimos(estado: PrimosUi, texto: String, editar: (String) -> U
 }
 
 @Composable
-private fun SeccionCargas(estado: CargaUi, simular: Boolean, cambiar: (Boolean) -> Unit,
+private fun SeccionCargas(estado: CargaUi, tiempos: TiemposCarga, simular: Boolean, cambiar: (Boolean) -> Unit,
                           secuencial: () -> Unit, paralelo: () -> Unit) {
     val disponible = estado != CargaUi.Cargando
     TituloSeccion("Dos cargas")
@@ -208,4 +210,5 @@ private fun SeccionCargas(estado: CargaUi, simular: Boolean, cambiar: (Boolean) 
             TextButton(onClick = paralelo) { Text("Reintentar") }
         }
     }
+    TablaTiempos(tiempos)
 }

@@ -1,11 +1,14 @@
 package com.tecsup.centrotareas.viewmodel
 
+import android.os.SystemClock
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tecsup.centrotareas.data.TareasRepository
 import com.tecsup.centrotareas.model.CargaUi
+import com.tecsup.centrotareas.model.ModoCarga
 import com.tecsup.centrotareas.model.PrimosUi
+import com.tecsup.centrotareas.model.TiemposCarga
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -81,6 +84,9 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
     private val _carga = MutableStateFlow<CargaUi>(CargaUi.Inicial)
     val carga: StateFlow<CargaUi> = _carga.asStateFlow()
 
+    private val _tiempos = MutableStateFlow(TiemposCarga())
+    val tiempos: StateFlow<TiemposCarga> = _tiempos.asStateFlow()
+
     private val _simularError = MutableStateFlow(false)
     val simularError: StateFlow<Boolean> = _simularError.asStateFlow()
 
@@ -89,7 +95,7 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
     }
 
     fun cargarUnaPorUna() {
-        cargar("Una por una") { simular ->
+        cargar(ModoCarga.SECUENCIAL) { simular ->
             val perfil = repo.cargarPerfil()
             val pedidos = repo.cargarPedidos(simular)
             perfil to pedidos
@@ -97,7 +103,7 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
     }
 
     fun cargarALaVez() {
-        cargar("A la vez") { simular ->
+        cargar(ModoCarga.PARALELO) { simular ->
             coroutineScope {
                 val perfil = async { repo.cargarPerfil() }
                 val pedidos = async { repo.cargarPedidos(simular) }
@@ -106,16 +112,17 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
         }
     }
 
-    private fun cargar(modo: String, obtener: suspend (Boolean) -> Pair<String, List<String>>) {
+    private fun cargar(modo: ModoCarga, obtener: suspend (Boolean) -> Pair<String, List<String>>) {
         if (_carga.value == CargaUi.Cargando) return
         val simular = _simularError.value
         _carga.value = CargaUi.Cargando
         viewModelScope.launch {
             try {
-                val inicio = System.currentTimeMillis()
+                val inicio = SystemClock.elapsedRealtime()
                 val (perfil, pedidos) = obtener(simular)
-                val milisegundos = System.currentTimeMillis() - inicio
-                _carga.value = CargaUi.Exito(modo, perfil, pedidos.size, milisegundos)
+                val milisegundos = SystemClock.elapsedRealtime() - inicio
+                _tiempos.value = _tiempos.value.registrar(modo, milisegundos)
+                _carga.value = CargaUi.Exito(modo.etiqueta, perfil, pedidos.size, milisegundos)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
