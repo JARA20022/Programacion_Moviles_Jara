@@ -7,6 +7,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -18,6 +21,7 @@ private val Azul = Color(0xFF15589A)
 @Composable
 fun PantallaTareas(vm: TareasViewModel) {
     val mensaje by vm.mensaje.collectAsState()
+    var toques by rememberSaveable { mutableIntStateOf(0) }
     Scaffold(topBar = {
         TopAppBar(
             title = { Text("CentroTareas") },
@@ -29,8 +33,13 @@ fun PantallaTareas(vm: TareasViewModel) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             TarjetaTarea("Tarea con progreso") {
+                Button(onClick = { toques++ }) {
+                    Text("Tócame: $toques")
+                }
+                Button(onClick = vm::tareaLargaMala) {
+                    Text("Tarea larga (MAL)")
+                }
                 Text(mensaje)
-                // TODO Pasos 1 a 4: incorporar los controles de la tarea con progreso.
             }
             TarjetaTarea("Contar números primos") {
                 // TODO Paso 5: incorporar la entrada, los botones y el estado de primos.
