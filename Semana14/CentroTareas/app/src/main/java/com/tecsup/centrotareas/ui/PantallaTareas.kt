@@ -28,6 +28,7 @@ private val Azul = Color(0xFF15589A)
 @Composable
 fun PantallaTareas(vm: TareasViewModel) {
     val carga by vm.carga.collectAsState()
+    val simularError by vm.simularError.collectAsState()
     val primos by vm.primos.collectAsState()
     val mensaje by vm.mensaje.collectAsState()
     val progreso by vm.progreso.collectAsState()
@@ -66,7 +67,13 @@ fun PantallaTareas(vm: TareasViewModel) {
                 ControlesPrimos(primos, vm::contar, vm::cancelarPrimos)
             }
             TarjetaTarea("Dos cargas") {
-                ControlesCarga(carga, vm::cargarUnaPorUna, vm::cargarALaVez)
+                ControlesCarga(
+                    estado = carga,
+                    simularError = simularError,
+                    cambiarSimularError = vm::cambiarSimularError,
+                    unaPorUna = vm::cargarUnaPorUna,
+                    aLaVez = vm::cargarALaVez
+                )
             }
         }
     }
@@ -122,8 +129,21 @@ private fun ControlesPrimos(estado: PrimosUi, contar: (Int) -> Unit, cancelar: (
 }
 
 @Composable
-private fun ControlesCarga(estado: CargaUi, unaPorUna: () -> Unit, aLaVez: () -> Unit) {
+private fun ControlesCarga(
+    estado: CargaUi,
+    simularError: Boolean,
+    cambiarSimularError: (Boolean) -> Unit,
+    unaPorUna: () -> Unit,
+    aLaVez: () -> Unit
+) {
     val disponible = estado != CargaUi.Cargando
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+    ) {
+        Text("Simular error", Modifier.weight(1f))
+        Switch(checked = simularError, onCheckedChange = cambiarSimularError, enabled = disponible)
+    }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedButton(onClick = unaPorUna, enabled = disponible) { Text("Una por una") }
         Button(onClick = aLaVez, enabled = disponible) { Text("A la vez") }
@@ -144,6 +164,16 @@ private fun ControlesCarga(estado: CargaUi, unaPorUna: () -> Unit, aLaVez: () ->
                 Text("Tiempo: ${estado.milisegundos} ms")
             }
         }
-        is CargaUi.Error -> Unit // TODO Paso 7: mostrar el error y permitir reintentar.
+        is CargaUi.Error -> Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.errorContainer,
+            contentColor = MaterialTheme.colorScheme.onErrorContainer
+        ) {
+            Column(Modifier.padding(12.dp)) {
+                Text(estado.mensaje)
+                TextButton(onClick = aLaVez) { Text("Reintentar") }
+            }
+        }
     }
 }
