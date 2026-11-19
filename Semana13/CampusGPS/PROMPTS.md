@@ -11,3 +11,10 @@ IA utilizada: ChatGPT. Primera mejora del GLAB: filtrar por categoría.
 | Prompt que escribí | Qué respondió ChatGPT | Qué cambié o descarté | Por qué |
 |---|---|---|---|
 | «ahora que sigue» (continuación de las mejoras del GLAB) | Propuso los radios de 100, 200 y 500 m y preparó el cambio para el mapa y las tarjetas. | La implementación guarda el radio en MapaViewModel y reutiliza las distancias ya calculadas. Conserva en la lista los lugares que quedan fuera y etiqueta los que están dentro. | Puedo comparar distancias y combinar el radio con el filtro por categoría sin repetir el cálculo en Compose. |
+
+
+## Mejora 3 · Mapa en modo oscuro
+
+| Prompt que escribí (extracto) | Qué respondió ChatGPT | Qué cambié o descarté | Por qué |
+|---|---|---|---|
+| «en la lista voy presionando y no cambie el verde no se si eso deberia cambiar en el paso 3» | Aclaró que el verde indica el lugar más cercano de la categoría visible. Para la tercera mejora propuso aplicar un estilo nocturno al mapa según el tema de Android. | Conservé el verde para la cercanía y la tarjeta resaltada para la selección. En el tema oscuro cambié los colores del mapa y el contraste del círculo. | Así puedo explorar otra tarjeta sin perder la referencia de cuál es el destino más cercano. El cambio de tema pertenece a la vista. |

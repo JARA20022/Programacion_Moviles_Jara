@@ -97,3 +97,12 @@ Android puede dejar de mostrar el diálogo. Si la solicitud vuelve sin un permis
 - [x] Con la ubicación apagada aparece la acción Reintentar.
 - [x] Al rotar se mantienen la ubicación y la lista.
 - [x] Revisé que la clave de Maps y local.properties estén fuera de los archivos versionados del proyecto.
+
+
+## Mejoras de la Fase 2
+
+- **Filtro por categoría.** Mapa y lista observan los mismos lugares filtrados. El marcador verde indica el más cercano entre los visibles. La tarjeta resaltada y el globo indican cuál seleccioné.
+- **Radio de cercanía.** Puedo elegir 100, 200 o 500 metros. El mapa muestra el círculo alrededor de mi ubicación y las tarjetas indican qué lugares quedan dentro.
+- **Mapa en modo oscuro.** Cuando activo el tema oscuro de Android, CampusGPS aplica el estilo de `res/raw/mapa_nocturno.json` con `MapStyleOptions` y aclara el borde del círculo. Al volver al tema claro se recupera el mapa diurno.
+
+Las decisiones y los prompts que utilicé están en [PROMPTS.md](PROMPTS.md).
