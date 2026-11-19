@@ -36,8 +36,8 @@ fun PantallaTareas(vm: TareasViewModel) {
                 Button(onClick = { toques++ }) {
                     Text("Tócame: $toques")
                 }
-                Button(onClick = vm::tareaLargaMala) {
-                    Text("Tarea larga (MAL)")
+                Button(onClick = vm::tareaLarga, enabled = mensaje != "Trabajando...") {
+                    Text("Tarea larga")
                 }
                 Text(mensaje)
             }
