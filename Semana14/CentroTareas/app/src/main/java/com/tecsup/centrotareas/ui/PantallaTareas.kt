@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.tecsup.centrotareas.model.CargaUi
 import com.tecsup.centrotareas.model.PrimosUi
 import com.tecsup.centrotareas.viewmodel.TareasViewModel
 
@@ -26,6 +27,7 @@ private val Azul = Color(0xFF15589A)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaTareas(vm: TareasViewModel) {
+    val carga by vm.carga.collectAsState()
     val primos by vm.primos.collectAsState()
     val mensaje by vm.mensaje.collectAsState()
     val progreso by vm.progreso.collectAsState()
@@ -64,7 +66,7 @@ fun PantallaTareas(vm: TareasViewModel) {
                 ControlesPrimos(primos, vm::contar, vm::cancelarPrimos)
             }
             TarjetaTarea("Dos cargas") {
-                // TODO Pasos 6 y 7: incorporar las cargas simuladas y el reintento.
+                ControlesCarga(carga, vm::cargarUnaPorUna, vm::cargarALaVez)
             }
         }
     }
@@ -116,5 +118,32 @@ private fun ControlesPrimos(estado: PrimosUi, contar: (Int) -> Unit, cancelar: (
             Text("Primos: ${estado.cantidad} · Tiempo: ${estado.milisegundos} ms",
                 modifier = Modifier.padding(12.dp))
         }
+    }
+}
+
+@Composable
+private fun ControlesCarga(estado: CargaUi, unaPorUna: () -> Unit, aLaVez: () -> Unit) {
+    val disponible = estado != CargaUi.Cargando
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedButton(onClick = unaPorUna, enabled = disponible) { Text("Una por una") }
+        Button(onClick = aLaVez, enabled = disponible) { Text("A la vez") }
+    }
+    when (estado) {
+        CargaUi.Inicial -> Unit
+        CargaUi.Cargando -> CircularProgressIndicator()
+        is CargaUi.Exito -> Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+            color = Color(0xFFE0F3E4),
+            contentColor = Color(0xFF174628)
+        ) {
+            Column(Modifier.padding(12.dp)) {
+                Text(estado.modo, style = MaterialTheme.typography.titleMedium)
+                Text("Perfil: ${estado.perfil}")
+                Text("Pedidos: ${estado.pedidos}")
+                Text("Tiempo: ${estado.milisegundos} ms")
+            }
+        }
+        is CargaUi.Error -> Unit // TODO Paso 7: mostrar el error y permitir reintentar.
     }
 }
