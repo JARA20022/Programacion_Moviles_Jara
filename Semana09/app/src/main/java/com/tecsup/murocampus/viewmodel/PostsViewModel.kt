@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+data class DetalleUi(val post: Post, val comentarios: List<Comentario>)
 
 class PostsViewModel(private val repo: PostRepository) : ViewModel() {
     private val _lista = MutableStateFlow<UiState<List<Post>>>(UiState.Cargando)
@@ -29,5 +30,32 @@ class PostsViewModel(private val repo: PostRepository) : ViewModel() {
         }
     }
 
+    private val _detalle = MutableStateFlow<UiState<DetalleUi>>(UiState.Cargando)
+    val detalle = _detalle.asStateFlow()
+    private var solicitudDetalle: Job? = null
+
+    private var detalleId: Int? = null
+
+    fun asegurarDetalle(id: Int) {
+        if (id != detalleId) abrir(id)
+    }
+
+    fun abrir(id: Int) {
+        detalleId = id
+        solicitudDetalle?.cancel()
+        _detalle.value = UiState.Cargando
+        solicitudDetalle = viewModelScope.launch {
+            repo.detalle(id).onSuccess { post ->
+                repo.comentarios(id).onSuccess { comentarios ->
+                    _detalle.value = UiState.Exito(DetalleUi(post, comentarios))
+                }.onFailure { _detalle.value = UiState.Error(mensajeDe(it)) }
+            }.onFailure { _detalle.value = UiState.Error(mensajeDe(it)) }
+        }
+    }
+
+    fun cerrarDetalle() {
+        detalleId = null
+        solicitudDetalle?.cancel()
+    }
 
 }

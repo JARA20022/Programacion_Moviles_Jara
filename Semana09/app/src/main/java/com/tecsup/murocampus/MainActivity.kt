@@ -13,6 +13,8 @@ import com.tecsup.murocampus.data.PostRepositoryRemote
 import com.tecsup.murocampus.data.remote.RetrofitClient
 import com.tecsup.murocampus.ui.*
 import com.tecsup.murocampus.viewmodel.*
+import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.saveable.rememberSaveable
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -24,6 +26,14 @@ class MainActivity : ComponentActivity() {
         setContent {
             MuroCampusTheme {
                 val vm: PostsViewModel = viewModel(factory = fabrica)
+                var idSeleccionado by rememberSaveable { mutableStateOf<Int?>(null) }
+
+                val volver: () -> Unit = {
+                    vm.cerrarDetalle()
+                    idSeleccionado = null
+
+                }
+                BackHandler(enabled = idSeleccionado != null, onBack = volver)
                 Scaffold(
                     topBar = {
                         TopAppBar(
@@ -32,14 +42,32 @@ class MainActivity : ComponentActivity() {
                                 containerColor = MaterialTheme.colorScheme.primary,
                                 titleContentColor = MaterialTheme.colorScheme.onPrimary,
                                 navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
-                            )
-
+                            ),
+                            navigationIcon = {
+                                if (idSeleccionado != null) {
+                                    IconButton(onClick = volver) {
+                                        Text("←", color = MaterialTheme.colorScheme.onPrimary)
+                                    }
+                                }
+                            }
                         )
                     }
 
                 ) { margen ->
                     Box(Modifier.fillMaxSize().padding(margen)) {
-                        PantallaLista(vm)
+                        val id = idSeleccionado
+                        when {
+
+                            id != null -> {
+                                // El ViewModel conserva el detalle al rotar y lo repone al recrearse el proceso.
+                                LaunchedEffect(id) { vm.asegurarDetalle(id) }
+                                PantallaDetalle(vm, id)
+                            }
+                            else -> PantallaLista(vm) { elegido ->
+                                vm.abrir(elegido)
+                                idSeleccionado = elegido
+                            }
+                        }
                     }
                 }
             }
