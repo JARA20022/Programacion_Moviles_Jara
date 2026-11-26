@@ -8,6 +8,9 @@ import com.tecsup.murocampus.model.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
 
 data class DetalleUi(val post: Post, val comentarios: List<Comentario>)
@@ -15,6 +18,23 @@ data class DetalleUi(val post: Post, val comentarios: List<Comentario>)
 class PostsViewModel(private val repo: PostRepository) : ViewModel() {
     private val _lista = MutableStateFlow<UiState<List<Post>>>(UiState.Cargando)
     val lista = _lista.asStateFlow()
+    private val _consulta = MutableStateFlow("")
+    val consulta = _consulta.asStateFlow()
+    val resultados = combine(lista, consulta) { estado, consultaActual ->
+        when (estado) {
+            is UiState.Exito -> {
+                val texto = consultaActual.trim()
+                UiState.Exito(estado.datos.filter { it.title.contains(texto, ignoreCase = true) })
+            }
+            UiState.Cargando -> UiState.Cargando
+            is UiState.Error -> estado
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, UiState.Cargando)
+
+    fun buscar(texto: String) {
+        _consulta.value = texto
+    }
+
     private var solicitudLista: Job? = null
 
     private val _usuarioFiltro = MutableStateFlow<Int?>(null)
