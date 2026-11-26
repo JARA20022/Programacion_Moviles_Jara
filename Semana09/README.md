@@ -54,11 +54,11 @@ La actividad conecta las dependencias. El ViewModel ejecuta las solicitudes en `
 
 | Lista | Detalle y comentarios |
 | --- | --- |
-| ![Lista de publicaciones](capturas/lista.png) | ![Detalle con comentarios](capturas/detalle.png) |
+| ![Lista de publicaciones](capturas/mejora-ia/lista.png) | ![Detalle con comentarios](capturas/mejora-ia/detalle.png) |
 
 | Filtro por usuario | Crear publicación | Error de conexión |
 | --- | --- | --- |
-| ![Filtro aplicado](capturas/filtro.png) | ![Respuesta al publicar](capturas/crear.png) | ![Error y botón Reintentar](capturas/error.png) |
+| ![Filtro aplicado](capturas/mejora-ia/filtro.png) | ![Respuesta al publicar](capturas/mejora-ia/crear.png) | ![Error y botón Reintentar](capturas/mejora-ia/error.png) |
 
 ## Para pensar
 
@@ -68,3 +68,18 @@ La actividad conecta las dependencias. El ViewModel ejecuta las solicitudes en `
 4. **¿Qué pasa si se omiten INTERNET o ignoreUnknownKeys?** Android impide abrir las conexiones de red sin el permiso del manifiesto. Con la configuración estricta de JSON, un campo nuevo desconocido puede causar un error de deserialización. Ignorar claves desconocidas permite esa ampliación. Un campo obligatorio ausente sigue produciendo un error.
 5. **¿Por qué usar when sobre UiState?** Hay un solo estado vigente y el compilador exige cubrir las variantes de la interfaz sellada. Tres indicadores independientes podrían dejar visibles a la vez la carga y el error.
 6. **¿Qué cambiaría con un servicio real?** JSONPlaceholder responde al POST con un ID simulado y la lista posterior conserva sus datos originales. Con una API que persista cambios usaría el ID real devuelto, actualizaría la lista tras el éxito y aplicaría la autenticación y la validación que exija el servidor.
+
+## Fase 2 · mejora-ia
+
+| Mejora | Implementación |
+| --- | --- |
+| Encabezado de solicitudes | EncabezadoJson agrega Accept application/json a los clientes HTTP |
+| Búsqueda local | StateFlow combina la lista descargada y la consulta, ignorando mayúsculas |
+| Edición del título | PATCH posts/{id}, Repository con Result y pantalla con respuesta del servidor |
+| Diseño | Fondo nocturno, acentos turquesa y violeta, botones degradados y transiciones de entrada |
+
+Se agregaron data/remote/EncabezadoJson.kt y ui/PantallaEditar.kt. CambioTitulo representa el cuerpo del PATCH. El ViewModel depende de PostRepository y la UI observa los StateFlow con collectAsStateWithLifecycle.
+
+JSONPlaceholder simula PATCH. El título devuelto se conserva durante la sesión del ViewModel y se refleja en lista y detalle. Al reiniciar la app se recuperan los datos originales del servicio.
+
+Las pruebas interactivas incluyen búsqueda, encabezado HTTP, edición, rotación, creación y recuperación de conexión. Las capturas de esta rama están en capturas/mejora-ia. El registro de revisión asistida se encuentra en PROMPTS.md.
