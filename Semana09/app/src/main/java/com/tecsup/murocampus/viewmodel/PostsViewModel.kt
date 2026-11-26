@@ -65,4 +65,22 @@ class PostsViewModel(private val repo: PostRepository) : ViewModel() {
         solicitudDetalle?.cancel()
     }
 
+    private val _creacion = MutableStateFlow<UiState<Post>?>(null)
+    val creacion = _creacion.asStateFlow()
+    private var envio: Job? = null
+
+    fun iniciarCreacion() {
+        envio?.cancel()
+        _creacion.value = null
+    }
+
+    fun publicar(titulo: String, texto: String) {
+        if (titulo.isBlank() || texto.isBlank() || envio?.isActive == true) return
+        _creacion.value = UiState.Cargando
+        envio = viewModelScope.launch {
+            repo.crear(NuevoPost(1, titulo.trim(), texto.trim()))
+                .onSuccess { _creacion.value = UiState.Exito(it) }
+                .onFailure { _creacion.value = UiState.Error(mensajeDe(it)) }
+        }
+    }
 }

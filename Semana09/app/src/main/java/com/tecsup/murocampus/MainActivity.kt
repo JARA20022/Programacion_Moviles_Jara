@@ -27,13 +27,13 @@ class MainActivity : ComponentActivity() {
             MuroCampusTheme {
                 val vm: PostsViewModel = viewModel(factory = fabrica)
                 var idSeleccionado by rememberSaveable { mutableStateOf<Int?>(null) }
-
+                var creando by rememberSaveable { mutableStateOf(false) }
                 val volver: () -> Unit = {
                     vm.cerrarDetalle()
                     idSeleccionado = null
-
+                    creando = false
                 }
-                BackHandler(enabled = idSeleccionado != null, onBack = volver)
+                BackHandler(enabled = idSeleccionado != null || creando, onBack = volver)
                 Scaffold(
                     topBar = {
                         TopAppBar(
@@ -44,20 +44,26 @@ class MainActivity : ComponentActivity() {
                                 navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                             ),
                             navigationIcon = {
-                                if (idSeleccionado != null) {
+                                if (idSeleccionado != null || creando) {
                                     IconButton(onClick = volver) {
                                         Text("←", color = MaterialTheme.colorScheme.onPrimary)
                                     }
                                 }
                             }
                         )
+                    },
+                    floatingActionButton = {
+                        if (idSeleccionado == null && !creando) {
+                            FloatingActionButton(onClick = { vm.iniciarCreacion(); creando = true }) {
+                                Text("+")
+                            }
+                        }
                     }
-
                 ) { margen ->
                     Box(Modifier.fillMaxSize().padding(margen)) {
                         val id = idSeleccionado
                         when {
-
+                            creando -> PantallaCrear(vm)
                             id != null -> {
                                 // El ViewModel conserva el detalle al rotar y lo repone al recrearse el proceso.
                                 LaunchedEffect(id) { vm.asegurarDetalle(id) }
