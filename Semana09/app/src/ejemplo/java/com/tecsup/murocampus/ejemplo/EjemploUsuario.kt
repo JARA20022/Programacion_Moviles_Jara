@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import com.tecsup.murocampus.data.remote.EncabezadoJson
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import retrofit2.http.GET
@@ -50,6 +52,7 @@ class UsuariosViewModel(private val repo: UsuarioRepository) : ViewModel() {
 object EjemploUsuario {
     val repository: UsuarioRepository by lazy {
         val api = Retrofit.Builder()
+            .client(OkHttpClient.Builder().addInterceptor(EncabezadoJson).build())
             .baseUrl("https://jsonplaceholder.typicode.com/")
             .addConverterFactory(Json { ignoreUnknownKeys = true }.asConverterFactory("application/json".toMediaType()))
             .build().create(UsuarioApi::class.java)

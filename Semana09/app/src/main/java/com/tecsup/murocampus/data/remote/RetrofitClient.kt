@@ -10,7 +10,7 @@ import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
 object RetrofitClient {
     private val json = Json { ignoreUnknownKeys = true }
-    private val cliente = OkHttpClient.Builder().apply {
+    private val cliente = OkHttpClient.Builder().addInterceptor(EncabezadoJson).apply {
         if (BuildConfig.DEBUG) {
             addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY })
         }
