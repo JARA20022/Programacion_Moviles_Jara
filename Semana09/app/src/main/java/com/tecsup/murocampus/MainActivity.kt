@@ -13,6 +13,7 @@ import com.tecsup.murocampus.data.PostRepositoryRemote
 import com.tecsup.murocampus.data.remote.RetrofitClient
 import com.tecsup.murocampus.ui.*
 import com.tecsup.murocampus.viewmodel.*
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.saveable.rememberSaveable
 
@@ -20,6 +21,8 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.statusBarColor = android.graphics.Color.rgb(28, 29, 68)
+        window.navigationBarColor = android.graphics.Color.rgb(11, 16, 37)
         val fabrica = PostsViewModelFactory(PostsViewModel::class.java) {
             PostsViewModel(PostRepositoryRemote(RetrofitClient.api))
         }
@@ -33,46 +36,34 @@ class MainActivity : ComponentActivity() {
                     idSeleccionado = null
                     creando = false
                 }
+                val dispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
                 BackHandler(enabled = idSeleccionado != null || creando, onBack = volver)
                 Scaffold(
                     topBar = {
-                        TopAppBar(
-                            title = { Text("MuroCampus") },
-                            colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                                navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
-                            ),
-                            navigationIcon = {
-                                if (idSeleccionado != null || creando) {
-                                    IconButton(onClick = volver) {
-                                        Text("←", color = MaterialTheme.colorScheme.onPrimary)
-                                    }
-                                }
-                            }
-                        )
+                        BarraCampus(idSeleccionado != null || creando) { dispatcher?.onBackPressed() }
                     },
                     floatingActionButton = {
                         if (idSeleccionado == null && !creando) {
-                            FloatingActionButton(onClick = { vm.iniciarCreacion(); creando = true }) {
-                                Text("+")
-                            }
+                            BotonCampus("＋  Publicar", onClick = {
+                                vm.iniciarCreacion()
+                                creando = true
+                            })
                         }
                     }
                 ) { margen ->
                     Box(Modifier.fillMaxSize().padding(margen)) {
                         val id = idSeleccionado
                         when {
-                            creando -> PantallaCrear(vm)
+                            creando -> Entrada { PantallaCrear(vm) }
                             id != null -> {
                                 // El ViewModel conserva el detalle al rotar y lo repone al recrearse el proceso.
                                 LaunchedEffect(id) { vm.asegurarDetalle(id) }
-                                PantallaDetalle(vm, id)
+                                Entrada { PantallaDetalle(vm, id) }
                             }
-                            else -> PantallaLista(vm) { elegido ->
+                            else -> Entrada { PantallaLista(vm) { elegido ->
                                 vm.abrir(elegido)
                                 idSeleccionado = elegido
-                            }
+                            } }
                         }
                     }
                 }

@@ -29,19 +29,17 @@ fun PantallaDetalle(vm: PostsViewModel, id: Int) {
             }
             LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 item {
-                    Text("Usuario ${post.userId}", color = MaterialTheme.colorScheme.primary)
-                    Text(post.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                    CabeceraEditorial(post.title, "Usuario ${post.userId}   /   Publicación #${post.id}")
                     Spacer(Modifier.height(8.dp))
                     Text(post.body)
-                    OutlinedButton(onClick = { vm.terminarEdicion(); editando = true }) {
-                        Text("Editar título")
-                    }
+                    Spacer(Modifier.height(12.dp))
+                    BotonCampus("Editar título", { vm.terminarEdicion(); editando = true })
                     Spacer(Modifier.height(16.dp))
                     Text("Comentarios (${comentarios.size})", style = MaterialTheme.typography.titleMedium)
                 }
                 items(comentarios, key = { it.id }) { comentario ->
                     Card(Modifier.fillMaxWidth()) {
-                        Column(Modifier.padding(12.dp)) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Text(comentario.email, color = MaterialTheme.colorScheme.primary)
                             Text(comentario.body)
                         }

@@ -35,21 +35,20 @@ fun PantallaCrear(vm: PostsViewModel) {
         Modifier.fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text("Crear publicación", style = MaterialTheme.typography.headlineSmall)
+        CabeceraEditorial("Nueva publicación", "Publicar como Usuario 1")
         OutlinedTextField(titulo, { titulo = it }, Modifier.fillMaxWidth(), enabled = disponible,
             label = { Text("Título") }, singleLine = true)
         OutlinedTextField(texto, { texto = it }, Modifier.fillMaxWidth(), enabled = disponible,
             label = { Text("Contenido") }, minLines = 3)
-        Button(onClick = publicar, enabled = disponible && titulo.isNotBlank() && texto.isNotBlank()) {
-            Text("Publicar")
-        }
+        BotonCampus("Publicar", publicar, Modifier.fillMaxWidth(),
+            activo = disponible && titulo.isNotBlank() && texto.isNotBlank())
         when (val actual = estado) {
             null -> Unit
             UiState.Cargando -> CircularProgressIndicator()
             is UiState.Exito -> Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.small,
-                color = Color(0xFFE6F4E9), contentColor = Color(0xFF145329)
+                color = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer
             ) {
                 Text("Publicado con id ${actual.datos.id}", Modifier.padding(12.dp))
             }

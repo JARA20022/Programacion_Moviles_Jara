@@ -21,21 +21,19 @@ fun PantallaEditar(vm: PostsViewModel, post: Post, alCerrar: () -> Unit) {
         Modifier.fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        Text("Editar título", style = MaterialTheme.typography.headlineMedium)
+        CabeceraEditorial("Editar título", "Publicación #${post.id}")
         when (val actual = estado) {
             is UiState.Exito -> {
                 Text("Respuesta del servidor", color = MaterialTheme.colorScheme.primary)
                 Text(actual.datos.title, style = MaterialTheme.typography.titleLarge)
                 Text("Publicación #${actual.datos.id}")
-                Button(onClick = alCerrar) { Text("Volver al detalle") }
+                BotonCampus("Volver al detalle", alCerrar)
             }
             else -> {
                 OutlinedTextField(titulo, { titulo = it }, modifier = Modifier.fillMaxWidth(),
                     enabled = !ocupado, label = { Text("Título") })
-                Button(onClick = { vm.guardarTitulo(post.id, titulo) },
-                    enabled = !ocupado && titulo.isNotBlank() && titulo.trim() != post.title) {
-                    Text("Guardar título")
-                }
+                BotonCampus("Guardar título", { vm.guardarTitulo(post.id, titulo) }, Modifier.fillMaxWidth(),
+                    activo = !ocupado && titulo.isNotBlank() && titulo.trim() != post.title)
                 if (ocupado) LinearProgressIndicator(Modifier.fillMaxWidth())
                 if (actual is UiState.Error) Text(actual.mensaje, color = MaterialTheme.colorScheme.error)
                 TextButton(onClick = alCerrar) { Text("Volver al detalle") }
