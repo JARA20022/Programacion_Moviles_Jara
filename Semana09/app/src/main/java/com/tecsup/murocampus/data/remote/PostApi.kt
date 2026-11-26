@@ -3,6 +3,7 @@ package com.tecsup.murocampus.data.remote
 import com.tecsup.murocampus.model.Comentario
 import com.tecsup.murocampus.model.NuevoPost
 import com.tecsup.murocampus.model.Post
+import com.tecsup.murocampus.model.CambioTitulo
 import retrofit2.http.*
 
 interface PostApi {
@@ -17,6 +18,9 @@ interface PostApi {
 
     @GET("posts")
     suspend fun porUsuario(@Query("userId") userId: Int): List<Post>
+
+    @PATCH("posts/{id}")
+    suspend fun editarTitulo(@Path("id") id: Int, @Body cambio: CambioTitulo): Post
 
     @POST("posts")
     suspend fun crear(@Body nuevo: NuevoPost): Post

@@ -35,6 +35,12 @@ class PostsViewModel(private val repo: PostRepository) : ViewModel() {
         _consulta.value = texto
     }
 
+    // JSONPlaceholder simula PATCH. La sesión conserva el título devuelto por el servidor.
+    private val titulosEditados = mutableMapOf<Int, String>()
+
+    private fun conTituloDeSesion(post: Post): Post =
+        titulosEditados[post.id]?.let { post.copy(title = it) } ?: post
+
     private var solicitudLista: Job? = null
 
     private val _usuarioFiltro = MutableStateFlow<Int?>(null)
@@ -52,7 +58,7 @@ class PostsViewModel(private val repo: PostRepository) : ViewModel() {
         solicitudLista = viewModelScope.launch {
             _lista.value = UiState.Cargando
             val resultado = _usuarioFiltro.value?.let { repo.porUsuario(it) } ?: repo.listar()
-            resultado.onSuccess { _lista.value = UiState.Exito(it) }
+            resultado.onSuccess { _lista.value = UiState.Exito(it.map(::conTituloDeSesion)) }
                 .onFailure { _lista.value = UiState.Error(mensajeDe(it)) }
         }
     }
@@ -74,13 +80,43 @@ class PostsViewModel(private val repo: PostRepository) : ViewModel() {
         solicitudDetalle = viewModelScope.launch {
             repo.detalle(id).onSuccess { post ->
                 repo.comentarios(id).onSuccess { comentarios ->
-                    _detalle.value = UiState.Exito(DetalleUi(post, comentarios))
+                    _detalle.value = UiState.Exito(DetalleUi(conTituloDeSesion(post), comentarios))
                 }.onFailure { _detalle.value = UiState.Error(mensajeDe(it)) }
             }.onFailure { _detalle.value = UiState.Error(mensajeDe(it)) }
         }
     }
 
+    private val _edicion = MutableStateFlow<UiState<Post>?>(null)
+    val edicion = _edicion.asStateFlow()
+    private var guardado: Job? = null
+
+    fun terminarEdicion() {
+        guardado?.cancel()
+        _edicion.value = null
+    }
+
+    fun guardarTitulo(id: Int, texto: String) {
+        val titulo = texto.trim()
+        if (id != detalleId || titulo.isEmpty() || guardado?.isActive == true) return
+        _edicion.value = UiState.Cargando
+        guardado = viewModelScope.launch {
+            repo.editarTitulo(id, titulo).onSuccess { actualizado ->
+                titulosEditados[id] = actualizado.title
+                val listaActual = _lista.value
+                if (listaActual is UiState.Exito) {
+                    _lista.value = UiState.Exito(listaActual.datos.map(::conTituloDeSesion))
+                }
+                val detalleActual = _detalle.value
+                if (detalleActual is UiState.Exito && detalleActual.datos.post.id == id) {
+                    _detalle.value = UiState.Exito(detalleActual.datos.copy(post = actualizado))
+                }
+                _edicion.value = UiState.Exito(actualizado)
+            }.onFailure { _edicion.value = UiState.Error(mensajeDe(it)) }
+        }
+    }
+
     fun cerrarDetalle() {
+        terminarEdicion()
         detalleId = null
         solicitudDetalle?.cancel()
     }
