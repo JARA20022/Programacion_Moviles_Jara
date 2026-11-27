@@ -15,4 +15,10 @@ object Notificador {
   if (Build.VERSION.SDK_INT >= 26) context.getSystemService(NotificationManager::class.java).createNotificationChannel(NotificationChannel(CANAL,"Avisos",NotificationManager.IMPORTANCE_DEFAULT))
  }
  fun tienePermiso(context: Context): Boolean = Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(context,android.Manifest.permission.POST_NOTIFICATIONS)==PackageManager.PERMISSION_GRANTED
+ @Suppress("MissingPermission")
+ fun mostrar(context: Context, aviso: Aviso): Boolean {
+  if (!tienePermiso(context)) return false
+  val builder = NotificationCompat.Builder(context,CANAL).setSmallIcon(R.drawable.ic_notificacion).setContentTitle(aviso.titulo).setContentText(aviso.texto).setPriority(NotificationCompat.PRIORITY_DEFAULT).setAutoCancel(true)
+  return try { NotificationManagerCompat.from(context).notify(aviso.id,builder.build()); true } catch (_: SecurityException) { false }
+ }
 }

@@ -27,12 +27,16 @@ import com.tecsup.avisoscampus.notificacion.Notificador
  val permiso by vm.permiso.collectAsState()
  val pedir=rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { vm.permisoRespondido(it) }
  LaunchedEffect(Unit) { if(Notificador.tienePermiso(contexto)) vm.permisoRespondido(true) }
+ LaunchedEffect(vm) { vm.eventos.collect { aviso ->
+ Notificador.mostrar(contexto,aviso)
+ } }
  Scaffold(topBar={ TopAppBar(title={Text("AvisosCampus")},colors=TopAppBarDefaults.topAppBarColors(containerColor=MaterialTheme.colorScheme.primary,titleContentColor=Color.White)) }) { padding ->
  Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
  Tarjeta("Permiso de notificaciones") {
   Text(when(permiso) { Permiso.SinPedir -> "Sin pedir"; Permiso.Concedido -> "Permitido"; Permiso.Denegado -> "Denegado" },color=when(permiso) { Permiso.SinPedir -> Color.Gray; Permiso.Concedido -> Color(0xFF238636); Permiso.Denegado -> Color.Red })
   Button(onClick={ if(Build.VERSION.SDK_INT>=33) pedir.launch(android.Manifest.permission.POST_NOTIFICATIONS) else vm.permisoRespondido(true) }) { Text("Permitir notificaciones") }
  }
+ Tarjeta("Avisos") { Button(onClick={vm.avisarAhora()}) { Text("Mostrar aviso") } }
  }
  }
 }
