@@ -14,4 +14,5 @@ object Notificador {
  fun crearCanal(context: Context) {
   if (Build.VERSION.SDK_INT >= 26) context.getSystemService(NotificationManager::class.java).createNotificationChannel(NotificationChannel(CANAL,"Avisos",NotificationManager.IMPORTANCE_DEFAULT))
  }
+ fun tienePermiso(context: Context): Boolean = Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(context,android.Manifest.permission.POST_NOTIFICATIONS)==PackageManager.PERMISSION_GRANTED
 }
