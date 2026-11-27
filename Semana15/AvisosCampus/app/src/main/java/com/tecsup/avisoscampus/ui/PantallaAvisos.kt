@@ -30,6 +30,7 @@ import com.tecsup.avisoscampus.notificacion.Notificador
  LaunchedEffect(vm) { vm.eventos.collect { aviso ->
  Notificador.mostrar(contexto,aviso)
  } }
+ val faltan by vm.faltan.collectAsState()
  Scaffold(topBar={ TopAppBar(title={Text("AvisosCampus")},colors=TopAppBarDefaults.topAppBarColors(containerColor=MaterialTheme.colorScheme.primary,titleContentColor=Color.White)) }) { padding ->
  Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
  Tarjeta("Permiso de notificaciones") {
@@ -37,6 +38,11 @@ import com.tecsup.avisoscampus.notificacion.Notificador
   Button(onClick={ if(Build.VERSION.SDK_INT>=33) pedir.launch(android.Manifest.permission.POST_NOTIFICATIONS) else vm.permisoRespondido(true) }) { Text("Permitir notificaciones") }
  }
  Tarjeta("Avisos") { Button(onClick={vm.avisarAhora()}) { Text("Mostrar aviso") } }
+ Tarjeta("Recordatorio") {
+  Button(onClick={vm.recordarEn()},enabled=faltan==null) { Text("Recordar en 10 s") }
+  OutlinedButton(onClick={vm.cancelarRecordatorio()},enabled=faltan!=null) { Text("Cancelar") }
+  faltan?.let { Text("Faltan $it s") }
+ }
  }
  }
 }
