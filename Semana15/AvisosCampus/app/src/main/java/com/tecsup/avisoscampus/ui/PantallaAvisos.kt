@@ -40,6 +40,7 @@ import com.tecsup.avisoscampus.receiver.ModoAvionReceiver
    onDispose { contexto.unregisterReceiver(receptor) }
   } else { onDispose {} }
  }
+ val avisos by vm.avisos.collectAsState()
  Scaffold(topBar={ TopAppBar(title={Text("AvisosCampus")},colors=TopAppBarDefaults.topAppBarColors(containerColor=MaterialTheme.colorScheme.primary,titleContentColor=Color.White)) }) { padding ->
  Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
  Tarjeta("Permiso de notificaciones") {
@@ -53,6 +54,7 @@ import com.tecsup.avisoscampus.receiver.ModoAvionReceiver
   faltan?.let { Text("Faltan $it s") }
  }
  Tarjeta("Receptor de anuncios") { Text("Escuchar el modo avión"); Switch(checked=escuchando,onCheckedChange=vm::cambiarEscucha) }
+ HistorialAvisos(avisos)
  }
  }
 }
