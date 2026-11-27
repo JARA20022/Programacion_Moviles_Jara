@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat
 import com.tecsup.avisoscampus.viewmodel.AvisosViewModel
 import com.tecsup.avisoscampus.model.*
 import com.tecsup.avisoscampus.notificacion.Notificador
+import com.tecsup.avisoscampus.receiver.ModoAvionReceiver
 
 @Composable fun Tarjeta(titulo: String, contenido: @Composable ColumnScope.() -> Unit) {
  Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) { Text(titulo,color=MaterialTheme.colorScheme.primary,style=MaterialTheme.typography.titleMedium); contenido() } }
@@ -31,6 +32,14 @@ import com.tecsup.avisoscampus.notificacion.Notificador
  Notificador.mostrar(contexto,aviso)
  } }
  val faltan by vm.faltan.collectAsState()
+ val escuchando by vm.escuchandoAvion.collectAsState()
+ DisposableEffect(escuchando,contexto) {
+  if(escuchando) {
+   val receptor=ModoAvionReceiver { vm.alCambiarModoAvion(it) }
+   ContextCompat.registerReceiver(contexto,receptor,IntentFilter(Intent.ACTION_AIRPLANE_MODE_CHANGED),ContextCompat.RECEIVER_NOT_EXPORTED)
+   onDispose { contexto.unregisterReceiver(receptor) }
+  } else { onDispose {} }
+ }
  Scaffold(topBar={ TopAppBar(title={Text("AvisosCampus")},colors=TopAppBarDefaults.topAppBarColors(containerColor=MaterialTheme.colorScheme.primary,titleContentColor=Color.White)) }) { padding ->
  Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
  Tarjeta("Permiso de notificaciones") {
@@ -43,6 +52,7 @@ import com.tecsup.avisoscampus.notificacion.Notificador
   OutlinedButton(onClick={vm.cancelarRecordatorio()},enabled=faltan!=null) { Text("Cancelar") }
   faltan?.let { Text("Faltan $it s") }
  }
+ Tarjeta("Receptor de anuncios") { Text("Escuchar el modo avión"); Switch(checked=escuchando,onCheckedChange=vm::cambiarEscucha) }
  }
  }
 }
