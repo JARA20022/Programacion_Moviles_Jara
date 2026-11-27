@@ -19,6 +19,8 @@ object Notificador {
  fun mostrar(context: Context, aviso: Aviso): Boolean {
   if (!tienePermiso(context)) return false
   val builder = NotificationCompat.Builder(context,CANAL).setSmallIcon(R.drawable.ic_notificacion).setContentTitle(aviso.titulo).setContentText(aviso.texto).setPriority(NotificationCompat.PRIORITY_DEFAULT).setAutoCancel(true)
+  val pendiente=PendingIntent.getActivity(context,0,Intent(context,MainActivity::class.java),PendingIntent.FLAG_IMMUTABLE)
+  builder.setContentIntent(pendiente)
   return try { NotificationManagerCompat.from(context).notify(aviso.id,builder.build()); true } catch (_: SecurityException) { false }
  }
 }
