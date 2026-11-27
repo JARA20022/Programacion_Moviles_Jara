@@ -58,3 +58,10 @@ dependencies {
  implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
  implementation("androidx.core:core-ktx:1.13.1")
 }
+
+// AVISOSCAMPUS_MEJORA_DEPENDENCIAS
+dependencies {
+ implementation("androidx.datastore:datastore-preferences:1.1.1")
+ implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
+ implementation("androidx.compose.animation:animation")
+}
