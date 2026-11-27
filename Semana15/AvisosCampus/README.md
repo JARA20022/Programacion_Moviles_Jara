@@ -89,3 +89,77 @@ Implementación asistida por IA y revisión manual por etapas. Las capturas corr
 - [x] Permiso denegado conserva historial y muestra error sin cierre (verificado por el estudiante durante la ejecución).
 - [x] Rotación conserva cuenta e historial (verificado por el estudiante durante la ejecución).
 - [x] No hay Context en ViewModel y el receptor se quita en onDispose (verificado por el estudiante durante la ejecución).
+
+<!-- AVISOSCAMPUS_MEJORA -->
+## Fase 2 — mejora-ia
+
+Esta sección describe la versión actual de la rama mejora-ia. Las secciones anteriores y sus capturas documentan la fase main.
+
+### Mejoras elegidas del GLAB
+
+| Mejora solicitada | Implementación | Capas modificadas |
+|---|---|---|
+| Historial persistente | DataStore Preferences conserva hasta 200 avisos; muestra 20 del filtro elegido. Permite borrar con confirmación. | Repository, ViewModel y UI; Application crea la dependencia. |
+| Dos canales | Avisos con IMPORTANCE_DEFAULT; Urgentes con IMPORTANCE_HIGH para recordatorios. | Notificador; el ViewModel emite avisos con origen RECORDATORIO. |
+| Texto largo | BigTextStyle permite expandir el texto completo en el panel de notificaciones. | Notificador. |
+
+### Diseño y adaptación
+
+Tema oscuro azul noche, gradientes violeta/turquesa, acentos menta y ámbar, tarjetas redondeadas, contador circular animado y transiciones de visibilidad/tamaño. La pantalla usa una columna en ventanas estrechas y dos a partir de 700 dp disponibles. No bloquea la orientación: admite vertical y horizontal, desplazamiento y áreas seguras del sistema.
+
+Los filtros y el diálogo conservan su estado con rememberSaveable. El ViewModel conserva la cuenta y el switch al rotar. El Repository persiste el historial al cerrar el proceso; el temporizador sigue siendo una corrutina y no se garantiza tras matar el proceso o reiniciar el teléfono.
+
+### Arquitectura
+
+```mermaid
+flowchart TD
+ UI["PantallaAvisos"] --> VM["AvisosViewModel"]
+ VM --> RI["AvisosRepository: interface"]
+ RP["AvisosRepositoryPersistente"] -. implementa .-> RI
+ RP --> DS["DataStore Preferences"]
+ UI --> N["Notificador"]
+```
+
+El ViewModel y el Repository no reciben Context. AvisosApp crea una sola instancia de DataStore y suministra el Repository. El receptor se registra con RECEIVER_NOT_EXPORTED y se desregistra en onDispose. Los PendingIntent usan FLAG_IMMUTABLE. El ViewModel registra el aviso antes de emitir el evento para notificar. DataStore serializa las actualizaciones; el identificador siguiente se guarda junto al historial.
+
+### Archivos principales de mejora-ia
+
+- `AvisosApp.kt`: composición de dependencias y canales.
+- `MainActivity.kt`: ViewModelProvider y tema.
+- `data/AvisosRepository.kt`: interface y almacenamiento DataStore.
+- `viewmodel/AvisosViewModel.kt`: estado, corrutina, eventos, borrado y manejo de errores.
+- `notificacion/Notificador.kt`: permiso, canales, BigTextStyle y PendingIntent.
+- `receiver/ModoAvionReceiver.kt`: receptor del sistema conservado de main.
+- `ui/CampusTheme.kt`: paleta nueva.
+- `ui/PantallaAvisos.kt`: diseño adaptable, animaciones y controles.
+- `ui/HistorialAvisos.kt`: historial con etiquetas de origen y fecha/hora.
+
+### Comprobaciones de la fase 2
+
+El script compila antes de cada commit. La compilación no sustituye estas pruebas manuales; marca las casillas después de realizarlas:
+
+- [ ] Generar avisos, cerrar el proceso y volver a abrir: el historial permanece.
+- [ ] Girar durante el recordatorio: la cuenta continúa.
+- [ ] Minimizar durante el recordatorio: llega el aviso mientras el proceso sigue vivo.
+- [ ] Cancelar: no llega el recordatorio.
+- [ ] Consultar Avisos y Urgentes en Ajustes.
+- [ ] Recordatorio utiliza Urgentes; aviso del botón utiliza Avisos.
+- [ ] Expandir una notificación: aparece el texto completo.
+- [ ] Tocar la notificación: abre la app y desaparece del panel.
+- [ ] Switch activo: modo avión genera avisos; apagado: no genera avisos.
+- [ ] Permiso denegado: guarda el aviso y muestra mensaje, sin cierre inesperado.
+- [ ] Conceder permiso desde Ajustes y volver: actualiza el estado.
+- [ ] Filtrar el historial y borrar con confirmación.
+- [ ] Probar vertical y horizontal sin botones cortados.
+
+La aparición de un aviso emergente depende también de los ajustes de Android y del usuario, como No molestar y la configuración del canal. Las capturas de main se conservan; las nuevas capturas de mejora-ia son opcionales en el script y no se generan ni se inventan.
+
+### Asistencia con IA
+
+Implementación preparada con ChatGPT. El GLAB solicita una intervención real con Gemini en Android Studio: `PROMPTS.md` incluye un prompt para esa revisión y campos que deben completarse con la respuesta real.
+
+### Referencias
+
+- [DataStore](https://developer.android.com/topic/libraries/architecture/datastore)
+- [Diseños Compose](https://developer.android.com/develop/ui/compose/layouts/basics)
+- [Notificaciones](https://developer.android.com/develop/ui/views/notifications)
