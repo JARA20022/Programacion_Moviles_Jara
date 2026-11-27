@@ -29,7 +29,7 @@ import com.tecsup.avisoscampus.receiver.ModoAvionReceiver
  val pedir=rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { vm.permisoRespondido(it) }
  LaunchedEffect(Unit) { if(Notificador.tienePermiso(contexto)) vm.permisoRespondido(true) }
  LaunchedEffect(vm) { vm.eventos.collect { aviso ->
- Notificador.mostrar(contexto,aviso)
+ if(!Notificador.mostrar(contexto,aviso)) vm.noSePudoMostrar()
  } }
  val faltan by vm.faltan.collectAsState()
  val escuchando by vm.escuchandoAvion.collectAsState()
@@ -41,6 +41,7 @@ import com.tecsup.avisoscampus.receiver.ModoAvionReceiver
   } else { onDispose {} }
  }
  val avisos by vm.avisos.collectAsState()
+ val mensaje by vm.mensaje.collectAsState()
  Scaffold(topBar={ TopAppBar(title={Text("AvisosCampus")},colors=TopAppBarDefaults.topAppBarColors(containerColor=MaterialTheme.colorScheme.primary,titleContentColor=Color.White)) }) { padding ->
  Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
  Tarjeta("Permiso de notificaciones") {
@@ -55,6 +56,8 @@ import com.tecsup.avisoscampus.receiver.ModoAvionReceiver
  }
  Tarjeta("Receptor de anuncios") { Text("Escuchar el modo avión"); Switch(checked=escuchando,onCheckedChange=vm::cambiarEscucha) }
  HistorialAvisos(avisos)
+ mensaje?.let { Text(it,Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.errorContainer).padding(12.dp),color=MaterialTheme.colorScheme.onErrorContainer) }
+ if(permiso==Permiso.Denegado) OutlinedButton(onClick={contexto.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE,contexto.packageName))}) { Text("Abrir ajustes") }
  }
  }
 }
