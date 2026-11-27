@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.tecsup.avisoscampus.viewmodel.AvisosViewModel
 import com.tecsup.avisoscampus.model.*
+import com.tecsup.avisoscampus.notificacion.Notificador
 
 @Composable fun Tarjeta(titulo: String, contenido: @Composable ColumnScope.() -> Unit) {
  Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) { Text(titulo,color=MaterialTheme.colorScheme.primary,style=MaterialTheme.typography.titleMedium); contenido() } }
